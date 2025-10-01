@@ -1,0 +1,43 @@
+# Node
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtualenvs
+.env
+.venv
+ENV/
+venv/
+
+# Logs
+*.log
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Build output
+build/
+dist/
+*.egg-info/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Misc
+*.sqlite3
+.env.local
+.env.*.local
+.cache/
+.next/
+
+# Frappe
+sites/
