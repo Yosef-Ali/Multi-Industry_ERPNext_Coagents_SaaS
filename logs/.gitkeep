@@ -1,0 +1,3 @@
+# Logs directory
+# Configured with rotation: daily or 100MB size limit
+# Retention: 30 days minimum

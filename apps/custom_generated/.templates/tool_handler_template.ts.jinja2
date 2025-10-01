@@ -1,0 +1,85 @@
+/**
+ * Auto-Generated Tool Handler for {{ tool_name }}
+ * DocType: {{ doctype }}
+ * Operation: {{ operation_type }}
+ * Generated on: {{ generated_at }}
+ */
+
+import { z } from 'zod';
+import { frappeClient } from '../../../api';
+import { assessRisk } from '../../../utils/risk_classifier';
+
+// Input schema for {{ tool_name }}
+const {{ tool_name }}InputSchema = z.object({
+  {% for param in parameters %}
+  {{ param.name }}: z.{{ param.zod_type }}(){% if param.optional %}.optional(){% endif %},
+  {% endfor %}
+});
+
+type {{ tool_name }}Input = z.infer<typeof {{ tool_name }}InputSchema>;
+
+/**
+ * {{ description }}
+ * {% if requires_approval %}⚠️ Requires approval before execution{% else %}✅ Executes without approval (read-only){% endif %}
+ */
+export async function {{ tool_name }}(input: {{ tool_name }}Input) {
+  // Validate input
+  const validated = {{ tool_name }}InputSchema.parse(input);
+
+  {% if operation_type == 'read' %}
+  // Read operation - no approval required
+  const result = await frappeClient.{{ frappe_method }}({
+    doctype: '{{ doctype }}',
+    ...validated
+  });
+
+  return {
+    success: true,
+    data: result,
+    requires_approval: false
+  };
+  {% else %}
+  // Write operation - assess risk and require approval
+  const riskLevel = await assessRisk({
+    doctype: '{{ doctype }}',
+    operation: '{{ operation_type }}',
+    fields: {{ affected_fields|tojson }},
+    data: validated
+  });
+
+  return {
+    requires_approval: true,
+    risk_level: riskLevel,
+    preview: {
+      doctype: '{{ doctype }}',
+      operation: '{{ operation_type }}',
+      data: validated,
+      affected_fields: {{ affected_fields|tojson }}
+    },
+    execute: async () => {
+      // This runs after approval
+      const result = await frappeClient.{{ frappe_method }}({
+        doctype: '{{ doctype }}',
+        ...validated
+      });
+      return result;
+    }
+  };
+  {% endif %}
+}
+
+// Auto-register with tool registry
+export const {{ tool_name }}Tool = {
+  name: '{{ tool_name }}',
+  description: '{{ description }}',
+  inputSchema: {{ tool_name }}InputSchema,
+  handler: {{ tool_name }},
+  industry: '{{ industry }}',
+  requires_approval: {{ requires_approval|lower }},
+  metadata: {
+    doctype: '{{ doctype }}',
+    operation: '{{ operation_type }}',
+    generated: true,
+    generated_at: '{{ generated_at }}'
+  }
+};

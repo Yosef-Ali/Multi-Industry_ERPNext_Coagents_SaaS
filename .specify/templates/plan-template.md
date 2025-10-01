@@ -47,7 +47,36 @@
 ## Constitution Check
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+### I. Native-First Integration
+- [ ] Feature augments existing ERPNext UI via Client Scripts (no parallel interfaces)
+- [ ] Client scripts register on appropriate DocTypes
+- [ ] Preserves native workflows and UX patterns
+
+### II. Safe-by-Default Mutations
+- [ ] All mutations flow through typed tool handlers
+- [ ] Tools call Frappe REST/RPC APIs (no raw SQL)
+- [ ] Input validation implemented before API calls
+- [ ] Operations are idempotent with retry support
+
+### III. Human-in-the-Loop (HITL) Approval
+- [ ] High-impact operations identified
+- [ ] Approval prompts designed using renderAndWaitForResponse
+- [ ] Read operations and low-risk writes exempted appropriately
+
+### IV. Deterministic Workflows (LangGraph)
+- [ ] Multi-step flows encoded as state machines
+- [ ] Single-turn operations use direct agent calls
+- [ ] Retry policies and audit trail planned
+
+### V. Modular Vertical Architecture
+- [ ] Common tools remain industry-agnostic
+- [ ] Industry-specific logic isolated to vertical packages
+- [ ] No circular dependencies between common and vertical code
+
+### VI. Spec-Driven Development
+- [ ] Feature has spec.md before planning
+- [ ] Design artifacts in /specs/[###-feature-name]/
+- [ ] TDD approach planned (tests before implementation)
 
 ## Project Structure
 

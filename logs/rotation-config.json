@@ -1,0 +1,15 @@
+{
+  "rotation": {
+    "maxSize": "100M",
+    "maxAge": "30d",
+    "compress": true,
+    "format": "jsonl"
+  },
+  "files": {
+    "audit": "audit-%DATE%.jsonl",
+    "tool_execution": "tools-%DATE%.jsonl",
+    "workflow": "workflows-%DATE%.jsonl",
+    "approval": "approvals-%DATE%.jsonl",
+    "error": "errors-%DATE%.jsonl"
+  }
+}

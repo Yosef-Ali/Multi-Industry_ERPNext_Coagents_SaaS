@@ -1,0 +1,44 @@
+"""
+{{ app_title }} - Auto-Generated ERPNext App
+Generated on: {{ generated_at }}
+Industry: {{ industry }}
+"""
+
+app_name = "{{ app_name }}"
+app_title = "{{ app_title }}"
+app_publisher = "ERPNext Coagents - Auto Generated"
+app_description = "{{ description }}"
+app_icon = "octicon octicon-{{ icon }}"
+app_color = "{{ color }}"
+app_email = "support@erpnext-coagents.com"
+app_license = "MIT"
+
+# Auto-generated Client Scripts
+doctype_js = {
+    {% for doctype in doctypes %}
+    "{{ doctype }}": "{{ app_name }}/client_scripts/{{ doctype|lower|replace(' ', '_') }}.js",
+    {% endfor %}
+}
+
+# Auto-generated fixtures
+fixtures = [
+    {
+        "doctype": "Custom Field",
+        "filters": [["dt", "in", {{ doctypes|tojson }}]],
+    },
+    {
+        "doctype": "Custom DocPerm",
+        "filters": [["parent", "in", {{ doctypes|tojson }}]],
+    }
+]
+
+# Workflow hooks (if workflows generated)
+{% if workflows %}
+doc_events = {
+    {% for workflow in workflows %}
+    "{{ workflow.doctype }}": {
+        "on_update": "{{ app_name }}.workflows.{{ workflow.name }}.on_update",
+    },
+    {% endfor %}
+}
+{% endif %}

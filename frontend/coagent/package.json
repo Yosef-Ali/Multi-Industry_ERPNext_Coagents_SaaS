@@ -1,0 +1,35 @@
+{
+  "name": "erpnext-coagent-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "@copilotkit/react-core": "^1.0.0",
+    "@copilotkit/react-ui": "^1.0.0",
+    "axios": "^1.6.0",
+    "zustand": "^4.4.7",
+    "@tanstack/react-query": "^5.14.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.8",
+    "typescript": "^5.3.3",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/jest-dom": "^6.1.5",
+    "vitest": "^1.0.4",
+    "eslint": "^8.54.0",
+    "eslint-plugin-react": "^7.33.2",
+    "prettier": "^3.1.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "lint": "eslint src --ext ts,tsx",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\""
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "creation": "{{ now }}",
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    {% for field in fields %}"{{ field.fieldname }}"{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "fields": [
+    {% for field in fields %}
+    {
+      "fieldname": "{{ field.fieldname }}",
+      "fieldtype": "{{ field.fieldtype }}",
+      "label": "{{ field.label }}",
+      {% if field.options %}"options": "{{ field.options }}",{% endif %}
+      {% if field.reqd %}"reqd": {{ field.reqd|int }},{% endif %}
+      {% if field.read_only %}"read_only": {{ field.read_only|int }},{% endif %}
+      {% if field.in_list_view %}"in_list_view": {{ field.in_list_view|int }},{% endif %}
+      {% if field.in_standard_filter %}"in_standard_filter": {{ field.in_standard_filter|int }},{% endif %}
+      {% if field.default %}"default": "{{ field.default }}",{% endif %}
+      "description": "{{ field.description }}"
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "modified": "{{ now }}",
+  "modified_by": "Administrator",
+  "module": "{{ module }}",
+  "name": "{{ doctype_name }}",
+  "naming_rule": "{{ naming_rule }}",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+    }
+  ],
+  "sort_field": "modified",
+  "sort_order": "DESC",
+  "states": [],
+  "track_changes": 1,
+  "track_seen": 1,
+  "track_views": 1
+}

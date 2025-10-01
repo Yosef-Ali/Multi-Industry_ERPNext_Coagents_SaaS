@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: erpnext-coagent-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  agent-gateway:
+    build:
+      context: ./services/agent-gateway
+      dockerfile: Dockerfile
+    container_name: erpnext-coagent-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - REDIS_URL=redis://redis:6379
+      - ERPNEXT_API_URL=${ERPNEXT_API_URL}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    volumes:
+      - ./services/agent-gateway:/app
+      - /app/node_modules
+      - ./logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  workflows:
+    build:
+      context: ./services/workflows
+      dockerfile: Dockerfile
+    container_name: erpnext-coagent-workflows
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - ERPNEXT_API_URL=${ERPNEXT_API_URL}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    volumes:
+      - ./services/workflows:/app
+      - ./logs:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  generator:
+    build:
+      context: ./services/generator
+      dockerfile: Dockerfile
+    container_name: erpnext-coagent-generator
+    ports:
+      - "8001:8001"
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - ERPNEXT_API_URL=${ERPNEXT_API_URL}
+    volumes:
+      - ./services/generator:/app
+      - ./apps:/output/apps
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend/coagent
+      dockerfile: Dockerfile
+    container_name: erpnext-coagent-frontend
+    ports:
+      - "5173:80"
+    environment:
+      - VITE_GATEWAY_URL=http://localhost:3000
+    volumes:
+      - ./frontend/coagent:/app
+      - /app/node_modules
+    depends_on:
+      - agent-gateway
+
+volumes:
+  redis_data:
+    driver: local

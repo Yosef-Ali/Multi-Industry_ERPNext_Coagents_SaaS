@@ -1,0 +1,45 @@
+/**
+ * Auto-Generated Client Script for {{ doctype }}
+ * Generated on: {{ generated_at }}
+ * Purpose: Inject Copilot button for AI coagent assistance
+ */
+
+frappe.ui.form.on('{{ doctype }}', {
+  refresh(frm) {
+    // Add Copilot button to toolbar
+    if (!frm.is_new()) {
+      frm.add_custom_button(__('🤖 Copilot'), function() {
+        // Open copilot panel with current document context
+        frappe.call({
+          method: 'coagent.api.start_session',
+          args: {
+            doctype: frm.doctype,
+            doc_name: frm.doc.name,
+            user: frappe.session.user
+          },
+          callback: function(r) {
+            if (r.message) {
+              // Open side panel with WebSocket connection
+              frappe.copilot_panel.open({
+                session_id: r.message.session_id,
+                doctype: frm.doctype,
+                doc_name: frm.doc.name,
+                gateway_url: '{{ gateway_url }}'
+              });
+            }
+          }
+        });
+      }, __('AI Assistant'));
+    }
+  },
+
+  // Auto-generated event handlers based on DocType fields
+  {% for field in high_impact_fields %}
+  {{ field.fieldname }}(frm) {
+    // Track high-impact field changes for approval workflow
+    if (frm.doc.{{ field.fieldname }}) {
+      frappe.copilot_panel.notify_field_change('{{ field.fieldname }}', frm.doc.{{ field.fieldname }});
+    }
+  },
+  {% endfor %}
+});

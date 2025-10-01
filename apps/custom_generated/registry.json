@@ -1,0 +1,41 @@
+{
+  "version": "1.0.0",
+  "generated_apps": [],
+  "metadata": {
+    "last_generated": null,
+    "total_apps_generated": 0,
+    "active_apps": 0,
+    "archived_apps": 0
+  },
+  "schema": {
+    "app_entry": {
+      "app_name": "string (snake_case)",
+      "display_name": "string",
+      "industry": "string (base industry or 'custom')",
+      "description": "string",
+      "status": "enum: draft|generating|active|archived",
+      "generated_at": "ISO 8601 timestamp",
+      "generated_by": "user_id",
+      "doctypes": [
+        {
+          "name": "string",
+          "fields_count": "number",
+          "has_workflow": "boolean"
+        }
+      ],
+      "tools": [
+        {
+          "name": "string",
+          "type": "enum: create|read|update|delete|custom",
+          "requires_approval": "boolean"
+        }
+      ],
+      "workflows": [
+        {
+          "name": "string",
+          "states_count": "number"
+        }
+      ]
+    }
+  }
+}
