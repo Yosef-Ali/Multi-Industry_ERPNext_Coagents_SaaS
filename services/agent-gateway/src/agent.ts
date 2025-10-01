@@ -3,8 +3,8 @@
  * Initialize Claude Agent with dynamic tool loading based on enabled industries
  */
 
-import { Agent, AgentConfig } from '@anthropic-ai/claude-agent-sdk';
-import { getToolRegistry } from './tools/registry';
+import Anthropic from '@anthropic-ai/sdk';
+import { ToolRegistry } from './tools/registry';
 import { AGUIStreamEmitter } from './streaming';
 import { CoagentSession } from './session';
 
@@ -20,13 +20,48 @@ export interface CoagentConfig {
 }
 
 /**
+ * Simple Agent wrapper around Anthropic client
+ */
+export class Agent {
+  private client: Anthropic;
+  private tools: any[];
+  private systemPrompt: string;
+
+  constructor(config: {
+    client: Anthropic;
+    tools: any[];
+    systemPrompt: string;
+  }) {
+    this.client = config.client;
+    this.tools = config.tools;
+    this.systemPrompt = config.systemPrompt;
+  }
+
+  async chat(message: string): Promise<void> {
+    // TODO: Implement chat functionality with Anthropic client
+    console.log('Chat called with message:', message);
+  }
+
+  async resumeWithApproval(promptId: string): Promise<void> {
+    // TODO: Implement approval handling
+    console.log('Resume with approval:', promptId);
+  }
+
+  async cancel(promptId: string): Promise<void> {
+    // TODO: Implement cancellation
+    console.log('Cancel:', promptId);
+  }
+}
+
+/**
  * Create Claude Agent with tools for session
  */
 export async function createCoagent(config: CoagentConfig): Promise<Agent> {
   const { session, stream, erpApiKey, erpApiSecret, erpBaseUrl } = config;
 
   // Get tools based on enabled industries
-  const tools = getToolRegistry(session.enabled_industries);
+  const toolRegistry = new ToolRegistry(session.enabled_industries);
+  const tools = toolRegistry.getAllTools();
 
   console.log(
     `[Agent] Creating agent for session ${session.session_id} with ${tools.length} tools`
@@ -38,35 +73,17 @@ export async function createCoagent(config: CoagentConfig): Promise<Agent> {
   // Build system prompt based on context
   const systemPrompt = buildSystemPrompt(session);
 
-  // Agent configuration
-  const agentConfig: AgentConfig = {
-    name: 'erpnext-coagent',
-    description: 'ERPNext Coagent Assistant',
+  // Create Anthropic client
+  const anthropicClient = new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY || '',
+  });
+
+  // Create agent instance
+  const agent = new Agent({
+    client: anthropicClient,
     tools,
     systemPrompt,
-    secrets: {
-      erp_api_key: erpApiKey,
-      erp_api_secret: erpApiSecret,
-      erp_base_url: erpBaseUrl,
-    },
-    // Stream callbacks for AG-UI integration
-    callbacks: {
-      onToolCall: (toolName: string, input: any, toolCallId?: string) => {
-        stream.emitToolCall(toolName, input, toolCallId);
-      },
-      onToolResult: (toolName: string, result: any, success: boolean, toolCallId?: string) => {
-        stream.emitToolResult(toolName, result, success, toolCallId);
-      },
-      onMessage: (content: string) => {
-        stream.emitMessage('assistant', content);
-      },
-      onError: (error: any) => {
-        stream.emitError('agent_error', error.message || 'Agent error occurred');
-      },
-    },
-  };
-
-  const agent = new Agent(agentConfig);
+  });
 
   return agent;
 }

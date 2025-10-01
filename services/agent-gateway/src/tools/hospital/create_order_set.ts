@@ -5,7 +5,7 @@
 
 import { z } from 'zod';
 import { FrappeAPIClient } from '../../api';
-import { RiskClassifier, DocumentState } from '../../../../../apps/common/risk_classifier';
+// import { RiskClassifier, DocumentState } from '../../../../../apps/common/risk_classifier';
 
 const OrderSchema = z.object({
   type: z.enum(['Lab', 'Medication', 'Procedure', 'Imaging']),

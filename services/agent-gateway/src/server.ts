@@ -3,7 +3,7 @@
  * Main server setup with helmet, cors, rate-limit per comment-1.md
  */
 
-import express, { Application } from 'express';
+import express, { Application, Request, Response } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
@@ -21,7 +21,7 @@ import { errorHandler } from './middleware/errorHandler';
 import { correlationMiddleware } from './middleware/correlation';
 
 const app: Application = express();
-const PORT = process.env.GATEWAY_PORT || 3000;
+const PORT = parseInt(process.env.GATEWAY_PORT || '3000', 10);
 const HOST = process.env.GATEWAY_HOST || '0.0.0.0';
 
 // ============================================================================
@@ -38,7 +38,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
 ];
 
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
 
@@ -64,7 +64,7 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again later',
   standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
   legacyHeaders: false, // Disable `X-RateLimit-*` headers
-  handler: (req, res) => {
+  handler: (req: Request, res: Response) => {
     res.status(429).json({
       error: 'rate_limit_exceeded',
       message: 'Too many requests. Maximum 10 requests per second.',

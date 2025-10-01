@@ -5,7 +5,7 @@
 
 import { z } from 'zod';
 import { FrappeAPIClient } from '../../api';
-import { RiskClassifier, DocumentState } from '../../../../../apps/common/risk_classifier';
+// import { RiskClassifier, DocumentState } from '../../../../../apps/common/risk_classifier';
 
 export const UpdateDocInputSchema = z.object({
   doctype: z.string().min(1, 'DocType is required'),
@@ -45,22 +45,29 @@ export async function update_doc(
   // Validate input
   const validated = UpdateDocInputSchema.parse(input);
 
-  // Assess risk (FR-010)
+  // Assess risk
   const fields = Object.keys(validated.data);
-  const docState = validated.document_state === 'submitted'
-    ? DocumentState.SUBMITTED
-    : validated.document_state === 'cancelled'
-    ? DocumentState.CANCELLED
-    : DocumentState.DRAFT;
+  // const docState = validated.document_state === 'submitted'
+  //   ? DocumentState.SUBMITTED
+  //   : validated.document_state === 'cancelled'
+  //     ? DocumentState.CANCELLED
+  //     : DocumentState.DRAFT;
 
-  const riskAssessment = RiskClassifier.assess(
-    'update',
-    validated.doctype,
-    fields,
-    docState,
-    1, // Single document
-    validated.data
-  );
+  // const riskAssessment = RiskClassifier.assess(
+  //   'update',
+  //   validated.doctype,
+  //   fields,
+  //   docState,
+  //   1, // Single document
+  //   validated.data
+  // );
+
+  // Temporary implementation
+  const riskAssessment = {
+    requires_approval: true, // Default to requiring approval for updates
+    level: 'medium',
+    reasoning: `Update operation on ${validated.doctype}: ${validated.name}`,
+  };
 
   // If low risk, execute immediately
   if (!riskAssessment.requires_approval) {

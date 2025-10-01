@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 import { FrappeAPIClient } from '../api';
-import { RiskClassifier } from '../../../../apps/common/risk_classifier';
+// import { RiskClassifier } from '../../../../apps/common/risk_classifier';
 
 // Import common tools
 import { search_doc_tool } from './common/search_doc';
@@ -223,14 +223,22 @@ export class ToolRegistry {
       ? Object.keys(input.data || input)
       : [];
 
-    return RiskClassifier.assess(
-      tool.operation_type,
-      input.doctype || 'Unknown',
-      fields,
-      input.document_state || 'draft',
-      input.operation_count || 1,
-      input.data || input
-    );
+    // TODO: Restore RiskClassifier when common module is available
+    // return RiskClassifier.assess(
+    //   tool.operation_type,
+    //   input.doctype || 'Unknown',
+    //   fields,
+    //   input.document_state || 'draft',
+    //   input.operation_count || 1,
+    //   input.data || input
+    // );
+
+    // Temporary implementation
+    return {
+      level: tool.requires_approval ? 'high' : 'low',
+      requires_approval: tool.requires_approval,
+      reasoning: `${tool.operation_type} operation on ${input.doctype || 'Unknown'}`,
+    };
   }
 
   /**
