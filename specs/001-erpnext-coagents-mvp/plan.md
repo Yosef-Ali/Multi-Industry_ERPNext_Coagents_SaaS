@@ -13,9 +13,11 @@ Multi-industry ERPNext coagent assistance platform with AI-powered chat interfac
 **Primary Dependencies**:
 - Frappe Framework 15+ (ERPNext backend)
 - Anthropic Claude Agent SDK (TypeScript + Python bindings)
-- LangGraph 0.2+ (workflow engine)
+- LangGraph 0.2+ (workflow engine - Python)
 - CopilotKit 1.0+ with AG-UI (streaming agent UI)
 - React 18+ (frontend shell)
+- Express 4.18+ with helmet, cors, express-rate-limit (agent-gateway server)
+- Server-Sent Events (SSE) for AG-UI streaming endpoint
 
 **Storage**:
 - ERPNext MariaDB/PostgreSQL (business data via Frappe ORM)
@@ -152,8 +154,17 @@ Multi-Industry_ERPNext_Coagents_SaaS/
 │       └── {generated_app_name}/ # Each generated app (e.g., telemedicine_visits/)
 │
 ├── services/
-│   ├── agent-gateway/            # Claude Agent SDK service
+│   ├── agent-gateway/            # Claude Agent SDK service (Express + TypeScript)
 │   │   ├── src/
+│   │   │   ├── server.ts         # Express app with helmet, cors, rate-limit
+│   │   │   ├── routes/
+│   │   │   │   ├── health.ts     # GET /health endpoint
+│   │   │   │   ├── agui.ts       # POST /agui SSE streaming endpoint
+│   │   │   │   └── index.ts      # Route aggregation
+│   │   │   ├── middleware/
+│   │   │   │   ├── auth.ts       # Bearer token validation
+│   │   │   │   ├── validation.ts # Zod request validation
+│   │   │   │   └── errorHandler.ts # Error sanitization
 │   │   │   ├── agent.ts          # Main agent initialization
 │   │   │   ├── tools/
 │   │   │   │   ├── common/       # search_doc, get_doc, create_doc, etc.
@@ -162,9 +173,10 @@ Multi-Industry_ERPNext_Coagents_SaaS/
 │   │   │   │   ├── hospital/     # create_order_set, census_report
 │   │   │   │   ├── manufacturing/ # material_availability, bom_explosion
 │   │   │   │   ├── retail/       # inventory_check, sales_analytics
-│   │   │   │   └── education/    # applicant_workflow, interview_scheduling
+│   │   │   │   ├── education/    # applicant_workflow, interview_scheduling
+│   │   │   │   └── custom/       # Dynamically generated tools
 │   │   │   ├── session.ts        # Session management + RBAC token injection
-│   │   │   ├── streaming.ts      # AG-UI event stream handler
+│   │   │   ├── streaming.ts      # AG-UI SSE event emitter
 │   │   │   └── api.ts            # Frappe REST/RPC client
 │   │   ├── tests/
 │   │   │   ├── contract/         # Tool contract compliance tests

@@ -107,9 +107,9 @@
 - [x] T061 [P] Implement occupancy_report tool in services/agent-gateway/src/tools/hotel/occupancy_report.ts
 
 ### Agent Gateway - Hospital Tools [P]
-- [ ] T062 [P] Implement create_order_set tool in services/agent-gateway/src/tools/hospital/create_order_set.ts
-- [ ] T063 [P] Implement census_report tool in services/agent-gateway/src/tools/hospital/census_report.ts
-- [ ] T064 [P] Implement ar_by_payer tool in services/agent-gateway/src/tools/hospital/ar_by_payer.ts
+- [x] T062 [P] Implement create_order_set tool in services/agent-gateway/src/tools/hospital/create_order_set.ts
+- [x] T063 [P] Implement census_report tool in services/agent-gateway/src/tools/hospital/census_report.ts
+- [x] T064 [P] Implement ar_by_payer tool in services/agent-gateway/src/tools/hospital/ar_by_payer.ts
 
 ### Agent Gateway - Manufacturing Tools [P]
 - [ ] T065 [P] Implement material_availability tool in services/agent-gateway/src/tools/manufacturing/material_availability.ts
@@ -123,41 +123,49 @@
 - [ ] T069 [P] Implement applicant_workflow tool in services/agent-gateway/src/tools/education/applicant_workflow.ts
 - [ ] T070 [P] Implement interview_scheduling tool in services/agent-gateway/src/tools/education/interview_scheduling.ts
 
+### Agent Gateway - Express Server Setup
+- [x] T071 Implement Express server in services/agent-gateway/src/server.ts with helmet, cors, express-rate-limit middleware
+- [x] T072 Implement GET /health endpoint in services/agent-gateway/src/routes/health.ts
+- [x] T073 Implement POST /agui SSE streaming endpoint in services/agent-gateway/src/routes/agui.ts
+- [x] T074 Implement bearer token authentication middleware in services/agent-gateway/src/middleware/auth.ts
+- [x] T075 Implement Zod request validation middleware in services/agent-gateway/src/middleware/validation.ts
+- [x] T076 Implement error sanitization handler in services/agent-gateway/src/middleware/errorHandler.ts
+
 ### Agent Gateway - Session & Streaming
-- [ ] T071 Implement session management in services/agent-gateway/src/session.ts with CoagentSession lifecycle
-- [ ] T072 Implement AG-UI event streaming in services/agent-gateway/src/streaming.ts with SSE support
-- [ ] T073 Implement Claude Agent SDK initialization in services/agent-gateway/src/agent.ts with tool registry integration
+- [x] T077 Implement session management in services/agent-gateway/src/session.ts with CoagentSession lifecycle
+- [x] T078 Implement AG-UI SSE event emitter in services/agent-gateway/src/streaming.ts with correlation IDs
+- [x] T079 Implement Claude Agent SDK initialization in services/agent-gateway/src/agent.ts with tool registry integration
 
 ## Phase 3.4: Workflow Service
 
 ### Workflow Core [P]
-- [ ] T074 [P] Implement base state schemas in services/workflows/src/core/state.py with Pydantic models
-- [ ] T075 [P] Implement workflow registry in services/workflows/src/core/registry.py that loads graphs by industry/workflow_name
-- [ ] T076 Implement generic workflow executor in services/workflows/src/core/executor.py with interrupt/resume support
+- [ ] T080 [P] Implement base state schemas in services/workflows/src/core/state.py with Pydantic models
+- [ ] T081 [P] Implement workflow registry in services/workflows/src/core/registry.py that loads graphs by industry/workflow_name
+- [ ] T082 Implement generic workflow executor in services/workflows/src/core/executor.py with interrupt/resume support and AG-UI frame emission
 
 ### Workflow Reusable Nodes [P]
-- [ ] T077 [P] Implement approval node in services/workflows/src/nodes/approve.py with renderAndWaitForResponse integration
-- [ ] T078 [P] Implement retry node in services/workflows/src/nodes/retry.py with exponential backoff
-- [ ] T079 [P] Implement escalate node in services/workflows/src/nodes/escalate.py with Frappe Notification creation
-- [ ] T080 [P] Implement notify node in services/workflows/src/nodes/notify.py for in-app notifications
+- [ ] T083 [P] Implement approval node in services/workflows/src/nodes/approve.py with AG-UI ui_prompt emission
+- [ ] T084 [P] Implement retry node in services/workflows/src/nodes/retry.py with exponential backoff
+- [ ] T085 [P] Implement escalate node in services/workflows/src/nodes/escalate.py with Frappe Notification creation
+- [ ] T086 [P] Implement notify node in services/workflows/src/nodes/notify.py for in-app notifications and AG-UI frames
 
 ### Workflow Graphs - Hotel
-- [x] T081 Implement hotel O2C workflow graph in services/workflows/src/graphs/hotel/o2c.py with check_availability → create_reservation → confirm_payment → send_confirmation nodes
+- [x] T087 Implement hotel O2C workflow graph in services/workflows/src/graphs/hotel/o2c.py with check_availability → create_reservation → confirm_payment → send_confirmation nodes (update to emit AG-UI frames)
 
 ### Workflow Graphs - Hospital
-- [ ] T082 Implement hospital admissions workflow graph in services/workflows/src/graphs/hospital/admissions.py with register_patient → create_admission → create_orders → schedule_billing nodes
+- [ ] T088 Implement hospital admissions workflow graph in services/workflows/src/graphs/hospital/admissions.py with register_patient → create_admission → create_orders → schedule_billing nodes
 
 ### Workflow Graphs - Manufacturing
-- [ ] T083 Implement manufacturing production workflow graph in services/workflows/src/graphs/manufacturing/production.py with check_materials → create_work_order → issue_materials → complete_production nodes
+- [ ] T089 Implement manufacturing production workflow graph in services/workflows/src/graphs/manufacturing/production.py with check_materials → create_work_order → issue_materials → complete_production nodes
 
 ### Workflow Graphs - Retail
-- [ ] T084 Implement retail order fulfillment workflow graph in services/workflows/src/graphs/retail/order_fulfillment.py with validate_inventory → create_pick_list → pack_order → ship_order nodes
+- [ ] T090 Implement retail order fulfillment workflow graph in services/workflows/src/graphs/retail/order_fulfillment.py with validate_inventory → create_pick_list → pack_order → ship_order nodes
 
 ### Workflow Graphs - Education
-- [ ] T085 Implement education admissions workflow graph in services/workflows/src/graphs/education/admissions.py with receive_application → review_application → schedule_interview → make_decision nodes
+- [ ] T091 Implement education admissions workflow graph in services/workflows/src/graphs/education/admissions.py with receive_application → review_application → schedule_interview → make_decision nodes
 
 ### Workflow State Persistence
-- [ ] T086 Implement Redis-based workflow state persistence with 24-hour TTL and activity-based extension
+- [ ] T092 Implement Redis-based workflow state persistence with 24-hour TTL and activity-based extension
 
 ## Phase 3.5: Generator Service
 

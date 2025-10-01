@@ -1,6 +1,15 @@
 # Implementation Guide - ERPNext Coagents SaaS
 
-## 🎯 **Implementation Status: 56/144 Tasks Complete (39%)**
+## ⚠️ **ARCHITECTURE UPDATE from comment-1.md**
+
+### **Critical Requirements Added:**
+1. **Express Server** with helmet, cors, express-rate-limit middleware
+2. **POST /agui** SSE streaming endpoint for AG-UI events
+3. **Security Middleware**: Bearer token auth, Zod validation, error sanitization
+4. **AG-UI Frame Emission**: Workflows must emit node progress as UI frames
+5. **Observability**: Correlation IDs on all logs and errors
+
+## 🎯 **Implementation Status: 61/150 Tasks Complete (41%)**
 
 ### ✅ **Completed (Critical Path)**
 
