@@ -1,9 +1,11 @@
 /**
  * T097: EventStream Component
  * Displays streaming AG-UI messages in real-time with auto-scroll and message formatting
+ * Integrated with CopilotKit CoAgents for workflow state visualization
  */
 
 import React, { useEffect, useRef } from 'react';
+import { useCoAgentStateRender } from '@copilotkit/react-core';
 import {
   AGUIEventType,
   ChatMessageEvent,
@@ -23,6 +25,7 @@ export interface EventStreamProps {
   events: AGUIEventType[];
   isStreaming?: boolean;
   className?: string;
+  agentName?: string; // CoAgent name for state rendering
 }
 
 // ============================================================================
@@ -42,9 +45,53 @@ export const EventStream: React.FC<EventStreamProps> = ({
   events,
   isStreaming = false,
   className = '',
+  agentName,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // CoAgent state rendering for workflow progress
+  if (agentName) {
+    useCoAgentStateRender({
+      name: agentName,
+      render: ({ state }) => {
+        const workflowState = state as any;
+
+        if (!workflowState?.steps_completed?.length) {
+          return null;
+        }
+
+        return (
+          <div className="mb-3 rounded-lg border border-blue-200 bg-blue-50 p-3">
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-medium text-blue-900">Workflow Progress</span>
+              {workflowState.current_step && (
+                <span className="text-xs text-blue-600">
+                  Current: {workflowState.current_step}
+                </span>
+              )}
+            </div>
+            <div className="space-y-1">
+              {workflowState.steps_completed.map((step: string, index: number) => (
+                <div key={index} className="flex items-center gap-2 text-sm text-blue-800">
+                  <span className="text-green-600">✓</span>
+                  <span>{step}</span>
+                </div>
+              ))}
+            </div>
+            {workflowState.pending_approval && (
+              <div className="mt-2 flex items-center gap-2 rounded bg-yellow-100 px-2 py-1">
+                <span className="text-yellow-600">⏳</span>
+                <span className="text-xs text-yellow-800">
+                  Waiting for approval: {workflowState.approval_operation}
+                </span>
+              </div>
+            )}
+          </div>
+        );
+      },
+    });
+  }
 
   /**
    * Auto-scroll to bottom when new events arrive

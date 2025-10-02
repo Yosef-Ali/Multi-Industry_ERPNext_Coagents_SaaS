@@ -134,12 +134,47 @@
 ### Agent Gateway - Session & Streaming
 - [x] T077 Implement session management in services/agent-gateway/src/session.ts with CoagentSession lifecycle
 - [x] T078 Implement AG-UI SSE event emitter in services/agent-gateway/src/streaming.ts with correlation IDs
-- [x] T079 Implement Claude Agent SDK initialization in services/agent-gateway/src/agent.ts with tool registry integration
+- [x] T079 Implement Anthropic Messages API with streaming, tool use loop, and approval gate integration in services/agent-gateway/src/agent.ts (uses client.messages.stream() with tool definitions, handles tool_use blocks, returns tool_result blocks, integrates with AGUIStreamEmitter for real-time updates)
 
-## Phase 3.4: Workflow Service
+## Phase 3.3B: Claude Agent SDK Migration (NEW)
+
+### Orchestrator Implementation
+- [x] T150 Create orchestrator agent configuration in /agents/orchestrator.md with YAML frontmatter, system prompt, and tool definitions
+- [x] T151 Implement classify_request tool in services/agent-gateway/src/tools/orchestration/classify.ts that determines industry and complexity
+- [x] T152 Implement invoke_subagent tool in services/agent-gateway/src/tools/orchestration/invoke.ts that delegates to specialized subagents
+- [x] T153 Implement aggregate_results tool in services/agent-gateway/src/tools/orchestration/aggregate.ts that combines subagent outputs
+- [x] T154 Implement initiate_deep_research tool in services/agent-gateway/src/tools/orchestration/deep-research.ts for complex investigations
+
+### Industry Subagents Configuration
+- [x] T155 Create hotel-specialist.md subagent configuration in /agents/ with hotel-specific tools and system prompt
+- [x] T156 Create hospital-specialist.md subagent configuration in /agents/ with healthcare-specific tools and system prompt
+- [x] T157 Create manufacturing-specialist.md subagent configuration in /agents/ with manufacturing-specific tools and system prompt
+- [x] T158 Create retail-specialist.md subagent configuration in /agents/ with retail-specific tools and system prompt
+- [x] T159 Create education-specialist.md subagent configuration in /agents/ with education-specific tools and system prompt
+
+### Deep Research Capability
+- [x] T160 Create deep-research.md subagent configuration in /agents/ for complex multi-source investigations
+- [x] T161 Implement subagent configuration loader in services/agent-gateway/src/tools/orchestration/subagent-loader.ts with YAML frontmatter parser and validation
+- [x] T162 Implement MCP server selector in services/agent-gateway/src/tools/orchestration/subagent-loader.ts (getMCPServersForSubagent function)
+
+### Subagent Infrastructure (Remaining)
+- [x] T163 Implement subagent invocation with context preservation in services/agent-gateway/src/orchestrator.ts
+- [x] T164 Create orchestration tools index and export all tools from services/agent-gateway/src/tools/orchestration/index.ts
+
+### Approval Hooks Migration
+- [x] T165 Migrate approval gates to PreToolUse hooks using claude-agent-sdk HookMatcher in services/agent-gateway/src/hooks/approval.ts
+- [x] T166 Implement risk assessment hook in services/agent-gateway/src/hooks/risk_assessment.ts using RiskClassifier
+- [x] T167 Integrate approval hooks with AGUIStreamEmitter for real-time approval prompts in services/agent-gateway/src/hooks/stream_integration.ts
+
+## Phase 3.4: Workflow Service (UPDATED FOR HYBRID ARCHITECTURE)
+
+### Hybrid Workflow Bridge (NEW)
+- [x] T168 Implement execute_workflow_graph bridge tool in services/agent-gateway/src/tools/workflow/executor.ts that connects SDK subagents to LangGraph workflows
+- [x] T169 Create workflow graph registry in services/workflows/src/core/registry.py that maps graph names to Python modules
+- [x] T170 Implement streaming progress emitter from LangGraph to AGUIStreamEmitter in services/workflows/src/core/stream_adapter.py
 
 ### Workflow Core [P]
-- [ ] T080 [P] Implement base state schemas in services/workflows/src/core/state.py with Pydantic models
+- [ ] T080 [P] Implement base state schemas in services/workflows/src/core/state.py with Pydantic models (UPDATED: use TypedDict for LangGraph compatibility)
 - [ ] T081 [P] Implement workflow registry in services/workflows/src/core/registry.py that loads graphs by industry/workflow_name
 - [ ] T082 Implement generic workflow executor in services/workflows/src/core/executor.py with interrupt/resume support and AG-UI frame emission
 
@@ -149,20 +184,25 @@
 - [ ] T085 [P] Implement escalate node in services/workflows/src/nodes/escalate.py with Frappe Notification creation
 - [ ] T086 [P] Implement notify node in services/workflows/src/nodes/notify.py for in-app notifications and AG-UI frames
 
-### Workflow Graphs - Hotel
-- [x] T087 Implement hotel O2C workflow graph in services/workflows/src/graphs/hotel/o2c.py with check_availability → create_reservation → confirm_payment → send_confirmation nodes (update to emit AG-UI frames)
+### Workflow Graphs - Hotel (UPDATED FOR HYBRID)
+- [x] T087 REIMPLEMENT hotel O2C workflow graph in services/workflows/src/hotel/o2c_graph.py with LangGraph StateGraph, interrupt() approval gates, Command(goto=...) routing (check_in → folio → charges → check_out → invoice)
 
-### Workflow Graphs - Hospital
-- [ ] T088 Implement hospital admissions workflow graph in services/workflows/src/graphs/hospital/admissions.py with register_patient → create_admission → create_orders → schedule_billing nodes
+### Workflow Graphs - Hospital (UPDATED FOR HYBRID)
+- [x] T088 Implement hospital admissions workflow graph in services/workflows/src/hospital/admissions_graph.py with LangGraph StateGraph, interrupt() for clinical orders (create_patient → schedule → orders → encounter → invoice)
 
 ### Workflow Graphs - Manufacturing
-- [ ] T089 Implement manufacturing production workflow graph in services/workflows/src/graphs/manufacturing/production.py with check_materials → create_work_order → issue_materials → complete_production nodes
+- [x] T089 Implement manufacturing production workflow graph in services/workflows/src/manufacturing/production_graph.py with LangGraph StateGraph, interrupt() for material requests and quality (check_materials → create_work_order → material_request → stock_entry → quality_inspection)
 
 ### Workflow Graphs - Retail
-- [ ] T090 Implement retail order fulfillment workflow graph in services/workflows/src/graphs/retail/order_fulfillment.py with validate_inventory → create_pick_list → pack_order → ship_order nodes
+- [x] T090 Implement retail order fulfillment workflow graph in services/workflows/src/retail/fulfillment_graph.py with LangGraph StateGraph, interrupt() for low stock/large orders (check_inventory → sales_order → pick_list → delivery_note → payment)
 
 ### Workflow Graphs - Education
-- [ ] T091 Implement education admissions workflow graph in services/workflows/src/graphs/education/admissions.py with receive_application → review_application → schedule_interview → make_decision nodes
+- [x] T091 Implement education admissions workflow graph in services/workflows/src/education/admissions_graph.py with LangGraph StateGraph, interrupt() for interview and admission decisions (review → schedule_interview → assessment → admission_decision → enrollment)
+
+### Workflow HTTP Service (NEW)
+- [x] T171 Implement FastAPI HTTP service in services/workflows/src/server.py with /execute, /resume, and /workflows endpoints for LangGraph workflow execution
+- [x] T172 Create Python requirements.txt with langgraph, fastapi, uvicorn dependencies
+- [x] T173 Create test_registry.py script to validate workflow loading and state validation
 
 ### Workflow State Persistence
 - [ ] T092 Implement Redis-based workflow state persistence with 24-hour TTL and activity-based extension

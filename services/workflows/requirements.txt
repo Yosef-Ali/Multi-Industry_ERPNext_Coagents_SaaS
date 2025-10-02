@@ -1,0 +1,22 @@
+# ERPNext Workflow Service Dependencies
+
+# LangGraph - Workflow orchestration
+langgraph>=0.2.0
+langchain-core>=0.3.0
+
+# FastAPI - HTTP service
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+
+# CORS support
+python-multipart>=0.0.6
+
+# Optional: Production persistence (uncomment when ready)
+# redis>=5.0.0
+# psycopg2-binary>=2.9.0  # For PostgresSaver
+
+# Development tools
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.25.0  # For testing HTTP endpoints

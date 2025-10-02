@@ -212,15 +212,12 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
 
 /**
  * Hook to register approval action with CopilotKit
- * This integrates with CopilotKit's renderAndWaitForResponse pattern
+ * Uses renderAndWaitForResponse for LangGraph interrupt() integration
  */
 export function useApprovalAction() {
-  const [currentPrompt, setCurrentPrompt] = useState<ApprovalPrompt | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
   useCopilotAction({
     name: 'approval_gate',
-    description: 'Request user approval for high-risk operations',
+    description: 'Request user approval for high-risk operations (LangGraph interrupt)',
     parameters: [
       {
         name: 'prompt_id',
@@ -265,48 +262,34 @@ export function useApprovalAction() {
         required: false,
       },
     ],
-    handler: async (params) => {
-      return new Promise<{ response: ApprovalResponse }>((resolve) => {
-        const prompt: ApprovalPrompt = {
-          prompt_id: params.prompt_id,
-          summary: params.summary,
-          action_type: params.action_type,
-          details: params.details,
-          risk_level: params.risk_level || 'medium',
-          doctype: params.doctype,
-          doc_data: params.doc_data,
-        };
+    renderAndWaitForResponse: ({ args, status, respond }) => {
+      const prompt: ApprovalPrompt = {
+        prompt_id: args.prompt_id,
+        summary: args.summary,
+        action_type: args.action_type,
+        details: args.details,
+        risk_level: (args.risk_level as 'low' | 'medium' | 'high') || 'medium',
+        doctype: args.doctype,
+        doc_data: args.doc_data,
+      };
 
-        setCurrentPrompt(prompt);
+      const isExecuting = status === 'executing';
 
-        // Wait for user response
-        const handleResponse = (response: ApprovalResponse) => {
-          setCurrentPrompt(null);
-          setIsLoading(false);
-          resolve({ response });
-        };
-
-        // Store the response handler
-        (prompt as any)._responseHandler = handleResponse;
-      });
+      return (
+        <ApprovalDialog
+          prompt={prompt}
+          onResponse={(response) => {
+            respond?.({
+              approved: response === 'approve',
+              response,
+              timestamp: new Date().toISOString(),
+            });
+          }}
+          isLoading={isExecuting}
+        />
+      );
     },
   });
-
-  /**
-   * Handle approval response
-   */
-  const handleApprovalResponse = (response: ApprovalResponse) => {
-    if (currentPrompt && (currentPrompt as any)._responseHandler) {
-      setIsLoading(true);
-      (currentPrompt as any)._responseHandler(response);
-    }
-  };
-
-  return {
-    currentPrompt,
-    isLoading,
-    handleApprovalResponse,
-  };
 }
 
 // ============================================================================
@@ -314,23 +297,13 @@ export function useApprovalAction() {
 // ============================================================================
 
 /**
- * Container component that manages approval dialog state
- * Use this in your main App component
+ * Container component that registers approval action with CopilotKit
+ * Use this in your main App component to enable approval gates
+ * The actual dialog is rendered via renderAndWaitForResponse
  */
 export const ApprovalDialogContainer: React.FC = () => {
-  const { currentPrompt, isLoading, handleApprovalResponse } = useApprovalAction();
-
-  if (!currentPrompt) {
-    return null;
-  }
-
-  return (
-    <ApprovalDialog
-      prompt={currentPrompt}
-      onResponse={handleApprovalResponse}
-      isLoading={isLoading}
-    />
-  );
+  useApprovalAction();
+  return null; // Dialog is rendered via renderAndWaitForResponse
 };
 
 export default ApprovalDialog;

@@ -203,15 +203,15 @@ export default function App() {
   return (
     <CopilotKit
       runtimeUrl={`${config.gatewayUrl}/agui`}
-      headers={{
-        'Authorization': `Bearer ${config.authToken}`,
-        'Content-Type': 'application/json',
-      }}
-      body={{
-        user_id: config.userId,
-        doctype: config.doctype,
-        doc_name: config.docName,
-        enabled_industries: config.enabledIndustries,
+      agent="erpnext_coagent"
+      publicApiKey={config.authToken}
+      showDevConsole={import.meta.env.DEV}
+      onError={(errorEvent) => {
+        console.error('CopilotKit Error:', errorEvent);
+        const errorMessage = typeof errorEvent === 'object' && 'message' in errorEvent
+          ? (errorEvent as any).message
+          : 'An error occurred';
+        setError(errorMessage);
       }}
     >
       <div className="h-screen w-full bg-gray-50">

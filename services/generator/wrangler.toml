@@ -1,0 +1,25 @@
+# Wrangler configuration for Generator Service
+name = "erpnext-generator"
+account_id = "5a34e22d045e4ff3538a636317a631e8"
+main = "src/main.py"
+compatibility_date = "2024-10-01"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+
+# R2 bucket for generated artifacts
+[[r2_buckets]]
+binding = "GENERATED_APPS"
+bucket_name = "erpnext-generated-apps"  # Run: pnpm dlx wrangler r2 bucket create erpnext-generated-apps
+
+# Secrets (set via: pnpm dlx wrangler secret put <NAME>)
+# Environment variables required:
+# - OPENROUTER_API_KEY
+# - OPENROUTER_MODEL
+# - OPENROUTER_BASE_URL
+# - ERPNEXT_API_URL
+
+# Development
+[dev]
+port = 8001

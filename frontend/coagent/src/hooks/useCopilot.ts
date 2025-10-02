@@ -1,9 +1,11 @@
 /**
  * T095: useCopilot Hook
  * Manages agent interaction state, message history, and streaming
+ * Integrated with CopilotKit CoAgents for state sharing and generative UI
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useCoAgent } from '@copilotkit/react-core';
 import {
   AGUIEventType,
   ChatMessageEvent,
@@ -96,6 +98,10 @@ export interface UseCopilotConfig {
   // Event handlers
   onEvent?: EventHandler;
   onError?: (error: Error) => void;
+
+  // CoAgent configuration
+  agentName?: string;
+  initialAgentState?: Record<string, any>;
 }
 
 // ============================================================================
@@ -116,18 +122,25 @@ export interface UseCopilotConfig {
  * @returns Hook state and actions
  */
 export function useCopilot(config: UseCopilotConfig): UseCopilotReturn {
+  // CoAgent state sharing (if agent name is provided)
+  const { state: agentState } = config.agentName
+    ? useCoAgent({
+        name: config.agentName,
+        initialState: config.initialAgentState || {},
+      })
+    : { state: null };
+
   // State
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [sessionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [events, setEvents] = useState<AGUIEventType[]>([]);
 
   // Refs
   const abortControllerRef = useRef<AbortController | null>(null);
-  const messageQueueRef = useRef<string[]>([]);
 
   // ============================================================================
   // Event Handlers

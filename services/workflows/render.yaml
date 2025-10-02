@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: erpnext-workflows
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python src/server.py
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: PORT
+        value: "8001"
+    autoDeploy: true
