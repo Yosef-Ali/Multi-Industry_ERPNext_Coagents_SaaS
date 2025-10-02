@@ -44,7 +44,27 @@ pnpm dlx wrangler deploy
 
 ---
 
-### Step 3: Test (2 min)
+### Step 3: Deploy Frontend to Cloudflare Pages (5 min)
+
+```bash
+cd frontend/coagent
+
+# 1. Login (first time only)
+npx wrangler login
+
+# 2. Install deps and build
+npm install
+npm run build
+
+# 3. Deploy to Pages
+npx wrangler pages deploy dist --project-name=erpnext-coagent-ui
+
+# Output: ✅ https://erpnext-coagent-ui.pages.dev
+```
+
+> **Tip:** Run `scripts/update-openrouter-model.sh --model mistralai/mistral-7b-instruct --cloudflare` before deploying if you change models locally. It keeps Cloudflare secrets in sync.
+
+### Step 4: Test (2 min)
 
 ```bash
 # Test workflow service
@@ -53,7 +73,10 @@ curl https://erpnext-workflows.onrender.com/
 # Test agent gateway
 curl https://erpnext-agent-gateway.workers.dev/health
 
-# Test end-to-end
+# Test frontend (Pages)
+curl -I https://erpnext-coagent-ui.pages.dev
+
+# Test end-to-end via gateway
 curl -X POST https://erpnext-agent-gateway.workers.dev/api/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "Check in guest John Doe for room 101"}'
@@ -68,21 +91,30 @@ curl -X POST https://erpnext-agent-gateway.workers.dev/api/chat \
 Before deploying, test locally:
 
 ```bash
-# Terminal 1: Start workflow service
+# Terminal 1: Workflow service (FastAPI)
 cd services/workflows
-pip install -r requirements.txt
-python src/server.py
-# → http://localhost:8001
+poetry install
+poetry run uvicorn src.main:app --reload --port 8000
 
-# Terminal 2: Start agent gateway
+# Terminal 2: Agent gateway (Cloudflare Worker shim)
 cd services/agent-gateway
 npm install
 npm run dev
 # → http://localhost:3000
 
-# Terminal 3: Test
-curl http://localhost:8001/workflows
+# Terminal 3: Frontend (Next.js)
+cd frontend/coagent
+npm install
+npm run dev
+# → http://localhost:3000 (CopilotKit UI)
+
+# Terminal 4: End-to-end smoke test
+curl -s -X POST http://localhost:3000/api/copilotkit \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Hello"}]}' | jq .
 ```
+
+> Switch OpenRouter models locally with `scripts/update-openrouter-model.sh --model mistralai/mistral-7b-instruct`. Add `--cloudflare` to update the deployed secrets too.
 
 ---
 
@@ -94,6 +126,7 @@ curl http://localhost:8001/workflows
 ### For Agent Gateway (Cloudflare)
 - `ANTHROPIC_API_KEY` - Same as above
 - `WORKFLOW_SERVICE_URL` - Your Render URL
+- `OPENROUTER_MODEL` / `OPENROUTER_HTTP_REFERER` / `OPENROUTER_APP_TITLE` (sync with script)
 
 ---
 
@@ -137,10 +170,29 @@ pnpm dlx wrangler secret list | grep WORKFLOW_SERVICE_URL
 ## 🎯 Next Steps After Deployment
 
 1. ✅ Services deployed and tested
-2. ⏳ Deploy frontend to Cloudflare Pages
+2. ✅ Deploy frontend to Cloudflare Pages
 3. ⏳ Add custom domain
 4. ⏳ Set up monitoring
 5. ⏳ Add PostgreSQL for production persistence
+6. ⏳ Push changes to GitHub
+
+## 📤 Git Push Checklist
+
+```bash
+# 1. Make sure tests pass
+pnpm run lint        # TypeScript services
+poetry run pytest    # Python services
+
+# 2. Commit your work
+git status
+git add .
+git commit -m "feat: update OpenRouter model config"
+
+# 3. Push to GitHub
+git push origin feature/frontend-copilotkit-integration
+```
+
+Open a PR against `001-erpnext-coagents-mvp` and include deployed URLs (Workers + Pages) in the description.
 
 ---
 

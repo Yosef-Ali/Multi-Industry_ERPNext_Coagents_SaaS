@@ -12,7 +12,7 @@
  */
 
 import type { ToolUseBlock } from "@anthropic-ai/sdk/resources/messages.js";
-import type { RiskLevel } from "../common/risk_classifier.js";
+import type { RiskLevel } from "./risk_assessment.js";
 
 export interface ApprovalRequest {
   tool_name: string;

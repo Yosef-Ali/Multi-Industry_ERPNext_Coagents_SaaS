@@ -18,6 +18,13 @@ import {
   type SubagentConfig,
   type SubagentRegistry
 } from "./subagent-loader.js";
+import {
+  retryWithBackoff,
+  globalCircuitBreaker,
+  globalCostTracker,
+  DEFAULT_RETRY_CONFIG
+} from "../../utils/openrouter-error-handler.js";
+import { validateModel, DEFAULT_MODEL } from "../../config/environment.js";
 
 export interface InvokeSubagentRequest {
   subagent: string;
@@ -81,6 +88,7 @@ export async function invokeSubagent(
       apiKey: openRouterApiKey,
       baseURL: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1'
     });
+    const model = validateModel(config.model || process.env.OPENROUTER_MODEL || DEFAULT_MODEL);
 
     // Get tool definitions for this subagent
     const tools = await getToolDefinitions(config.tools, requiredServers);
@@ -101,13 +109,31 @@ export async function invokeSubagent(
     while (continueLoop && turnCount < maxTurns) {
       turnCount++;
 
-      const response = await client.messages.create({
-        model: config.model,
-        max_tokens: 4096,
-        system: config.systemPrompt,
-        messages,
-        tools: tools.length > 0 ? tools : undefined
-      });
+      const response = await globalCircuitBreaker.execute(() =>
+        retryWithBackoff(
+          () => client.messages.create({
+            model,
+            max_tokens: 4096,
+            system: config.systemPrompt,
+            messages,
+            tools: tools.length > 0 ? tools : undefined
+          }),
+          DEFAULT_RETRY_CONFIG,
+          (err, attempt, delay) => {
+            console.warn(
+              `invoke_subagent(${input.subagent}) retry ${attempt}/${DEFAULT_RETRY_CONFIG.maxRetries} in ${delay}ms: ${err.message}`
+            );
+          }
+        )
+      );
+
+      if (response.usage) {
+        globalCostTracker.recordUsage(
+          response.model || model,
+          response.usage.input_tokens ?? 0,
+          response.usage.output_tokens ?? 0
+        );
+      }
 
       // Process response content
       for (const block of response.content) {
@@ -413,17 +439,20 @@ export async function* streamSubagent(
     apiKey: openRouterApiKey,
     baseURL: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1'
   });
+  const model = validateModel(config.model || process.env.OPENROUTER_MODEL || DEFAULT_MODEL);
   const subagentPrompt = buildSubagentPrompt(input.task, input.context || {});
   const tools = await getToolDefinitions(config.tools, availableMCPServers);
 
   try {
-    const stream = await client.messages.stream({
-      model: config.model,
-      max_tokens: 4096,
-      system: config.systemPrompt,
-      messages: [{ role: "user", content: subagentPrompt }],
-      tools: tools.length > 0 ? tools : undefined
-    });
+    const stream = await globalCircuitBreaker.execute(async () =>
+      client.messages.stream({
+        model,
+        max_tokens: 4096,
+        system: config.systemPrompt,
+        messages: [{ role: "user", content: subagentPrompt }],
+        tools: tools.length > 0 ? tools : undefined
+      })
+    );
 
     for await (const event of stream) {
       if (event.type === "content_block_delta") {

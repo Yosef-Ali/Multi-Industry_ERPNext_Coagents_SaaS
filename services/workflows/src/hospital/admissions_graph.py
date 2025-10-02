@@ -9,36 +9,13 @@ CRITICAL: Clinical orders require approval for patient safety
 Implementation of T088
 """
 
-from typing import TypedDict, Literal
-from langgraph.graph import StateGraph, START, END
-from langgraph.types import interrupt, Command
+from typing import Literal
+
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command, interrupt
 
-
-# State definition using TypedDict (LangGraph best practice)
-class HospitalAdmissionsState(TypedDict):
-    """State for Hospital Admissions workflow"""
-    # Input parameters
-    patient_name: str
-    admission_date: str
-    primary_diagnosis: str
-    clinical_protocol: str | None  # Optional protocol (e.g., "sepsis_protocol")
-
-    # Created entities
-    patient_id: str | None
-    appointment_id: str | None
-    order_set_id: str | None
-    encounter_id: str | None
-    invoice_id: str | None
-
-    # Workflow tracking
-    current_step: str
-    steps_completed: list[str]
-    errors: list[dict]
-
-    # Approval tracking
-    pending_approval: bool
-    approval_decision: str | None
+from core.state import HospitalAdmissionsState, create_base_state
 
 
 # Node 1: Create Patient Record (no approval - administrative)
@@ -57,7 +34,7 @@ async def create_patient_record(state: HospitalAdmissionsState) -> HospitalAdmis
     return {
         **state,
         "patient_id": patient_id,
-        "steps_completed": state["steps_completed"] + ["create_patient"],
+        "steps_completed": state.get("steps_completed", []) + ["create_patient"],
         "current_step": "schedule_admission"
     }
 
@@ -78,7 +55,7 @@ async def schedule_admission(state: HospitalAdmissionsState) -> HospitalAdmissio
     return {
         **state,
         "appointment_id": appointment_id,
-        "steps_completed": state["steps_completed"] + ["schedule_admission"],
+        "steps_completed": state.get("steps_completed", []) + ["schedule_admission"],
         "current_step": "create_order_set"
     }
 
@@ -143,11 +120,11 @@ async def create_order_set(state: HospitalAdmissionsState) -> Command[Literal["c
             goto="create_encounter",
             update={
                 "order_set_id": order_set_id,
-                "steps_completed": state["steps_completed"] + ["create_orders"],
+                "steps_completed": state.get("steps_completed", []) + ["create_orders"],
                 "current_step": "create_encounter",
                 "approval_decision": "approved",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
     else:
         print(f"❌ Clinical orders rejected - patient safety concern")
@@ -155,14 +132,17 @@ async def create_order_set(state: HospitalAdmissionsState) -> Command[Literal["c
         return Command(
             goto="workflow_rejected",
             update={
-                "errors": state["errors"] + [{
-                    "step": "create_orders",
-                    "reason": "Clinical orders rejected by physician",
-                    "safety_critical": True
-                }],
+                "errors": state["errors"]
+                + [
+                    {
+                        "step": "create_orders",
+                        "reason": "Clinical orders rejected by physician",
+                        "safety_critical": True,
+                    }
+                ],
                 "approval_decision": "rejected",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
 
 
@@ -182,8 +162,8 @@ async def create_encounter(state: HospitalAdmissionsState) -> HospitalAdmissions
     return {
         **state,
         "encounter_id": encounter_id,
-        "steps_completed": state["steps_completed"] + ["create_encounter"],
-        "current_step": "generate_invoice"
+        "steps_completed": state.get("steps_completed", []) + ["create_encounter"],
+        "current_step": "generate_invoice",
     }
 
 
@@ -249,11 +229,11 @@ async def generate_invoice(state: HospitalAdmissionsState) -> Command[Literal["w
             goto="workflow_completed",
             update={
                 "invoice_id": invoice_id,
-                "steps_completed": state["steps_completed"] + ["generate_invoice"],
+                "steps_completed": state.get("steps_completed", []) + ["generate_invoice"],
                 "current_step": "completed",
                 "approval_decision": "approved",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
     else:
         print(f"❌ Invoice generation rejected")
@@ -261,13 +241,16 @@ async def generate_invoice(state: HospitalAdmissionsState) -> Command[Literal["w
         return Command(
             goto="workflow_rejected",
             update={
-                "errors": state["errors"] + [{
-                    "step": "generate_invoice",
-                    "reason": "Invoice rejected"
-                }],
+                "errors": state["errors"]
+                + [
+                    {
+                        "step": "generate_invoice",
+                        "reason": "Invoice rejected",
+                    }
+                ],
                 "approval_decision": "rejected",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
 
 
@@ -284,10 +267,7 @@ async def workflow_completed(state: HospitalAdmissionsState) -> HospitalAdmissio
     print(f"   - Order Set: {state['order_set_id']}")
     print(f"   - Invoice: {state['invoice_id']}")
 
-    return {
-        **state,
-        "current_step": "completed"
-    }
+    return {**state, "current_step": "completed"}
 
 
 # Terminal Node: Workflow Rejected
@@ -300,10 +280,7 @@ async def workflow_rejected(state: HospitalAdmissionsState) -> HospitalAdmission
     print(f"❌ Hospital Admissions workflow rejected")
     print(f"   - Errors: {state['errors']}")
 
-    return {
-        **state,
-        "current_step": "rejected"
-    }
+    return {**state, "current_step": "rejected"}
 
 
 # Helper function: Get protocol orders
@@ -428,6 +405,7 @@ async def test_workflow():
     graph = create_graph()
 
     initial_state: HospitalAdmissionsState = {
+        **create_base_state(),
         "patient_name": "Jane Smith",
         "admission_date": "2025-10-01",
         "primary_diagnosis": "Community-acquired pneumonia",
@@ -437,11 +415,6 @@ async def test_workflow():
         "order_set_id": None,
         "encounter_id": None,
         "invoice_id": None,
-        "current_step": "start",
-        "steps_completed": [],
-        "errors": [],
-        "pending_approval": False,
-        "approval_decision": None
     }
 
     config = {"configurable": {"thread_id": str(uuid.uuid4())}}

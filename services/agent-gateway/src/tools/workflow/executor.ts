@@ -247,7 +247,7 @@ async function invokeWorkflowService(
     throw new Error(`Workflow service error: ${response.status} ${errorText}`);
   }
 
-  const result = await response.json();
+  const result = await response.json() as any;
 
   // Stream progress events if available
   if (streamEmitter && result.checkpoints) {

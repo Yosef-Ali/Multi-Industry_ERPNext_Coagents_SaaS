@@ -9,41 +9,13 @@ CRITICAL: Material requests and quality inspections require approval
 Implementation of T089
 """
 
-from typing import TypedDict, Literal
-from langgraph.graph import StateGraph, START, END
-from langgraph.types import interrupt, Command
+from typing import Literal
+
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command, interrupt
 
-
-# State definition using TypedDict (LangGraph best practice)
-class ManufacturingProductionState(TypedDict):
-    """State for Manufacturing Production workflow"""
-    # Input parameters
-    item_code: str
-    item_name: str
-    qty_to_produce: float
-    production_date: str
-    warehouse: str
-
-    # Created entities
-    work_order_id: str | None
-    material_request_id: str | None
-    stock_entry_id: str | None
-    quality_inspection_id: str | None
-
-    # BOM and material tracking
-    bom_id: str | None
-    required_materials: list[dict] | None
-    material_shortage: bool
-
-    # Workflow tracking
-    current_step: str
-    steps_completed: list[str]
-    errors: list[dict]
-
-    # Approval tracking
-    pending_approval: bool
-    approval_decision: str | None
+from core.state import ManufacturingProductionState, create_base_state
 
 
 # Node 1: Check Material Availability (no approval)
@@ -116,8 +88,8 @@ async def create_material_request(state: ManufacturingProductionState) -> Comman
             goto="create_stock_entry",
             update={
                 "steps_completed": state["steps_completed"] + ["skip_material_request"],
-                "current_step": "create_stock_entry"
-            }
+                "current_step": "create_stock_entry",
+            },
         )
 
     # Calculate purchase requirements
@@ -167,8 +139,8 @@ async def create_material_request(state: ManufacturingProductionState) -> Comman
                 "steps_completed": state["steps_completed"] + ["create_material_request"],
                 "current_step": "create_stock_entry",
                 "approval_decision": "approved",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
     else:
         print(f"❌ Material request rejected")
@@ -176,13 +148,16 @@ async def create_material_request(state: ManufacturingProductionState) -> Comman
         return Command(
             goto="workflow_rejected",
             update={
-                "errors": state["errors"] + [{
-                    "step": "create_material_request",
-                    "reason": "Material procurement rejected"
-                }],
+                "errors": state["errors"]
+                + [
+                    {
+                        "step": "create_material_request",
+                        "reason": "Material procurement rejected",
+                    }
+                ],
                 "approval_decision": "rejected",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
 
 
@@ -210,7 +185,7 @@ async def create_stock_entry(state: ManufacturingProductionState) -> Manufacturi
 
 
 # Node 5: Create Quality Inspection (REQUIRES APPROVAL)
-async def create_quality_inspection(state: ManufactuturingProductionState) -> Command[Literal["workflow_completed", "workflow_rejected"]]:
+async def create_quality_inspection(state: ManufacturingProductionState) -> Command[Literal["workflow_completed", "workflow_rejected"]]:
     """
     Create quality inspection - REQUIRES APPROVAL
 
@@ -265,8 +240,8 @@ async def create_quality_inspection(state: ManufactuturingProductionState) -> Co
                 "steps_completed": state["steps_completed"] + ["quality_inspection"],
                 "current_step": "completed",
                 "approval_decision": "approved",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
     else:
         print(f"❌ Quality inspection rejected - product does not meet specifications")
@@ -274,14 +249,17 @@ async def create_quality_inspection(state: ManufactuturingProductionState) -> Co
         return Command(
             goto="workflow_rejected",
             update={
-                "errors": state["errors"] + [{
-                    "step": "quality_inspection",
-                    "reason": "Product failed quality inspection",
-                    "quality_critical": True
-                }],
+                "errors": state["errors"]
+                + [
+                    {
+                        "step": "quality_inspection",
+                        "reason": "Product failed quality inspection",
+                        "quality_critical": True,
+                    }
+                ],
                 "approval_decision": "rejected",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
 
 
@@ -297,10 +275,7 @@ async def workflow_completed(state: ManufacturingProductionState) -> Manufacturi
     print(f"   - Stock Entry: {state['stock_entry_id']}")
     print(f"   - Quality Inspection: {state['quality_inspection_id']}")
 
-    return {
-        **state,
-        "current_step": "completed"
-    }
+    return {**state, "current_step": "completed"}
 
 
 # Terminal Node: Workflow Rejected
@@ -313,10 +288,7 @@ async def workflow_rejected(state: ManufacturingProductionState) -> Manufacturin
     print(f"❌ Manufacturing Production workflow rejected")
     print(f"   - Errors: {state['errors']}")
 
-    return {
-        **state,
-        "current_step": "rejected"
-    }
+    return {**state, "current_step": "rejected"}
 
 
 # Helper function: Get BOM materials
@@ -430,6 +402,7 @@ async def test_workflow():
     graph = create_graph()
 
     initial_state: ManufacturingProductionState = {
+        **create_base_state(),
         "item_code": "CHAIR-WOODEN",
         "item_name": "Wooden Office Chair",
         "qty_to_produce": 10.0,
@@ -442,11 +415,6 @@ async def test_workflow():
         "bom_id": None,
         "required_materials": None,
         "material_shortage": False,
-        "current_step": "start",
-        "steps_completed": [],
-        "errors": [],
-        "pending_approval": False,
-        "approval_decision": None
     }
 
     config = {"configurable": {"thread_id": str(uuid.uuid4())}}

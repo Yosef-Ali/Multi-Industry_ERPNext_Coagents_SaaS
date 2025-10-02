@@ -194,9 +194,8 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
           <button
             onClick={handleApprove}
             disabled={isSubmitting || isLoading}
-            className={`${
-              riskLevel === 'high' ? 'btn-danger' : 'btn-success'
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`${riskLevel === 'high' ? 'btn-danger' : 'btn-success'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {isSubmitting ? 'Approving...' : 'Approve'}
           </button>
@@ -264,8 +263,8 @@ export function useApprovalAction() {
     ],
     renderAndWaitForResponse: ({ args, status, respond }) => {
       const prompt: ApprovalPrompt = {
-        prompt_id: args.prompt_id,
-        summary: args.summary,
+        prompt_id: args.prompt_id || `approval-${Date.now()}`,
+        summary: args.summary || 'Action requires approval',
         action_type: args.action_type,
         details: args.details,
         risk_level: (args.risk_level as 'low' | 'medium' | 'high') || 'medium',

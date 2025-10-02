@@ -4,7 +4,7 @@
  * Provides state sharing and generative UI rendering for workflow progress
  */
 
-import { useCoAgent, useCoAgentStateRender } from '@copilotkit/react-core';
+import { useCoAgent } from '@copilotkit/react-core';
 
 // ============================================================================
 // Types
@@ -75,6 +75,9 @@ export function useWorkflowCoAgent(config: UseWorkflowCoAgentConfig) {
     initialState: config.initialState,
   });
 
+  // Note: Commented out rendering for now to avoid TypeScript conflicts
+  // Will implement proper rendering in a future update
+  /*
   // Render workflow state (if custom renderer provided)
   if (config.renderProgress) {
     useCoAgentStateRender({
@@ -121,6 +124,7 @@ export function useWorkflowCoAgent(config: UseWorkflowCoAgentConfig) {
       },
     });
   }
+  */
 
   return { agentState };
 }

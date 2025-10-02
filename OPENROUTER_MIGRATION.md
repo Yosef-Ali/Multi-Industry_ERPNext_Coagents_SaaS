@@ -5,7 +5,8 @@ Successfully migrated from Anthropic Claude API to OpenRouter API with GLM-4.6 m
 
 ## API Key
 ```
-OPENROUTER_API_KEY=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
+⚠️ SECURITY: Never commit your actual API key to Git!
+OPENROUTER_API_KEY=your-key-here  # Get from https://openrouter.ai/keys
 ```
 
 ## Changes Made
@@ -203,7 +204,11 @@ ANTHROPIC_API_KEY=sk-ant-...
 - Model Comparison: https://openrouter.ai/models
 
 ## Migration Date
-December 2024
+October 2025
+
+## Security Note
+🔒 **IMPORTANT**: The original API key in commit d977388 was exposed and has been revoked.
+Always use environment variables and never commit `.env` files.
 
 ## Status
-✅ **COMPLETE** - All Anthropic references replaced with OpenRouter
+✅ **COMPLETE** - All Anthropic references replaced with OpenRouter (API key secured)

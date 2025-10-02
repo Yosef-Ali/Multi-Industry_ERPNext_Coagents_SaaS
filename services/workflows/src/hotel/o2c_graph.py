@@ -7,34 +7,13 @@ Following LangGraph best practices with interrupt() for approval gates
 Implementation of T087
 """
 
-from typing import TypedDict, Literal
-from langgraph.graph import StateGraph, START, END
-from langgraph.types import interrupt, Command
+from typing import Literal
+
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command, interrupt
 
-
-# State definition using TypedDict (LangGraph best practice)
-class HotelO2CState(TypedDict):
-    """State for Hotel Order-to-Cash workflow"""
-    # Input parameters
-    reservation_id: str
-    guest_name: str
-    room_number: str
-    check_in_date: str
-    check_out_date: str
-
-    # Created entities
-    folio_id: str | None
-    invoice_id: str | None
-
-    # Workflow tracking
-    current_step: str
-    steps_completed: list[str]
-    errors: list[dict]
-
-    # Approval tracking
-    pending_approval: bool
-    approval_decision: str | None
+from core.state import HotelO2CState, create_base_state
 
 
 # Node 1: Check-in Guest (with approval gate)
@@ -77,8 +56,8 @@ async def check_in_guest(state: HotelO2CState) -> Command[Literal["create_folio"
                 "steps_completed": state["steps_completed"] + ["check_in"],
                 "current_step": "create_folio",
                 "approval_decision": "approved",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
     else:
         print(f"❌ Check-in rejected for guest: {state['guest_name']}")
@@ -86,13 +65,16 @@ async def check_in_guest(state: HotelO2CState) -> Command[Literal["create_folio"
         return Command(
             goto="workflow_rejected",
             update={
-                "errors": state["errors"] + [{
-                    "step": "check_in",
-                    "reason": "User rejected check-in"
-                }],
+                "errors": state["errors"]
+                + [
+                    {
+                        "step": "check_in",
+                        "reason": "User rejected check-in",
+                    }
+                ],
                 "approval_decision": "rejected",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
 
 
@@ -113,7 +95,7 @@ async def create_folio(state: HotelO2CState) -> HotelO2CState:
         **state,
         "folio_id": folio_id,
         "steps_completed": state["steps_completed"] + ["create_folio"],
-        "current_step": "add_charges"
+        "current_step": "add_charges",
     }
 
 
@@ -137,7 +119,7 @@ async def add_charges(state: HotelO2CState) -> HotelO2CState:
     return {
         **state,
         "steps_completed": state["steps_completed"] + ["add_charges"],
-        "current_step": "check_out_guest"
+        "current_step": "check_out_guest",
     }
 
 
@@ -158,7 +140,7 @@ async def check_out_guest(state: HotelO2CState) -> HotelO2CState:
     return {
         **state,
         "steps_completed": state["steps_completed"] + ["check_out"],
-        "current_step": "generate_invoice"
+        "current_step": "generate_invoice",
     }
 
 
@@ -210,8 +192,8 @@ async def generate_invoice(state: HotelO2CState) -> Command[Literal["workflow_co
                 "steps_completed": state["steps_completed"] + ["generate_invoice"],
                 "current_step": "completed",
                 "approval_decision": "approved",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
     else:
         print(f"❌ Invoice generation rejected")
@@ -219,13 +201,16 @@ async def generate_invoice(state: HotelO2CState) -> Command[Literal["workflow_co
         return Command(
             goto="workflow_rejected",
             update={
-                "errors": state["errors"] + [{
-                    "step": "generate_invoice",
-                    "reason": "User rejected invoice"
-                }],
+                "errors": state["errors"]
+                + [
+                    {
+                        "step": "generate_invoice",
+                        "reason": "User rejected invoice",
+                    }
+                ],
                 "approval_decision": "rejected",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
 
 
@@ -241,10 +226,7 @@ async def workflow_completed(state: HotelO2CState) -> HotelO2CState:
     print(f"   - Folio: {state['folio_id']}")
     print(f"   - Invoice: {state['invoice_id']}")
 
-    return {
-        **state,
-        "current_step": "completed"
-    }
+    return {**state, "current_step": "completed"}
 
 
 # Terminal Node: Workflow Rejected
@@ -257,10 +239,7 @@ async def workflow_rejected(state: HotelO2CState) -> HotelO2CState:
     print(f"❌ Hotel O2C workflow rejected")
     print(f"   - Errors: {state['errors']}")
 
-    return {
-        **state,
-        "current_step": "rejected"
-    }
+    return {**state, "current_step": "rejected"}
 
 
 # Graph Builder Function
@@ -309,6 +288,7 @@ async def test_workflow():
     graph = create_graph()
 
     initial_state: HotelO2CState = {
+        **create_base_state(),
         "reservation_id": "RES-001",
         "guest_name": "John Doe",
         "room_number": "101",
@@ -316,11 +296,6 @@ async def test_workflow():
         "check_out_date": "2025-10-02",
         "folio_id": None,
         "invoice_id": None,
-        "current_step": "start",
-        "steps_completed": [],
-        "errors": [],
-        "pending_approval": False,
-        "approval_decision": None
     }
 
     config = {"configurable": {"thread_id": str(uuid.uuid4())}}

@@ -1,7 +1,7 @@
 # Wrangler configuration for Agent Gateway
 name = "erpnext-agent-gateway"
 account_id = "5a34e22d045e4ff3538a636317a631e8"
-main = "src/server.ts"
+main = "src/worker.ts"
 compatibility_date = "2024-10-01"
 compatibility_flags = ["nodejs_compat"]
 
@@ -15,6 +15,17 @@ GATEWAY_HOST = "0.0.0.0"
 [[kv_namespaces]]
 binding = "SESSIONS"
 id = "eec1ac4c36d14839a7574b41c0ffa339"
+
+# KV namespace for workflow state
+[[kv_namespaces]]
+binding = "WORKFLOW_STATE"
+id = "3733a35d182d4f58872db5f46c73aba5"
+
+# D1 Database for workflow checkpoints
+[[d1_databases]]
+binding = "DB"
+database_name = "erpnext-workflows-db"
+database_id = "438122c1-fe33-446c-a222-4bb3cfeb8fa5"
 
 # Secrets (set via: pnpm dlx wrangler secret put <NAME>)
 # Environment variables required:

@@ -32,6 +32,15 @@ async def test_workflow_registry():
     print(f"\n   By industry:")
     for industry, count in stats['by_industry'].items():
         print(f"   - {industry}: {count} workflow(s)")
+    
+    print(f"\n   All tags: {', '.join(stats['all_tags'])}")
+    print(f"\n   Custom capabilities:")
+    for cap, count in stats['custom_capabilities'].items():
+        print(f"   - {cap}: {count} workflow(s)")
+    
+    print(f"\n   Standard capabilities:")
+    for cap, count in stats['standard_capabilities'].items():
+        print(f"   - {cap}: {count} workflow(s)")
 
     print(f"\n{'='*60}")
     print("TESTING WORKFLOW LOADING")
@@ -123,6 +132,7 @@ async def test_workflow_validation():
     print(f"   Valid: {is_valid}")
     if error:
         print(f"   Error: {error}")
+    print(f"   Base state fields auto-populated: {list(valid_state.keys())}")
 
     # Test invalid state (missing field)
     print("\n❌ Testing invalid state (missing field):")
@@ -140,6 +150,57 @@ async def test_workflow_validation():
     print("\n" + "="*60 + "\n")
 
 
+async def test_workflow_filtering():
+    """Test T081 enhanced filtering capabilities"""
+    print("="*60)
+    print("TESTING ENHANCED FILTERING (T081)")
+    print("="*60 + "\n")
+
+    registry = get_registry()
+
+    # Test industry filtering
+    print("🔍 Filter by industry: 'hospital'")
+    hospital_workflows = registry.list_workflows(industry="hospital")
+    print(f"   Found {len(hospital_workflows)} workflow(s):")
+    for name, meta in hospital_workflows.items():
+        print(f"   - {name}: {meta.description}")
+
+    # Test tag filtering
+    print("\n🔍 Filter by tags: {'financial'}")
+    financial_workflows = registry.list_workflows(tags={"financial"})
+    print(f"   Found {len(financial_workflows)} workflow(s):")
+    for name, meta in financial_workflows.items():
+        print(f"   - {name} ({meta.industry}): {meta.tags}")
+
+    # Test capability filtering
+    print("\n🔍 Filter by capability: requires_approval=True")
+    approval_workflows = registry.list_workflows(
+        capability_filter=lambda cap: cap.requires_approval
+    )
+    print(f"   Found {len(approval_workflows)} workflow(s):")
+    for name in approval_workflows.keys():
+        print(f"   - {name}")
+
+    # Test finding workflows with specific capability
+    print("\n🔍 Find workflows with capability: 'clinical_orders'")
+    clinical_workflows = registry.find_workflows_with_capability("clinical_orders")
+    print(f"   Found {len(clinical_workflows)} workflow(s):")
+    for name in clinical_workflows:
+        print(f"   - {name}")
+
+    # Test getting all industries
+    print("\n🏭 All industries:")
+    industries = registry.get_industries()
+    print(f"   {', '.join(industries)}")
+
+    # Test getting all tags
+    print("\n🏷️  All tags:")
+    all_tags = registry.get_all_tags()
+    print(f"   {', '.join(sorted(all_tags))}")
+
+    print("\n" + "="*60 + "\n")
+
+
 async def main():
     """Run all tests"""
     # Test registry loading
@@ -147,6 +208,9 @@ async def main():
 
     # Test state validation
     await test_workflow_validation()
+
+    # Test enhanced filtering (T081)
+    await test_workflow_filtering()
 
     # Exit code
     sys.exit(0 if all_loaded else 1)

@@ -24,7 +24,8 @@ from pydantic import BaseModel, Field
 from langgraph.types import Command
 
 from core.registry import get_registry, load_workflow_graph, validate_workflow_state
-from core.stream_adapter import AGUIStreamAdapter, SSEWorkflowStreamer
+from core.stream_adapter import AGUIStreamAdapter, SSEWorkflowStreamer, WorkflowProgressEvent
+from core.executor import WorkflowExecutor, ExecutionConfig, execute_workflow as exec_workflow
 
 
 # Request/Response Models
@@ -154,9 +155,9 @@ async def get_workflow_info(graph_name: str):
 
 
 @app.post("/execute")
-async def execute_workflow(request: WorkflowExecuteRequest):
+async def execute_workflow_endpoint(request: WorkflowExecuteRequest):
     """
-    Execute a workflow graph
+    Execute a workflow graph using T082 WorkflowExecutor
 
     Returns SSE stream if stream=true, otherwise returns final state
     """
@@ -171,24 +172,14 @@ async def execute_workflow(request: WorkflowExecuteRequest):
             detail=f"Workflow '{request.graph_name}' not found"
         )
 
-    # Validate initial state
-    is_valid, error = validate_workflow_state(request.graph_name, request.initial_state)
-    if not is_valid:
-        raise HTTPException(status_code=400, detail=f"Invalid initial state: {error}")
-
-    # Load workflow graph
-    try:
-        graph = load_workflow_graph(request.graph_name)
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to load workflow: {str(e)}"
-        )
-
     # Execute with streaming if requested
     if request.stream:
         return StreamingResponse(
-            stream_workflow_execution(graph, request.initial_state, thread_id, request.graph_name),
+            stream_workflow_with_executor(
+                request.graph_name,
+                request.initial_state,
+                thread_id
+            ),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
@@ -197,40 +188,47 @@ async def execute_workflow(request: WorkflowExecuteRequest):
             }
         )
     else:
-        # Execute without streaming
-        config = {"configurable": {"thread_id": thread_id}}
-
+        # Execute without streaming using T082 executor
         try:
-            final_state = await graph.ainvoke(request.initial_state, config)
+            config = ExecutionConfig(
+                thread_id=thread_id,
+                emit_agui_events=False,
+                recursion_limit=30
+            )
 
-            # Check if paused at interrupt
-            if "__interrupt__" in final_state:
+            result = await exec_workflow(
+                request.graph_name,
+                request.initial_state,
+                config=config
+            )
+
+            if not result.success:
+                return WorkflowExecuteResponse(
+                    thread_id=thread_id,
+                    status="error",
+                    error=result.error
+                )
+
+            # Check if interrupted
+            if result.interrupted:
                 return WorkflowExecuteResponse(
                     thread_id=thread_id,
                     status="paused",
-                    interrupt_data=final_state["__interrupt__"]
-                )
-
-            # Check if rejected
-            if final_state.get("current_step") == "rejected":
-                return WorkflowExecuteResponse(
-                    thread_id=thread_id,
-                    status="rejected",
-                    final_state=final_state
+                    interrupt_data={"reason": result.interrupt_reason},
+                    final_state=result.final_state
                 )
 
             # Completed successfully
             return WorkflowExecuteResponse(
                 thread_id=thread_id,
                 status="completed",
-                final_state=final_state
+                final_state=result.final_state
             )
 
         except Exception as e:
-            return WorkflowExecuteResponse(
-                thread_id=thread_id,
-                status="error",
-                error=str(e)
+            raise HTTPException(
+                status_code=500,
+                detail=f"Execution failed: {str(e)}"
             )
 
 
@@ -256,7 +254,99 @@ async def resume_workflow(request: WorkflowResumeRequest):
     }
 
 
-# SSE Streaming Helper
+# SSE Streaming Helpers
+
+async def stream_workflow_with_executor(
+    graph_name: str,
+    initial_state: Dict[str, Any],
+    thread_id: str
+) -> AsyncIterator[str]:
+    """
+    Stream workflow execution using T082 WorkflowExecutor
+
+    Yields:
+        SSE-formatted event strings
+    """
+    # Create SSE streamer
+    streamer = SSEWorkflowStreamer(correlation_id=thread_id)
+    
+    # Event buffer to emit via SSE
+    events_emitted = []
+    
+    def emit_callback(event: WorkflowProgressEvent):
+        """Callback to capture events from executor"""
+        events_emitted.append(event)
+    
+    try:
+        # Create executor with streaming enabled
+        config = ExecutionConfig(
+            thread_id=thread_id,
+            emit_agui_events=True,
+            recursion_limit=30
+        )
+        
+        executor = WorkflowExecutor(graph_name, config)
+        
+        # Start execution with callback
+        # Note: We need to run this in a task and yield events as they come
+        execution_task = asyncio.create_task(
+            executor.execute(initial_state, emit_fn=emit_callback)
+        )
+        
+        # Poll for events and yield them
+        last_emitted = 0
+        while not execution_task.done():
+            await asyncio.sleep(0.05)  # 50ms poll interval
+            
+            # Yield any new events
+            while last_emitted < len(events_emitted):
+                event = events_emitted[last_emitted]
+                sse_message = streamer.format_sse_event(event)
+                yield sse_message
+                last_emitted += 1
+        
+        # Get final result
+        result = await execution_task
+        
+        # Yield any remaining events
+        while last_emitted < len(events_emitted):
+            event = events_emitted[last_emitted]
+            sse_message = streamer.format_sse_event(event)
+            yield sse_message
+            last_emitted += 1
+        
+        # Emit final result event
+        if result.interrupted:
+            final_event = WorkflowProgressEvent(
+                type="workflow_paused",
+                graph_name=graph_name,
+                state=result.final_state
+            )
+        elif result.success:
+            final_event = WorkflowProgressEvent(
+                type="workflow_complete",
+                graph_name=graph_name,
+                state=result.final_state
+            )
+        else:
+            final_event = WorkflowProgressEvent(
+                type="workflow_error",
+                graph_name=graph_name,
+                state={"error": result.error}
+            )
+        
+        yield streamer.format_sse_event(final_event)
+        
+    except Exception as e:
+        # Error occurred
+        error_event = WorkflowProgressEvent(
+            type="workflow_error",
+            graph_name=graph_name,
+            state={"error": str(e)}
+        )
+        yield streamer.format_sse_event(error_event)
+
+
 async def stream_workflow_execution(
     graph,
     initial_state: Dict[str, Any],
@@ -264,7 +354,7 @@ async def stream_workflow_execution(
     graph_name: str
 ) -> AsyncIterator[str]:
     """
-    Stream workflow execution as SSE events
+    Stream workflow execution as SSE events (legacy - kept for compatibility)
 
     Yields:
         SSE-formatted event strings
@@ -272,17 +362,16 @@ async def stream_workflow_execution(
     config = {"configurable": {"thread_id": thread_id}}
 
     # Create stream adapter
-    adapter = AGUIStreamAdapter(graph_name)
-    streamer = SSEWorkflowStreamer(adapter)
+    streamer = SSEWorkflowStreamer(correlation_id=thread_id)
 
     try:
         # Start workflow execution
-        yield streamer.format_sse_event({
-            "type": "workflow_start",
-            "graph_name": graph_name,
-            "thread_id": thread_id,
-            "initial_state": initial_state
-        })
+        start_event = WorkflowProgressEvent(
+            type="workflow_start",
+            graph_name=graph_name,
+            state=initial_state
+        )
+        yield streamer.format_sse_event(start_event)
 
         # Stream execution
         async for state in graph.astream(initial_state, config):
@@ -291,54 +380,57 @@ async def stream_workflow_execution(
 
             if current_node:
                 # Node completed
-                event = {
-                    "type": "step_complete",
-                    "step": current_node,
-                    "state": state,
-                    "thread_id": thread_id
-                }
+                event = WorkflowProgressEvent(
+                    type="step_complete",
+                    graph_name=graph_name,
+                    step=current_node,
+                    state=state
+                )
                 yield streamer.format_sse_event(event)
 
             # Check for interrupt
             if "__interrupt__" in state:
-                event = {
-                    "type": "approval_required",
-                    "thread_id": thread_id,
-                    "interrupt": state["__interrupt__"],
-                    "message": "Workflow paused for approval"
-                }
+                event = WorkflowProgressEvent(
+                    type="approval_required",
+                    graph_name=graph_name,
+                    state=state
+                )
                 yield streamer.format_sse_event(event)
 
                 # End stream - client must resume via /resume
-                yield streamer.format_sse_event({
-                    "type": "workflow_paused",
-                    "thread_id": thread_id
-                })
+                pause_event = WorkflowProgressEvent(
+                    type="workflow_paused",
+                    graph_name=graph_name,
+                    state=state
+                )
+                yield streamer.format_sse_event(pause_event)
                 return
 
         # Workflow completed
         final_state = state
 
         if final_state.get("current_step") == "rejected":
-            yield streamer.format_sse_event({
-                "type": "workflow_rejected",
-                "thread_id": thread_id,
-                "final_state": final_state
-            })
+            event = WorkflowProgressEvent(
+                type="workflow_rejected",
+                graph_name=graph_name,
+                state=final_state
+            )
         else:
-            yield streamer.format_sse_event({
-                "type": "workflow_completed",
-                "thread_id": thread_id,
-                "final_state": final_state
-            })
+            event = WorkflowProgressEvent(
+                type="workflow_complete",
+                graph_name=graph_name,
+                state=final_state
+            )
+        yield streamer.format_sse_event(event)
 
     except Exception as e:
         # Error occurred
-        yield streamer.format_sse_event({
-            "type": "workflow_error",
-            "thread_id": thread_id,
-            "error": str(e)
-        })
+        error_event = WorkflowProgressEvent(
+            type="workflow_error",
+            graph_name=graph_name,
+            state={"error": str(e)}
+        )
+        yield streamer.format_sse_event(error_event)
 
 
 # Development server runner

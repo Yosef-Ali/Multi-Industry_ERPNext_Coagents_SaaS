@@ -9,41 +9,13 @@ CRITICAL: Low stock items and large orders require approval
 Implementation of T090
 """
 
-from typing import TypedDict, Literal
-from langgraph.graph import StateGraph, START, END
-from langgraph.types import interrupt, Command
+from typing import Literal
+
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command, interrupt
 
-
-# State definition using TypedDict (LangGraph best practice)
-class RetailFulfillmentState(TypedDict):
-    """State for Retail Order Fulfillment workflow"""
-    # Input parameters
-    customer_name: str
-    customer_id: str
-    order_items: list[dict]
-    delivery_date: str
-    warehouse: str
-
-    # Created entities
-    sales_order_id: str | None
-    pick_list_id: str | None
-    delivery_note_id: str | None
-    payment_entry_id: str | None
-
-    # Inventory tracking
-    stock_availability: dict | None
-    low_stock_items: list[dict] | None
-    order_total: float
-
-    # Workflow tracking
-    current_step: str
-    steps_completed: list[str]
-    errors: list[dict]
-
-    # Approval tracking
-    pending_approval: bool
-    approval_decision: str | None
+from core.state import RetailFulfillmentState, create_base_state
 
 
 # Node 1: Check Inventory Availability (no approval)
@@ -59,10 +31,11 @@ async def check_inventory(state: RetailFulfillmentState) -> RetailFulfillmentSta
     low_stock_items = []
 
     for item in state["order_items"]:
-        available = get_available_stock(item["item_code"], state["warehouse"])
+        item_code = item.get("item_code", item.get("item_name", "UNKNOWN"))
+        available = get_available_stock(item_code, state["warehouse"])
         required = item["qty"]
 
-        stock_availability[item["item_code"]] = {
+        stock_availability[item_code] = {
             "available": available,
             "required": required,
             "sufficient": available >= required
@@ -72,8 +45,8 @@ async def check_inventory(state: RetailFulfillmentState) -> RetailFulfillmentSta
         remaining = available - required
         if remaining < required * 0.2 or remaining < 10:
             low_stock_items.append({
-                "item_code": item["item_code"],
-                "item_name": item["item_name"],
+                "item_code": item_code,
+                "item_name": item.get("item_name", item_code),
                 "required": required,
                 "available": available,
                 "remaining_after": remaining
@@ -87,7 +60,7 @@ async def check_inventory(state: RetailFulfillmentState) -> RetailFulfillmentSta
         **state,
         "stock_availability": stock_availability,
         "low_stock_items": low_stock_items,
-        "steps_completed": state["steps_completed"] + ["check_inventory"],
+        "steps_completed": state.get("steps_completed", []) + ["check_inventory"],
         "current_step": "create_sales_order"
     }
 
@@ -102,7 +75,7 @@ async def create_sales_order(state: RetailFulfillmentState) -> Command[Literal["
     Approval ensures inventory management and credit control
     """
     # Calculate order total
-    order_total = sum(item["qty"] * item["rate"] for item in state["order_items"])
+    order_total = sum(item["qty"] * item.get("rate", 0.0) for item in state["order_items"])
 
     # Check if approval required
     has_low_stock = len(state["low_stock_items"]) > 0
@@ -120,9 +93,9 @@ async def create_sales_order(state: RetailFulfillmentState) -> Command[Literal["
             update={
                 "sales_order_id": sales_order_id,
                 "order_total": order_total,
-                "steps_completed": state["steps_completed"] + ["create_sales_order"],
-                "current_step": "create_pick_list"
-            }
+                "steps_completed": state.get("steps_completed", []) + ["create_sales_order"],
+                "current_step": "create_pick_list",
+            },
         )
 
     # Approval required
@@ -181,11 +154,11 @@ async def create_sales_order(state: RetailFulfillmentState) -> Command[Literal["
             update={
                 "sales_order_id": sales_order_id,
                 "order_total": order_total,
-                "steps_completed": state["steps_completed"] + ["create_sales_order"],
+                "steps_completed": state.get("steps_completed", []) + ["create_sales_order"],
                 "current_step": "create_pick_list",
                 "approval_decision": "approved",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
     else:
         print(f"❌ Sales order rejected")
@@ -193,13 +166,16 @@ async def create_sales_order(state: RetailFulfillmentState) -> Command[Literal["
         return Command(
             goto="workflow_rejected",
             update={
-                "errors": state["errors"] + [{
-                    "step": "create_sales_order",
-                    "reason": "Sales order rejected due to inventory concerns or order value"
-                }],
+                "errors": state["errors"]
+                + [
+                    {
+                        "step": "create_sales_order",
+                        "reason": "Sales order rejected due to inventory concerns or order value",
+                    }
+                ],
                 "approval_decision": "rejected",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
 
 
@@ -221,7 +197,7 @@ async def create_pick_list(state: RetailFulfillmentState) -> RetailFulfillmentSt
     return {
         **state,
         "pick_list_id": pick_list_id,
-        "steps_completed": state["steps_completed"] + ["create_pick_list"],
+        "steps_completed": state.get("steps_completed", []) + ["create_pick_list"],
         "current_step": "create_delivery_note"
     }
 
@@ -244,8 +220,8 @@ async def create_delivery_note(state: RetailFulfillmentState) -> RetailFulfillme
     return {
         **state,
         "delivery_note_id": delivery_note_id,
-        "steps_completed": state["steps_completed"] + ["create_delivery_note"],
-        "current_step": "create_payment_entry"
+        "steps_completed": state.get("steps_completed", []) + ["create_delivery_note"],
+        "current_step": "create_payment"
     }
 
 
@@ -268,9 +244,9 @@ async def create_payment_entry(state: RetailFulfillmentState) -> Command[Literal
             goto="workflow_completed",
             update={
                 "payment_entry_id": payment_entry_id,
-                "steps_completed": state["steps_completed"] + ["create_payment"],
-                "current_step": "completed"
-            }
+                "steps_completed": state.get("steps_completed", []) + ["create_payment"],
+                "current_step": "completed",
+            },
         )
 
     # Large payments require approval
@@ -314,11 +290,11 @@ async def create_payment_entry(state: RetailFulfillmentState) -> Command[Literal
             goto="workflow_completed",
             update={
                 "payment_entry_id": payment_entry_id,
-                "steps_completed": state["steps_completed"] + ["create_payment"],
+                "steps_completed": state.get("steps_completed", []) + ["create_payment"],
                 "current_step": "completed",
                 "approval_decision": "approved",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
     else:
         print(f"❌ Payment entry rejected")
@@ -326,13 +302,16 @@ async def create_payment_entry(state: RetailFulfillmentState) -> Command[Literal
         return Command(
             goto="workflow_rejected",
             update={
-                "errors": state["errors"] + [{
-                    "step": "create_payment",
-                    "reason": "Payment processing rejected"
-                }],
+                "errors": state["errors"]
+                + [
+                    {
+                        "step": "create_payment",
+                        "reason": "Payment processing rejected",
+                    }
+                ],
                 "approval_decision": "rejected",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
 
 
@@ -349,10 +328,7 @@ async def workflow_completed(state: RetailFulfillmentState) -> RetailFulfillment
     print(f"   - Payment: {state['payment_entry_id']}")
     print(f"   - Total: ${state['order_total']:.2f}")
 
-    return {
-        **state,
-        "current_step": "completed"
-    }
+    return {**state, "current_step": "completed"}
 
 
 # Terminal Node: Workflow Rejected
@@ -365,10 +341,7 @@ async def workflow_rejected(state: RetailFulfillmentState) -> RetailFulfillmentS
     print(f"❌ Retail Order Fulfillment workflow rejected")
     print(f"   - Errors: {state['errors']}")
 
-    return {
-        **state,
-        "current_step": "rejected"
-    }
+    return {**state, "current_step": "rejected"}
 
 
 # Helper function: Get available stock
@@ -436,13 +409,14 @@ async def test_workflow():
 
     # Test scenario: Large order with low stock item
     initial_state: RetailFulfillmentState = {
+        **create_base_state(),
         "customer_name": "TechCorp Solutions",
         "customer_id": "CUST-001",
         "order_items": [
             {"item_code": "LAPTOP-DELL-I5", "item_name": "Dell Laptop i5", "qty": 10, "rate": 850.00},
             {"item_code": "MOUSE-WIRELESS", "item_name": "Wireless Mouse", "qty": 15, "rate": 25.00},
             {"item_code": "KEYBOARD-MECH", "item_name": "Mechanical Keyboard", "qty": 10, "rate": 120.00},
-            {"item_code": "MONITOR-24", "item_name": "24-inch Monitor", "qty": 8, "rate": 200.00}  # Will cause low stock
+            {"item_code": "MONITOR-24", "item_name": "24-inch Monitor", "qty": 8, "rate": 200.00},
         ],
         "delivery_date": "2025-10-10",
         "warehouse": "Main Store - WH",
@@ -453,11 +427,6 @@ async def test_workflow():
         "stock_availability": None,
         "low_stock_items": None,
         "order_total": 0.0,
-        "current_step": "start",
-        "steps_completed": [],
-        "errors": [],
-        "pending_approval": False,
-        "approval_decision": None
     }
 
     config = {"configurable": {"thread_id": str(uuid.uuid4())}}

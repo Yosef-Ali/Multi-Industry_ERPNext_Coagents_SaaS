@@ -11,6 +11,13 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
+import {
+  retryWithBackoff,
+  globalCircuitBreaker,
+  globalCostTracker,
+  DEFAULT_RETRY_CONFIG
+} from "../../utils/openrouter-error-handler.js";
+import { validateModel, DEFAULT_MODEL } from "../../config/environment.js";
 
 export interface ClassificationRequest {
   request: string;
@@ -121,22 +128,41 @@ export async function classifyRequest(
     apiKey: openRouterApiKey,
     baseURL: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1'
   });
+  const model = validateModel(process.env.OPENROUTER_MODEL || DEFAULT_MODEL);
 
   // Build classification prompt
   const classificationPrompt = buildClassificationPrompt(input);
 
   try {
-    const response = await client.messages.create({
-      model: process.env.OPENROUTER_MODEL || "zhipu/glm-4-9b-chat",
-      max_tokens: 1024,
-      temperature: 0.1, // Low temperature for consistent classification
-      messages: [
-        {
-          role: "user",
-          content: classificationPrompt
+    const response = await globalCircuitBreaker.execute(() =>
+      retryWithBackoff(
+        () => client.messages.create({
+          model,
+          max_tokens: 1024,
+          temperature: 0.1,
+          messages: [
+            {
+              role: "user",
+              content: classificationPrompt
+            }
+          ]
+        }),
+        DEFAULT_RETRY_CONFIG,
+        (err, attempt, delay) => {
+          console.warn(
+            `classify_request retry ${attempt}/${DEFAULT_RETRY_CONFIG.maxRetries} in ${delay}ms: ${err.message}`
+          );
         }
-      ]
-    });
+      )
+    );
+
+    if (response.usage) {
+      globalCostTracker.recordUsage(
+        response.model || model,
+        response.usage.input_tokens ?? 0,
+        response.usage.output_tokens ?? 0
+      );
+    }
 
     // Parse classification response
     const responseText = response.content[0].type === "text"

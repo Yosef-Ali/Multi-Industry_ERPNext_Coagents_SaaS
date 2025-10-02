@@ -130,11 +130,16 @@
 - [x] T074 Implement bearer token authentication middleware in services/agent-gateway/src/middleware/auth.ts
 - [x] T075 Implement Zod request validation middleware in services/agent-gateway/src/middleware/validation.ts
 - [x] T076 Implement error sanitization handler in services/agent-gateway/src/middleware/errorHandler.ts
-
-### Agent Gateway - Session & Streaming
 - [x] T077 Implement session management in services/agent-gateway/src/session.ts with CoagentSession lifecycle
 - [x] T078 Implement AG-UI SSE event emitter in services/agent-gateway/src/streaming.ts with correlation IDs
-- [x] T079 Implement Anthropic Messages API with streaming, tool use loop, and approval gate integration in services/agent-gateway/src/agent.ts (uses client.messages.stream() with tool definitions, handles tool_use blocks, returns tool_result blocks, integrates with AGUIStreamEmitter for real-time updates)
+- [x] T079 Implement OpenRouter Messages API with streaming, tool use loop, and approval gate integration in services/agent-gateway/src/agent.ts (uses client.messages.create() with tool definitions, handles tool_use blocks, returns tool_result blocks, integrates with AGUIStreamEmitter for real-time updates)
+
+### Agent Gateway - Environment & Resilience (NEW)
+- [x] T174 [P] Implement environment validation module in services/agent-gateway/src/config/environment.ts with strict OpenRouter and ERPNext configuration checks
+- [x] T175 Implement OpenRouter error handling utilities with retry, cost tracking, and circuit breaker in services/agent-gateway/src/utils/openrouter-error-handler.ts
+- [x] T176 Integrate environment validation and masked configuration logging into services/agent-gateway/src/server.ts startup path
+- [x] T177 Integrate OpenRouter error handler utilities across orchestration tool invocations in services/agent-gateway/src/tools/orchestration/*.ts
+- [x] T178 Expose monitoring endpoints for cost tracker and circuit breaker state in services/agent-gateway/src/routes/monitoring.ts
 
 ## Phase 3.3B: Claude Agent SDK Migration (NEW)
 
@@ -166,41 +171,46 @@
 - [x] T166 Implement risk assessment hook in services/agent-gateway/src/hooks/risk_assessment.ts using RiskClassifier
 - [x] T167 Integrate approval hooks with AGUIStreamEmitter for real-time approval prompts in services/agent-gateway/src/hooks/stream_integration.ts
 
-## Phase 3.4: Workflow Service (UPDATED FOR HYBRID ARCHITECTURE)
+## Phase 3.4: Copilot Fabric (Canvas Builder ➜ SaaS Assistant)
 
-### Hybrid Workflow Bridge (NEW)
+> Canvas Copilot = internal builder workspace for designing new ERPNext automation on an infinite canvas.
+> SaaS Copilot = embedded assistant every shipped ERPNext app must expose, powered by the curated LangGraph workflows below.
+
+### Shared Copilot Fabric (NEW)
 - [x] T168 Implement execute_workflow_graph bridge tool in services/agent-gateway/src/tools/workflow/executor.ts that connects SDK subagents to LangGraph workflows
 - [x] T169 Create workflow graph registry in services/workflows/src/core/registry.py that maps graph names to Python modules
 - [x] T170 Implement streaming progress emitter from LangGraph to AGUIStreamEmitter in services/workflows/src/core/stream_adapter.py
 
-### Workflow Core [P]
-- [ ] T080 [P] Implement base state schemas in services/workflows/src/core/state.py with Pydantic models (UPDATED: use TypedDict for LangGraph compatibility)
-- [ ] T081 [P] Implement workflow registry in services/workflows/src/core/registry.py that loads graphs by industry/workflow_name
-- [ ] T082 Implement generic workflow executor in services/workflows/src/core/executor.py with interrupt/resume support and AG-UI frame emission
+### Shared Workflow Core [P]
+- [x] T080 [P] Implement base state schemas in services/workflows/src/core/state.py with Pydantic models (UPDATED: use TypedDict for LangGraph compatibility) (Completed: shared TypedDict base + per-vertical SaaS states + helper `create_base_state()`; all graphs refactored to import shared definitions)
+- [x] T081 [P] Implement workflow registry in services/workflows/src/core/registry.py that loads graphs by industry/workflow_name (ENHANCED: Added capability metadata, tag-based filtering, industry discovery, state validation with auto-population, comprehensive statistics tracking)
+- [x] T082 Implement generic workflow executor in services/workflows/src/core/executor.py with interrupt/resume support and AG-UI frame emission (COMPLETE: WorkflowExecutor with AG-UI streaming, auto thread_id generation, state validation, interrupt detection, execution history, MemorySaver checkpointing, resume capability)
 
-### Workflow Reusable Nodes [P]
-- [ ] T083 [P] Implement approval node in services/workflows/src/nodes/approve.py with AG-UI ui_prompt emission
-- [ ] T084 [P] Implement retry node in services/workflows/src/nodes/retry.py with exponential backoff
-- [ ] T085 [P] Implement escalate node in services/workflows/src/nodes/escalate.py with Frappe Notification creation
-- [ ] T086 [P] Implement notify node in services/workflows/src/nodes/notify.py for in-app notifications and AG-UI frames
+> Unified State Refactor: Graphs now use centralized `core/state.py` TypedDicts ensuring Canvas + SaaS parity (BaseWorkflowState, SaaSWorkflowState, per-vertical states). Next steps: (T081) extend registry to expose industry-filtered + capability metadata; (T082) introduce executor that standardizes interrupt capture, AG-UI frame emission, and future Redis persistence hooks.
 
-### Workflow Graphs - Hotel (UPDATED FOR HYBRID)
+### Canvas Copilot Reusable Nodes [P]
+- [x] T083 [P] Implement approval node in services/workflows/src/nodes/approve.py with AG-UI ui_prompt emission
+- [x] T084 [P] Implement retry node in services/workflows/src/nodes/retry.py with exponential backoff
+- [x] T085 [P] Implement escalate node in services/workflows/src/nodes/escalate.py with Frappe Notification creation
+- [x] T086 [P] Implement notify node in services/workflows/src/nodes/notify.py for in-app notifications and AG-UI frames
+
+### SaaS Copilot Graphs - Hotel (UPDATED FOR HYBRID)
 - [x] T087 REIMPLEMENT hotel O2C workflow graph in services/workflows/src/hotel/o2c_graph.py with LangGraph StateGraph, interrupt() approval gates, Command(goto=...) routing (check_in → folio → charges → check_out → invoice)
 
-### Workflow Graphs - Hospital (UPDATED FOR HYBRID)
+### SaaS Copilot Graphs - Hospital (UPDATED FOR HYBRID)
 - [x] T088 Implement hospital admissions workflow graph in services/workflows/src/hospital/admissions_graph.py with LangGraph StateGraph, interrupt() for clinical orders (create_patient → schedule → orders → encounter → invoice)
 
-### Workflow Graphs - Manufacturing
+### SaaS Copilot Graphs - Manufacturing
 - [x] T089 Implement manufacturing production workflow graph in services/workflows/src/manufacturing/production_graph.py with LangGraph StateGraph, interrupt() for material requests and quality (check_materials → create_work_order → material_request → stock_entry → quality_inspection)
 
-### Workflow Graphs - Retail
+### SaaS Copilot Graphs - Retail
 - [x] T090 Implement retail order fulfillment workflow graph in services/workflows/src/retail/fulfillment_graph.py with LangGraph StateGraph, interrupt() for low stock/large orders (check_inventory → sales_order → pick_list → delivery_note → payment)
 
-### Workflow Graphs - Education
+### SaaS Copilot Graphs - Education
 - [x] T091 Implement education admissions workflow graph in services/workflows/src/education/admissions_graph.py with LangGraph StateGraph, interrupt() for interview and admission decisions (review → schedule_interview → assessment → admission_decision → enrollment)
 
 ### Workflow HTTP Service (NEW)
-- [x] T171 Implement FastAPI HTTP service in services/workflows/src/server.py with /execute, /resume, and /workflows endpoints for LangGraph workflow execution
+- [x] T171 Implement FastAPI HTTP service in services/workflows/src/server.py with /execute, /resume, and /workflows endpoints for LangGraph workflow execution (ENHANCED: Integrated T082 WorkflowExecutor with SSE streaming, non-streaming execution, comprehensive error handling, CORS support)
 - [x] T172 Create Python requirements.txt with langgraph, fastapi, uvicorn dependencies
 - [x] T173 Create test_registry.py script to validate workflow loading and state validation
 
@@ -221,14 +231,14 @@
 ## Phase 3.6: Frontend UI
 
 ### CopilotKit Setup
-- [ ] T094 Implement CopilotKit provider setup in frontend/coagent/src/App.tsx with agent-gateway WebSocket connection
-- [ ] T095 Implement useCopilot hook in frontend/coagent/src/hooks/useCopilot.ts for agent interaction
+- [x] T094 ✅ Implement CopilotKit provider setup in frontend/coagent/app/page.tsx with CoAgents runtime endpoint
+- [x] T095 ✅ Implement useCopilot hook in frontend/coagent/src/hooks/useCopilot.ts with useCoAgent integration for state sharing
 
 ### Core Components [P]
-- [ ] T096 [P] Implement CopilotPanel component in frontend/coagent/src/components/CopilotPanel.tsx as side panel container
-- [ ] T097 [P] Implement EventStream component in frontend/coagent/src/components/EventStream.tsx for AG-UI message feed
-- [ ] T098 [P] Implement ApprovalDialog component in frontend/coagent/src/components/ApprovalDialog.tsx with renderAndWaitForResponse integration
-- [ ] T099 Implement AG-UI event parsing utilities in frontend/coagent/src/utils/streaming.ts
+- [x] T096 ✅ [P] Implement CopilotPanel component in frontend/coagent/src/components/CopilotPanel.tsx as side panel container
+- [x] T097 ✅ [P] Implement EventStream component in frontend/coagent/src/components/EventStream.tsx with useCoAgentStateRender for workflow progress
+- [x] T098 ✅ [P] Implement ApprovalDialog component in frontend/coagent/src/components/ApprovalDialog.tsx with renderAndWaitForResponse for LangGraph interrupt()
+- [x] T099 ✅ Implement AG-UI event parsing utilities in frontend/coagent/src/utils/streaming.ts
 
 ### Domain Widgets [P]
 - [ ] T100 [P] Implement AvailabilityGrid widget in frontend/coagent/src/components/widgets/AvailabilityGrid.tsx for hotel room availability

@@ -60,6 +60,12 @@ export {
   type ResearchFinding
 } from "./deep-research.js";
 
+// Import tools for registry
+import { classifyRequestTool } from "./classify.js";
+import { invokeSubagentTool } from "./invoke.js";
+import { aggregateResultsTool } from "./aggregate.js";
+import { initiateDeepResearchTool } from "./deep-research.js";
+
 /**
  * Get all orchestration tool definitions for Claude Agent SDK
  */

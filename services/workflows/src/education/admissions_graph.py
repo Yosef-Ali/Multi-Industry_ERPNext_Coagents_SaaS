@@ -9,44 +9,13 @@ CRITICAL: Admission decisions require approval
 Implementation of T091
 """
 
-from typing import TypedDict, Literal
-from langgraph.graph import StateGraph, START, END
-from langgraph.types import interrupt, Command
+from typing import Literal
+
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import END, START, StateGraph
+from langgraph.types import Command, interrupt
 
-
-# State definition using TypedDict (LangGraph best practice)
-class EducationAdmissionsState(TypedDict):
-    """State for Education Admissions workflow"""
-    # Input parameters
-    applicant_name: str
-    applicant_email: str
-    program_name: str
-    application_date: str
-    academic_score: float  # e.g., GPA or test score
-
-    # Created entities
-    application_id: str | None
-    interview_id: str | None
-    assessment_id: str | None
-    admission_decision_id: str | None
-    student_enrollment_id: str | None
-
-    # Application tracking
-    application_status: str
-    interview_score: float | None
-    assessment_score: float | None
-    final_score: float | None
-    admission_recommended: bool
-
-    # Workflow tracking
-    current_step: str
-    steps_completed: list[str]
-    errors: list[dict]
-
-    # Approval tracking
-    pending_approval: bool
-    approval_decision: str | None
+from core.state import EducationAdmissionsState, create_base_state
 
 
 # Node 1: Review Application (no approval)
@@ -139,8 +108,8 @@ async def schedule_interview(state: EducationAdmissionsState) -> Command[Literal
                 "steps_completed": state["steps_completed"] + ["schedule_interview"],
                 "current_step": "conduct_assessment",
                 "approval_decision": "approved",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
     else:
         print(f"❌ Interview scheduling rejected")
@@ -148,14 +117,17 @@ async def schedule_interview(state: EducationAdmissionsState) -> Command[Literal
         return Command(
             goto="workflow_rejected",
             update={
-                "errors": state["errors"] + [{
-                    "step": "schedule_interview",
-                    "reason": "Interview scheduling rejected"
-                }],
+                "errors": state["errors"]
+                + [
+                    {
+                        "step": "schedule_interview",
+                        "reason": "Interview scheduling rejected",
+                    }
+                ],
                 "application_status": "rejected",
                 "approval_decision": "rejected",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
 
 
@@ -185,7 +157,7 @@ async def conduct_assessment(state: EducationAdmissionsState) -> EducationAdmiss
         "interview_score": interview_score,
         "assessment_score": assessment_score,
         "steps_completed": state["steps_completed"] + ["conduct_assessment"],
-        "current_step": "make_admission_decision"
+        "current_step": "make_admission_decision",
     }
 
 
@@ -266,8 +238,8 @@ async def make_admission_decision(state: EducationAdmissionsState) -> Command[Li
                 "steps_completed": state["steps_completed"] + ["admission_decision"],
                 "current_step": "enroll_student",
                 "approval_decision": "approved",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
     else:
         print(f"❌ Admission rejected")
@@ -275,17 +247,20 @@ async def make_admission_decision(state: EducationAdmissionsState) -> Command[Li
         return Command(
             goto="workflow_rejected",
             update={
-                "errors": state["errors"] + [{
-                    "step": "admission_decision",
-                    "reason": "Admission decision rejected",
-                    "admission_critical": True
-                }],
+                "errors": state["errors"]
+                + [
+                    {
+                        "step": "admission_decision",
+                        "reason": "Admission decision rejected",
+                        "admission_critical": True,
+                    }
+                ],
                 "final_score": final_score,
                 "admission_recommended": False,
                 "application_status": "rejected",
                 "approval_decision": "rejected",
-                "pending_approval": False
-            }
+                "pending_approval": False,
+            },
         )
 
 
@@ -309,7 +284,7 @@ async def enroll_student(state: EducationAdmissionsState) -> EducationAdmissions
         "student_enrollment_id": student_enrollment_id,
         "application_status": "enrolled",
         "steps_completed": state["steps_completed"] + ["enroll_student"],
-        "current_step": "workflow_completed"
+        "current_step": "workflow_completed",
     }
 
 
@@ -326,10 +301,7 @@ async def workflow_completed(state: EducationAdmissionsState) -> EducationAdmiss
     print(f"   - Student Enrollment: {state['student_enrollment_id']}")
     print(f"   - Final Score: {state['final_score']:.1f}/100")
 
-    return {
-        **state,
-        "current_step": "completed"
-    }
+    return {**state, "current_step": "completed"}
 
 
 # Terminal Node: Workflow Rejected
@@ -344,10 +316,7 @@ async def workflow_rejected(state: EducationAdmissionsState) -> EducationAdmissi
     print(f"   - Status: {state['application_status']}")
     print(f"   - Errors: {state['errors']}")
 
-    return {
-        **state,
-        "current_step": "rejected"
-    }
+    return {**state, "current_step": "rejected"}
 
 
 # Helper function: Get assigned interviewer
@@ -452,11 +421,12 @@ async def test_workflow():
     graph = create_graph()
 
     initial_state: EducationAdmissionsState = {
+        **create_base_state(),
         "applicant_name": "Alice Rodriguez",
         "applicant_email": "alice.rodriguez@email.com",
         "program_name": "Computer Science",
         "application_date": "2025-09-15",
-        "academic_score": 3.7,  # Strong GPA
+        "academic_score": 3.7,
         "application_id": None,
         "interview_id": None,
         "assessment_id": None,
@@ -467,11 +437,6 @@ async def test_workflow():
         "assessment_score": None,
         "final_score": None,
         "admission_recommended": False,
-        "current_step": "start",
-        "steps_completed": [],
-        "errors": [],
-        "pending_approval": False,
-        "approval_decision": None
     }
 
     config = {"configurable": {"thread_id": str(uuid.uuid4())}}

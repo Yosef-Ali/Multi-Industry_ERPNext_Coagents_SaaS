@@ -1,0 +1,102 @@
+ERPNext CoAgents - Cloudflare Deployment Information
+Generated: $(date)
+
+=======================================================
+Cloudflare Resources Created
+=======================================================
+
+KV Namespaces:
+--------------
+1. SESSIONS (Session storage - replaces Redis)
+   ID: eec1ac4c36d14839a7574b41c0ffa339
+   Binding: SESSIONS
+
+2. WORKFLOW_STATE (Workflow cache)
+   ID: 3733a35d182d4f58872db5f46c73aba5
+   Binding: WORKFLOW_STATE
+
+D1 Database:
+------------
+Name: erpnext-workflows-db
+ID: 438122c1-fe33-446c-a222-4bb3cfeb8fa5
+Binding: DB
+Region: WEUR (Western Europe)
+Tables Created:
+  - checkpoints (LangGraph state)
+  - workflow_executions (execution history)
+  - approvals (approval tracking)
+  - sessions (user sessions)
+  - workflow_metrics (analytics)
+  - approval_stats (view)
+  - workflow_stats (view)
+
+=======================================================
+Configuration Updated
+=======================================================
+
+File: services/agent-gateway/wrangler.toml
+- Added WORKFLOW_STATE KV namespace
+- Added D1 database binding
+- All resource IDs updated
+
+=======================================================
+Secrets Required (Not Set Yet)
+=======================================================
+
+Agent Gateway (services/agent-gateway):
+---------------------------------------
+REQUIRED:
+  - ANTHROPIC_API_KEY      (Get from console.anthropic.com)
+  - WORKFLOW_SERVICE_URL   (Python service URL, e.g., https://erpnext-workflows.onrender.com)
+
+OPTIONAL (for ERPNext integration):
+  - ERPNEXT_API_KEY        (From ERPNext settings)
+  - ERPNEXT_API_SECRET     (From ERPNext settings)
+  - ERPNEXT_BASE_URL       (Your ERPNext instance URL)
+
+To set secrets:
+cd services/agent-gateway
+npx wrangler@latest secret put ANTHROPIC_API_KEY
+npx wrangler@latest secret put WORKFLOW_SERVICE_URL
+
+=======================================================
+Next Steps
+=======================================================
+
+1. Set secrets (see above)
+2. Deploy agent gateway: cd services/agent-gateway && npx wrangler@latest deploy
+3. Deploy frontend: cd frontend/coagent && npm run build && npx wrangler@latest pages deploy dist
+4. Deploy Python workflows to Render (see CLOUDFLARE_FREE_TIER_DEPLOY.md)
+5. Test end-to-end
+
+=======================================================
+Free Tier Limits
+=======================================================
+
+Workers:  100,000 requests/day
+KV:       100,000 reads/day, 1,000 writes/day
+D1:       5,000,000 reads/day, 5GB storage
+Pages:    Unlimited builds
+
+Your estimated usage: < 1% of all limits ✅
+
+=======================================================
+Account Information
+=======================================================
+
+Email: dev.yosefali@gmail.com
+Account ID: 5a34e22d045e4ff3538a636317a631e8
+Region: WEUR
+
+=======================================================
+Monitoring
+=======================================================
+
+Cloudflare Dashboard: https://dash.cloudflare.com/5a34e22d045e4ff3538a636317a631e8
+- Workers & Pages: View deployments and metrics
+- KV: View namespace usage
+- D1: View database queries and storage
+
+=======================================================
+Total Monthly Cost: $0 (100% Free Tier)
+=======================================================

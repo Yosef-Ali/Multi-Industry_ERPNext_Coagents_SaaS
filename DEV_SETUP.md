@@ -31,6 +31,24 @@
   - Docker
   - REST Client
 
+### Chrome DevTools MCP (Claude / VS Code integration)
+
+The Claude extension and other MCP clients can launch Chrome DevTools through the bundled MCP server. This project pins the workspace to `chrome-devtools-mcp@0.6.0` in `.vscode/settings.json`.
+
+```bash
+# Quick smoke test
+npx chrome-devtools-mcp@0.6.0 --help
+
+# Headless launch with logging (matches workspace config)
+npx chrome-devtools-mcp@0.6.0 --headless --logFile /tmp/chrome-devtools-mcp.log
+
+# Attach to an existing Chrome instance (if you prefer interactive debugging)
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
+npx chrome-devtools-mcp@0.6.0 --browserUrl http://127.0.0.1:9222 --logFile /tmp/chrome-devtools-mcp.log
+```
+
+> **Tip:** If you need visible Chrome windows, remove `--headless` from `.vscode/settings.json`. Keep the pinned version in both workspace and user `mcp.json` files to avoid surprise upgrades.
+
 ---
 
 ## 🔧 Quick Start (3 Steps)
