@@ -6,22 +6,26 @@
 
 // Types
 export type {
-  CoAgentMode,
-  ArtifactType,
-  Artifact,
-  CoAgentResponse,
-  VariantStrategy,
-  VariantGenerationRequest,
-  RefinementRequest,
-  CoAgentConfig,
+    CoAgentMode,
+    ArtifactType,
+    Artifact,
+    CoAgentResponse,
+    VariantStrategy,
+    VariantGenerationRequest,
+    RefinementRequest,
+    CoAgentConfig,
+    InputType,
+    InputAnalysis,
+    RecommendedPrompt,
+    HybridGenerationRequest,
 } from './types';
 
 export {
-  DEFAULT_MODE_CONFIGS,
-  CoAgentError,
-  VariantGenerationError,
-  ArtifactParsingError,
-  InvalidModeError,
+    DEFAULT_MODE_CONFIGS,
+    CoAgentError,
+    VariantGenerationError,
+    ArtifactParsingError,
+    InvalidModeError,
 } from './types';
 
 // Base class
@@ -29,11 +33,14 @@ export { BaseCoAgent, CoAgentFactory } from './base';
 
 // Mode implementations
 export {
-  ChatCoAgent,
-  DeveloperCoAgent,
-  AnalyzerCoAgent,
-  RefinerCoAgent,
+    ChatCoAgent,
+    DeveloperCoAgent,
+    AnalyzerCoAgent,
+    RefinerCoAgent,
 } from './modes';
+
+// Hybrid intelligent co-agent
+export { HybridCoAgent } from './hybrid';
 
 /**
  * Quick start guide:

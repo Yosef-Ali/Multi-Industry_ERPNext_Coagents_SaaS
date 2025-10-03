@@ -230,6 +230,110 @@ export interface RefinementRequest {
 }
 
 /**
+ * Input type detection for hybrid approach
+ */
+export enum InputType {
+    /** Detailed Product Requirements Document */
+    PRD = 'prd',
+
+    /** Simple/vague prompt that needs clarification */
+    SIMPLE_PROMPT = 'simple_prompt',
+
+    /** Well-defined prompt ready for generation */
+    DETAILED_PROMPT = 'detailed_prompt',
+
+    /** Request to use official ERPNext template */
+    TEMPLATE_REQUEST = 'template_request',
+}
+
+/**
+ * Detected input analysis
+ */
+export interface InputAnalysis {
+    /** Detected input type */
+    type: InputType;
+
+    /** Detected domain/industry */
+    domain?: string;
+
+    /** Confidence score (0-1) */
+    confidence: number;
+
+    /** Key entities/concepts detected */
+    entities: string[];
+
+    /** Missing critical information */
+    missingInfo?: string[];
+
+    /** Suggested questions to ask user */
+    clarificationQuestions?: string[];
+}
+
+/**
+ * Recommended prompt structure for user approval
+ */
+export interface RecommendedPrompt {
+    /** Recommended enhanced prompt */
+    prompt: string;
+
+    /** Detected domain */
+    domain: string;
+
+    /** Suggested DocTypes to generate */
+    suggestedDocTypes: Array<{
+        name: string;
+        description: string;
+        keyFields: string[];
+    }>;
+
+    /** Suggested workflows */
+    suggestedWorkflows: Array<{
+        name: string;
+        states: string[];
+        description: string;
+    }>;
+
+    /** Suggested features */
+    suggestedFeatures: string[];
+
+    /** Official ERPNext templates that might be relevant */
+    relevantTemplates?: Array<{
+        name: string;
+        description: string;
+        url?: string;
+    }>;
+
+    /** Estimated complexity */
+    complexity: 'simple' | 'moderate' | 'complex';
+
+    /** Estimated generation time */
+    estimatedTime?: string;
+}
+
+/**
+ * Hybrid generation request combining all approaches
+ */
+export interface HybridGenerationRequest extends VariantGenerationRequest {
+    /** Input analysis (auto-detected or provided) */
+    inputAnalysis?: InputAnalysis;
+
+    /** Whether to analyze input first before generation */
+    analyzeFirst?: boolean;
+
+    /** Whether to use ERPNext official template as base */
+    useTemplate?: boolean;
+
+    /** Template name if using official template */
+    templateName?: string;
+
+    /** PRD document if provided */
+    prdDocument?: string;
+
+    /** User's approval of recommended prompt */
+    approvedRecommendation?: boolean;
+}
+
+/**
  * Co-Agent configuration
  */
 export interface CoAgentConfig {
