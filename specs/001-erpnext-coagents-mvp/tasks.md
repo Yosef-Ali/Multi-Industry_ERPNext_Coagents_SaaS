@@ -3,6 +3,282 @@
 **Input**: Design documents from `/specs/001-erpnext-coagents-mvp/`
 **Prerequisites**: plan.md (required), spec.md, research decisions, data model, tool/workflow contracts
 
+---
+
+## 🤖 Context Preservation Guide for AI Coding Agents
+
+> **Purpose**: This section helps new AI coding agents (Claude, GPT-4, etc.) continue development with consistent coding style, patterns, and context awareness.
+
+### 📖 Essential Reading Order
+1. **Start here**: Read this `tasks.md` file completely (current file)
+2. **Architecture**: Read `specs/001-erpnext-coagents-mvp/plan.md` for system architecture
+3. **Context Guide**: Read `MCP_CONTEXT_GUIDE.md` for AI collaboration protocol
+4. **Recent Work**: Read `WHATS_NEXT.md` for completed work and next priorities
+
+### 🎯 Development Patterns & Coding Style
+
+**1. Architectural Patterns Used:**
+- **Agent Gateway**: TypeScript + Claude Agent SDK + OpenRouter for LLM orchestration
+- **Workflows**: Python + LangGraph with TypedDict states (NOT Pydantic BaseModel)
+- **Frontend**: React 18 + Next.js 15 + CopilotKit v1.10.5 for embedded AI
+- **ERPNext**: Frappe apps with Client Scripts for native integration
+- **Testing**: TDD (tests before implementation), contract tests + integration tests
+
+**2. File Organization Conventions:**
+```
+services/agent-gateway/src/
+  ├── tools/{industry}/{tool_name}.ts     # Industry-specific tools
+  ├── tools/common/{tool_name}.ts         # Shared cross-industry tools
+  ├── tools/orchestration/{feature}.ts    # Orchestrator tools
+  └── hooks/{hook_name}.ts                # Claude SDK hooks (approval, risk)
+
+services/workflows/src/
+  ├── core/state.py                       # Centralized TypedDict states
+  ├── core/registry.py                    # Workflow discovery/loading
+  ├── core/executor.py                    # WorkflowExecutor with AG-UI streaming
+  ├── {industry}/{workflow}_graph.py      # LangGraph StateGraph per industry
+  └── nodes/{node_name}.py                # Reusable workflow nodes
+
+frontend/coagent/
+  ├── hooks/use-app-copilot.tsx           # Main CopilotKit integration hook
+  ├── app/api/copilot/runtime/route.ts    # CopilotKit backend runtime
+  └── components/copilot/                 # Recommendation cards, panels
+```
+
+**3. TypeScript Coding Style:**
+- Use `interface` for data shapes, `type` for unions/intersections
+- Async/await for all I/O operations (no raw Promises)
+- Zod for runtime validation at API boundaries
+- Explicit error handling with try-catch, never swallow errors
+- Example:
+```typescript
+export interface SearchDocParams {
+  doctype: string;
+  filters?: Record<string, any>;
+  fields?: string[];
+}
+
+export async function searchDoc(params: SearchDocParams): Promise<DocSearchResult> {
+  const validated = SearchDocParamsSchema.parse(params); // Zod validation
+  try {
+    const response = await frappeClient.get('/api/resource/...');
+    return response.data;
+  } catch (error) {
+    logger.error('searchDoc failed', { error, params });
+    throw new ToolExecutionError('Failed to search documents', error);
+  }
+}
+```
+
+**4. Python Coding Style (LangGraph Workflows):**
+- Use `TypedDict` for LangGraph states (NOT Pydantic BaseModel)
+- Import shared state definitions from `core/state.py`
+- Use `Command(goto="node_name")` for explicit routing
+- Use `interrupt()` for human-in-the-loop approval gates
+- Type hints on all functions
+- Example:
+```python
+from langgraph.graph import StateGraph, START, END
+from langgraph.types import Command, interrupt
+from typing import Literal
+from ..core.state import HotelWorkflowState  # Import shared state
+
+def check_in_node(state: HotelWorkflowState) -> Command[Literal["folio", "END"]]:
+    """Check-in guest and create folio."""
+    # ... logic ...
+    return Command(goto="folio", update={"current_step": "folio"})
+
+def approval_node(state: HotelWorkflowState) -> Command[Literal["next_step", "END"]]:
+    """Wait for human approval."""
+    user_response = interrupt({"type": "approval", "message": "Approve?"})
+    if user_response.get("approved"):
+        return Command(goto="next_step")
+    return Command(goto=END)
+
+# Build graph
+graph = StateGraph(HotelWorkflowState)
+graph.add_node("check_in", check_in_node)
+graph.add_node("approval", approval_node)
+graph.add_edge(START, "check_in")
+graph.add_edge("check_in", "approval")
+```
+
+**5. React/Next.js Coding Style:**
+- Functional components with TypeScript
+- Custom hooks for shared logic (use-app-copilot.tsx pattern)
+- Server Components by default, Client Components marked with `"use client"`
+- CopilotKit patterns: `useCopilotReadable` for context, `useCopilotAction` for actions
+- Example:
+```typescript
+'use client';
+
+import { useCopilotReadable, useCopilotAction } from '@copilotkit/react-core';
+
+export function useAppCopilot(appType: string) {
+  // Expose page context to AI
+  useCopilotReadable({
+    description: `Current ${appType} app context`,
+    value: { page: currentPage, data: pageData }
+  });
+
+  // Register AI actions
+  useCopilotAction({
+    name: 'search_students',
+    description: 'Search for students',
+    parameters: [{ name: 'query', type: 'string' }],
+    handler: async ({ query }) => {
+      const results = await fetch(`/api/search?q=${query}`);
+      return results.json();
+    }
+  });
+}
+```
+
+**6. Testing Patterns:**
+- **TDD**: Write tests BEFORE implementation (Phase 3.2 before 3.3)
+- **Contract Tests**: Verify tool input/output schemas
+- **Integration Tests**: End-to-end scenarios across services
+- Test file naming: `test_{feature}.ts` or `test_{feature}.py`
+- Use descriptive test names: `test_hotel_o2c_workflow_with_approval_gate`
+
+**7. Git Commit Patterns:**
+- Format: `type(scope): description (T###)`
+- Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`
+- Scopes: `agent-gateway`, `workflows`, `frontend`, `apps`
+- Examples:
+  - `feat(agent-gateway): implement search_doc tool handler (T050)`
+  - `test(workflows): add hotel O2C workflow state machine test (T033)`
+  - `docs(tasks): add context preservation guide for AI agents`
+
+### 🔍 Context Discovery Tools
+
+**Before starting any task, gather context:**
+
+```bash
+# 1. Find relevant files
+grep -r "search_doc" services/agent-gateway/src/tools/
+
+# 2. Check git history for patterns
+git log --oneline --grep="T050" --all
+
+# 3. Search for similar implementations
+find services/agent-gateway/src/tools -name "*.ts" | head -5
+
+# 4. Check current branch and status
+git status
+git log --oneline -10
+```
+
+**Key files to check for patterns:**
+- `services/agent-gateway/src/tools/common/get_doc.ts` - Example tool implementation
+- `services/workflows/src/hotel/o2c_graph.py` - Example LangGraph workflow
+- `frontend/coagent/hooks/use-app-copilot.tsx` - CopilotKit integration pattern
+- `services/workflows/src/core/state.py` - All workflow state definitions
+
+### ✅ Pre-Implementation Checklist
+
+Before implementing any task, ensure:
+
+- [ ] Read the task description completely (T### number)
+- [ ] Check dependencies: Has prerequisite tasks completed? (see Dependencies section)
+- [ ] Find similar existing implementations to match style
+- [ ] Verify file path exists or create directory structure
+- [ ] Check if tests exist (TDD: tests before implementation)
+- [ ] Understand the [P] parallel marker (can run with other [P] tasks)
+- [ ] Review constitution principles (Native-First, Safe-by-Default, HITL, etc.)
+
+### 🚀 Session Handoff Protocol
+
+**When starting a new session:**
+
+1. **Read context**: Check recent commits via `git log --oneline -20`
+2. **Check branch**: Verify you're on correct feature branch
+3. **Review WHATS_NEXT.md**: See completed work and priorities
+4. **Check tasks.md**: Find next unchecked [ ] task
+5. **Verify dependencies**: Ensure prerequisite tasks are done
+
+**When ending a session:**
+
+1. **Commit all changes**: One commit per task (T### in message)
+2. **Push to remote**: `git push origin <branch-name>`
+3. **Update documentation**: If patterns changed, document them
+4. **Mark tasks complete**: Add [x] to completed tasks in this file
+
+### 📚 Documentation Structure
+
+**Key documentation files:**
+- `specs/001-erpnext-coagents-mvp/plan.md` - System architecture & design
+- `specs/001-erpnext-coagents-mvp/tasks.md` - This file (task breakdown)
+- `MCP_CONTEXT_GUIDE.md` - AI collaboration guide (detailed)
+- `WHATS_NEXT.md` - Recent work + next priorities
+- `README.md` - Project overview
+- `DEV_SETUP.md` - Local development setup
+- `COPILOTKIT_EMBEDDED_COMPLETE.md` - CopilotKit implementation guide
+
+**When to create new documentation:**
+- New architectural patterns introduced
+- Complex workflows that need diagrams
+- API contracts for tool handlers
+- Performance benchmarks achieved
+
+### 🎓 Learning from Existing Code
+
+**To understand tool handler patterns:**
+```bash
+# Read 2-3 existing tool implementations
+cat services/agent-gateway/src/tools/common/get_doc.ts
+cat services/agent-gateway/src/tools/common/create_doc.ts
+cat services/agent-gateway/src/tools/hotel/room_availability.ts
+```
+
+**To understand workflow patterns:**
+```bash
+# Read completed workflow graphs
+cat services/workflows/src/hotel/o2c_graph.py
+cat services/workflows/src/hospital/admissions_graph.py
+cat services/workflows/src/core/state.py  # STATE DEFINITIONS
+```
+
+**To understand CopilotKit integration:**
+```bash
+# Read frontend integration pattern
+cat frontend/coagent/hooks/use-app-copilot.tsx
+cat frontend/coagent/app/api/copilot/runtime/route.ts
+```
+
+### ⚠️ Common Pitfalls to Avoid
+
+1. **DON'T use Pydantic BaseModel for LangGraph states** → Use TypedDict from `core/state.py`
+2. **DON'T skip tests** → TDD required (Phase 3.2 before 3.3)
+3. **DON'T hardcode ERPNext URLs** → Use environment variables
+4. **DON'T skip approval gates** → High-risk operations need HITL (interrupt())
+5. **DON'T commit without T### reference** → Every commit needs task number
+6. **DON'T implement without checking dependencies** → Verify prerequisite tasks done
+
+### 🔄 Iterative Development Process
+
+**Standard workflow for each task:**
+
+1. **Understand**: Read task description + check similar implementations
+2. **Test First**: Write failing test (if Phase 3.2 task)
+3. **Implement**: Write minimal code to pass test
+4. **Validate**: Run tests (`npm test` or `pytest`)
+5. **Commit**: `git commit -m "feat(scope): description (T###)"`
+6. **Mark Done**: Add [x] to task in this file
+7. **Next Task**: Check dependencies, pick next [ ] task
+
+### 🌐 Multi-Agent Collaboration
+
+**If multiple AI agents working on this project:**
+
+- **Use [P] markers**: Parallel tasks can be done simultaneously
+- **Communicate via commits**: Clear commit messages with T### numbers
+- **Document new patterns**: Update this guide if you introduce new conventions
+- **Respect dependencies**: Don't start T052 until T047-T051 complete
+- **Sync frequently**: Pull before starting, push after completing
+
+---
+
 ## Path Conventions
 - **Monorepo root**: `/Users/mekdesyared/Multi-Industry_ERPNext_Coagents_SaaS`
 - **ERPNext apps**: `apps/erpnext_hotel/`, `apps/erpnext_hospital/`, `apps/common/`
