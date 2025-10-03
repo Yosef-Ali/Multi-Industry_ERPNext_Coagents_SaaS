@@ -1,13 +1,23 @@
 /**
  * Environment Variable Validation
- * Ensures all required configuration is present before application starts
+ * T147: Updated to support flexible AI provider configuration
  */
 
 interface EnvConfig {
-    // OpenRouter Configuration
-    OPENROUTER_API_KEY: string;
-    OPENROUTER_MODEL: string;
-    OPENROUTER_BASE_URL: string;
+    // AI Provider Configuration (T147)
+    AI_PROVIDER?: 'openrouter' | 'cloudflare' | 'auto';
+    PREFER_FREE_TIER?: string;
+    MAX_COST_PER_1K?: string;
+
+    // OpenRouter Configuration (now optional if using Cloudflare)
+    OPENROUTER_API_KEY?: string;
+    OPENROUTER_MODEL?: string;
+    OPENROUTER_BASE_URL?: string;
+    OPENROUTER_HTTP_REFERER?: string;
+    OPENROUTER_APP_TITLE?: string;
+
+    // Cloudflare AI Configuration (T146)
+    CLOUDFLARE_MODEL?: string;
 
     // ERPNext Configuration
     ERPNEXT_API_URL: string;
@@ -27,18 +37,30 @@ interface EnvConfig {
     DEBUG?: string;
 }
 
+// T147: Updated required variables - OpenRouter is now optional
 const REQUIRED_ENV_VARS = [
-    'OPENROUTER_API_KEY',
-    'OPENROUTER_MODEL',
-    'OPENROUTER_BASE_URL',
     'ERPNEXT_API_URL',
     'SESSION_SECRET',
     'ALLOWED_ORIGINS',
 ] as const;
 
 const OPTIONAL_ENV_VARS = [
+    // AI Provider (T147)
+    'AI_PROVIDER',
+    'PREFER_FREE_TIER',
+    'MAX_COST_PER_1K',
+    // OpenRouter (now optional)
+    'OPENROUTER_API_KEY',
+    'OPENROUTER_MODEL',
+    'OPENROUTER_BASE_URL',
+    'OPENROUTER_HTTP_REFERER',
+    'OPENROUTER_APP_TITLE',
+    // Cloudflare (T146)
+    'CLOUDFLARE_MODEL',
+    // ERPNext
     'ERPNEXT_API_KEY',
     'ERPNEXT_API_SECRET',
+    // General
     'NODE_ENV',
     'DEBUG',
     'USE_MOCK_ERPNEXT',
@@ -64,21 +86,6 @@ export function validateEnvironment(): EnvConfig {
         } else {
             // Validate specific formats
             switch (varName) {
-                case 'OPENROUTER_API_KEY':
-                    if (!value.startsWith('sk-or-v1-')) {
-                        invalid.push(`${varName} (must start with 'sk-or-v1-')`);
-                    }
-                    if (value.length < 40) {
-                        invalid.push(`${varName} (too short, possibly invalid)`);
-                    }
-                    break;
-
-                case 'OPENROUTER_BASE_URL':
-                    if (!value.startsWith('http://') && !value.startsWith('https://')) {
-                        invalid.push(`${varName} (must be a valid URL)`);
-                    }
-                    break;
-
                 case 'ERPNEXT_API_URL':
                     if (!value.startsWith('http://') && !value.startsWith('https://')) {
                         invalid.push(`${varName} (must be a valid URL)`);
@@ -104,9 +111,30 @@ export function validateEnvironment(): EnvConfig {
         }
     }
 
+    // T147: Validate optional OpenRouter configuration
+    const openrouterKey = process.env.OPENROUTER_API_KEY;
+    if (openrouterKey) {
+        if (!openrouterKey.startsWith('sk-or-v1-')) {
+            warnings.push('OPENROUTER_API_KEY does not start with "sk-or-v1-" - may be invalid');
+        }
+        if (openrouterKey.length < 40) {
+            warnings.push('OPENROUTER_API_KEY seems too short - may be invalid');
+        }
+    }
+    
+    const openrouterURL = process.env.OPENROUTER_BASE_URL;
+    if (openrouterURL && !openrouterURL.startsWith('http://') && !openrouterURL.startsWith('https://')) {
+        invalid.push('OPENROUTER_BASE_URL must be a valid URL');
+    }
+
     // Check optional but recommended variables
     if (!process.env.ERPNEXT_API_KEY && !process.env.USE_MOCK_ERPNEXT) {
         warnings.push('ERPNEXT_API_KEY not set - ERPNext integration may not work');
+    }
+    
+    // T147: Warn if no AI provider is configured
+    if (!process.env.OPENROUTER_API_KEY) {
+        warnings.push('OPENROUTER_API_KEY not set - will use Cloudflare Workers AI if available, otherwise agent will fail');
     }
 
     // Report findings
@@ -212,14 +240,32 @@ export function maskSecret(secret: string, visibleChars: number = 8): string {
 
 /**
  * Log configuration (with secrets masked)
+ * T147: Updated to handle optional AI provider configuration
  */
 export function logConfiguration(): void {
     const config = getEnvConfig();
 
     console.log('📋 Configuration:');
-    console.log(`   OpenRouter Model: ${config.OPENROUTER_MODEL}`);
-    console.log(`   OpenRouter API Key: ${maskSecret(config.OPENROUTER_API_KEY)}`);
-    console.log(`   OpenRouter Base URL: ${config.OPENROUTER_BASE_URL}`);
+    
+    // AI Provider (T147)
+    if (config.AI_PROVIDER) {
+        console.log(`   AI Provider: ${config.AI_PROVIDER}`);
+    }
+    
+    // OpenRouter (now optional)
+    if (config.OPENROUTER_API_KEY) {
+        console.log(`   OpenRouter Model: ${config.OPENROUTER_MODEL || 'default'}`);
+        console.log(`   OpenRouter API Key: ${maskSecret(config.OPENROUTER_API_KEY)}`);
+        console.log(`   OpenRouter Base URL: ${config.OPENROUTER_BASE_URL || 'default'}`);
+    } else {
+        console.log('   OpenRouter: Not configured');
+    }
+    
+    // Cloudflare (T146)
+    if (config.CLOUDFLARE_MODEL) {
+        console.log(`   Cloudflare Model: ${config.CLOUDFLARE_MODEL}`);
+    }
+    
     console.log(`   ERPNext URL: ${config.ERPNEXT_API_URL}`);
     console.log(`   Gateway: ${config.GATEWAY_HOST}:${config.GATEWAY_PORT}`);
     console.log(`   Environment: ${config.NODE_ENV || 'development'}`);
