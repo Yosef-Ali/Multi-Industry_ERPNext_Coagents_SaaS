@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
                             required: true,
                         },
                     ],
-                    handler: async ({ student_name, grade, date_of_birth, parent_name, parent_contact }) => {
+                    handler: async ({ student_name, grade, date_of_birth, parent_name, parent_contact }: any) => {
                         try {
                             const response = await fetch(`${ERPNEXT_URL}/api/resource/Student`, {
                                 method: 'POST',
@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
                             required: false,
                         },
                     ],
-                    handler: async ({ student_id, status, date }) => {
+                    handler: async ({ student_id, status, date }: any) => {
                         const attendance_date = date || new Date().toISOString().split('T')[0];
 
                         try {
@@ -203,7 +203,7 @@ export async function POST(req: NextRequest) {
                             required: false,
                         },
                     ],
-                    handler: async ({ report_type, filters }) => {
+                    handler: async ({ report_type, filters }: any) => {
                         try {
                             // For demo, return mock data structure
                             return {
@@ -247,7 +247,7 @@ export async function POST(req: NextRequest) {
                             required: false,
                         },
                     ],
-                    handler: async ({ doctype, query, filters }) => {
+                    handler: async ({ doctype, query, filters }: any) => {
                         try {
                             const filterStr = filters
                                 ? `&filters=${encodeURIComponent(JSON.stringify(filters))}`
@@ -316,7 +316,7 @@ export async function POST(req: NextRequest) {
                             required: false,
                         },
                     ],
-                    handler: async ({ patient_name, date_of_birth, contact, blood_group }) => {
+                    handler: async ({ patient_name, date_of_birth, contact, blood_group }: any) => {
                         try {
                             const response = await fetch(`${ERPNEXT_URL}/api/resource/Patient`, {
                                 method: 'POST',
@@ -385,7 +385,7 @@ export async function POST(req: NextRequest) {
                             required: false,
                         },
                     ],
-                    handler: async ({ patient_id, appointment_date, practitioner, department }) => {
+                    handler: async ({ patient_id, appointment_date, practitioner, department }: any) => {
                         try {
                             return {
                                 success: true,
@@ -423,7 +423,7 @@ export async function POST(req: NextRequest) {
                             required: true,
                         },
                     ],
-                    handler: async ({ doctype, data }) => {
+                    handler: async ({ doctype, data }: any) => {
                         try {
                             const response = await fetch(`${ERPNEXT_URL}/api/resource/${doctype}`, {
                                 method: 'POST',
@@ -471,7 +471,7 @@ export async function POST(req: NextRequest) {
                             required: false,
                         },
                     ],
-                    handler: async ({ page, context }) => {
+                    handler: async ({ page, context }: any) => {
                         // Return dynamic suggestions based on page
                         return {
                             success: true,

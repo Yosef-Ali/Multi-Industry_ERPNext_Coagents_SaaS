@@ -7,8 +7,15 @@ Phase 3.7 - T113: Server-side batch update capabilities
 
 import frappe
 from frappe import _
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import json
+
+
+def _safe_doc_identifiers(doc_ref: Any) -> Tuple[str, str]:
+    """Return safe doctype/name strings even when doc_ref is malformed."""
+    if isinstance(doc_ref, dict):
+        return doc_ref.get("doctype", "Unknown"), doc_ref.get("name", "Unknown")
+    return "Unknown", "Unknown"
 
 
 @frappe.whitelist()
@@ -108,7 +115,8 @@ def bulk_update(documents: str, update_fields: str) -> Dict[str, Any]:
                 updated_count += 1
             else:
                 failed_count += 1
-                errors.append(doc_result["error"])
+                if doc_result.get("error"):
+                    errors.append(doc_result["error"])
 
         # Commit transaction if all updates succeeded
         if failed_count == 0:
@@ -117,10 +125,23 @@ def bulk_update(documents: str, update_fields: str) -> Dict[str, Any]:
         else:
             # Rollback if any updates failed
             frappe.db.rollback()
+            rollback_message = _("Update rolled back due to failures in this batch")
+            for doc_result in results:
+                if doc_result.get("success"):
+                    doc_result["success"] = False
+                    doc_result["error"] = rollback_message
+
+            updated_count = 0
+            failed_count = len([result for result in results if not result.get("success")])
+            errors = [
+                result.get("error")
+                for result in results
+                if not result.get("success") and result.get("error")
+            ]
             success = False
             frappe.log_error(
                 title="Bulk Update Failed",
-                message=f"Failed to update {failed_count} documents. Rolled back all changes.\n\nErrors:\n" + "\n".join(errors)
+                message="Failed to update documents. Rolled back all changes.\n\nErrors:\n" + "\n".join(errors)
             )
 
     except Exception as e:
@@ -298,9 +319,10 @@ def bulk_submit(documents: str) -> Dict[str, Any]:
     for doc_ref in docs:
         try:
             if not isinstance(doc_ref, dict) or "doctype" not in doc_ref or "name" not in doc_ref:
+                doctype, name = _safe_doc_identifiers(doc_ref)
                 results.append({
-                    "doctype": doc_ref.get("doctype", "Unknown"),
-                    "name": doc_ref.get("name", "Unknown"),
+                    "doctype": doctype,
+                    "name": name,
                     "success": False,
                     "error": _("Invalid document reference")
                 })
@@ -343,9 +365,10 @@ def bulk_submit(documents: str) -> Dict[str, Any]:
             submitted_count += 1
 
         except Exception as e:
+            doctype, name = _safe_doc_identifiers(doc_ref)
             results.append({
-                "doctype": doc_ref.get("doctype", "Unknown"),
-                "name": doc_ref.get("name", "Unknown"),
+                "doctype": doctype,
+                "name": name,
                 "success": False,
                 "error": str(e)
             })
@@ -415,9 +438,10 @@ def bulk_cancel(documents: str) -> Dict[str, Any]:
     for doc_ref in docs:
         try:
             if not isinstance(doc_ref, dict) or "doctype" not in doc_ref or "name" not in doc_ref:
+                doctype, name = _safe_doc_identifiers(doc_ref)
                 results.append({
-                    "doctype": doc_ref.get("doctype", "Unknown"),
-                    "name": doc_ref.get("name", "Unknown"),
+                    "doctype": doctype,
+                    "name": name,
                     "success": False,
                     "error": _("Invalid document reference")
                 })
@@ -471,9 +495,10 @@ def bulk_cancel(documents: str) -> Dict[str, Any]:
             cancelled_count += 1
 
         except Exception as e:
+            doctype, name = _safe_doc_identifiers(doc_ref)
             results.append({
-                "doctype": doc_ref.get("doctype", "Unknown"),
-                "name": doc_ref.get("name", "Unknown"),
+                "doctype": doctype,
+                "name": name,
                 "success": False,
                 "error": str(e)
             })

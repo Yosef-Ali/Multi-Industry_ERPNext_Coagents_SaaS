@@ -1,271 +1,142 @@
-# 🚀 Deploy Now - Complete Guide
+# 🚀 Quick Cloudflare Deployment
 
-**Status**: ✅ Cloudflare resources ready | ⏳ Secrets + Deployment pending
+## Prerequisites ✅
 
----
+Your Cloudflare resources are already set up:
+- ✅ Account: `5a34e22d045e4ff3538a636317a631e8`
+- ✅ Workers: `erpnext-agent-gateway`, `erpnext-coagent-ui`
+- ✅ KV Namespaces: `SESSIONS`, `WORKFLOW_STATE`
+- ✅ D1 Database: `erpnext-workflows-db`
+- ✅ OpenRouter API Key: Configured in `.env`
 
-## 📋 What's Already Done
-
-✅ **Cloudflare Login**: dev.yosefali@gmail.com
-✅ **KV Namespaces Created**:
-- SESSIONS: `eec1ac4c36d14839a7574b41c0ffa339`
-- WORKFLOW_STATE: `3733a35d182d4f58872db5f46c73aba5`
-
-✅ **D1 Database Created**:
-- Name: `erpnext-workflows-db`
-- ID: `438122c1-fe33-446c-a222-4bb3cfeb8fa5`
-- Schema: Initialized with 7 tables
-
-✅ **Configuration Updated**:
-- `services/agent-gateway/wrangler.toml` - All resource IDs added
-
----
-
-## 🎯 Next Steps (15 minutes)
-
-### Step 1: Set Secrets (5 min)
-
-You need to set 5 secrets. I've created a helper script:
+## 🎯 One-Command Deploy
 
 ```bash
-# Run this from project root
-./SET_SECRETS.sh
+cd /Users/mekdesyared/Multi-Industry_ERPNext_Coagents_SaaS
+./deploy-with-mcp.sh
 ```
 
-**Or manually** (if you prefer):
+This script will:
+1. ✅ Load environment variables from `.env`
+2. ✅ Set Cloudflare secrets automatically
+3. ✅ Build Agent Gateway (TypeScript → JavaScript)
+4. ✅ Deploy Agent Gateway to Cloudflare Workers
+5. ✅ Build Frontend (React → Static files)
+6. ✅ Deploy Frontend to Cloudflare Pages
+7. ✅ Verify deployment health
 
+## 📊 After Deployment
+
+### Your Live URLs:
+- **Agent Gateway**: https://erpnext-agent-gateway.workers.dev
+- **Frontend**: https://erpnext-coagent-ui.pages.dev
+
+### Verify Health:
+```bash
+curl https://erpnext-agent-gateway.workers.dev/health
+```
+
+Expected response:
+```json
+{
+  "status": "healthy",
+  "openrouter": {
+    "configured": true,
+    "model": "zhipu/glm-4-9b-chat"
+  }
+}
+```
+
+### Monitor Logs:
+```bash
+cd services/agent-gateway
+pnpm dlx wrangler tail erpnext-agent-gateway --format pretty
+```
+
+## 🔧 Manual Steps (if needed)
+
+### Set Individual Secrets:
 ```bash
 cd services/agent-gateway
 
-# 1. OpenRouter API Key (from your .env file)
-npx wrangler@latest secret put OPENROUTER_API_KEY
-# When prompted, paste: sk-or-v1-xxxxxxxxxxxxx
+# OpenRouter
+echo "sk-or-v1-..." | pnpm dlx wrangler secret put OPENROUTER_API_KEY
 
-# 2. OpenRouter Model
-npx wrangler@latest secret put OPENROUTER_MODEL
-# When prompted, enter: zhipu/glm-4-9b-chat
+# ERPNext (optional)
+echo "your-key" | pnpm dlx wrangler secret put ERPNEXT_API_KEY
+echo "your-secret" | pnpm dlx wrangler secret put ERPNEXT_API_SECRET
+echo "https://your-erpnext.com" | pnpm dlx wrangler secret put ERPNEXT_BASE_URL
 
-# 3. OpenRouter Base URL
-npx wrangler@latest secret put OPENROUTER_BASE_URL
-# When prompted, enter: https://openrouter.ai/api/v1
-
-# 4. Workflow Service URL
-npx wrangler@latest secret put WORKFLOW_SERVICE_URL
-# When prompted, enter: https://erpnext-workflows.onrender.com
-# (Or use your actual Render URL if you've deployed already)
-
-# 5. Enable Mock Mode (no ERPNext needed for testing)
-npx wrangler@latest secret put USE_MOCK_ERPNEXT
-# When prompted, enter: true
+# Or use Mock Mode
+echo "true" | pnpm dlx wrangler secret put USE_MOCK_ERPNEXT
 ```
 
-**Note**: Each secret prompt requires you to enter the value and press Enter.
-
----
-
-### Step 2: Deploy Agent Gateway (5 min)
-
+### Deploy Only Agent Gateway:
 ```bash
 cd services/agent-gateway
-
-# Install dependencies (if needed)
-npm install
-
-# Build TypeScript
-npm run build
-
-# Deploy to Cloudflare Workers
-npx wrangler@latest deploy
-
-# Expected output:
-# ✅ https://erpnext-agent-gateway.XXXX.workers.dev
+pnpm run build
+pnpm dlx wrangler deploy
 ```
 
-**Save the Worker URL** - you'll need it for the frontend.
-
----
-
-### Step 3: Deploy Frontend (5 min)
-
+### Deploy Only Frontend:
 ```bash
-cd ../../frontend/coagent
-
-# Install dependencies (if needed)
-npm install
-
-# Create production environment file
-cat > .env.production << EOF
-VITE_GATEWAY_URL=https://your-gateway-url.workers.dev
-EOF
-
-# Update with YOUR actual gateway URL from Step 2!
-
-# Build React app
-npm run build
-
-# Deploy to Cloudflare Pages
-npx wrangler@latest pages deploy dist --project-name=erpnext-coagent-ui
-
-# Expected output:
-# ✅ https://erpnext-coagent-ui.pages.dev
+cd frontend/coagent
+pnpm run build
+pnpm dlx wrangler pages deploy dist --project-name=erpnext-coagent-ui
 ```
-
----
-
-### Step 4: Test (Optional - 2 min)
-
-```bash
-# Test agent gateway health
-curl https://your-gateway.workers.dev/health
-
-# Expected: {"status": "ok", ...}
-
-# Test frontend
-open https://erpnext-coagent-ui.pages.dev
-
-# Try chat: "Check in guest John Doe for room 101"
-# Expected: Approval dialog appears in UI
-```
-
----
-
-## 🔄 Deploy Workflow Service to Render (Optional - 10 min)
-
-If you want real Python workflows (not just mock mode):
-
-### Option A: Web Dashboard (Easiest)
-
-1. Go to: https://dashboard.render.com
-2. Click **"New +"** → **"Web Service"**
-3. Connect your GitHub repository
-4. Select directory: `services/workflows`
-5. Render auto-detects `render.yaml` ✅
-6. Add environment variable:
-   - Key: `OPENROUTER_API_KEY`
-   - Value: (your OpenRouter key)
-7. Click **"Create Web Service"**
-8. Wait 3-5 minutes for deployment
-9. Copy URL: `https://erpnext-workflows-XXXX.onrender.com`
-
-### Option B: Render CLI
-
-```bash
-# Install Render CLI
-npm install -g @renderinc/cli
-
-# Login
-render login
-
-# Deploy
-cd services/workflows
-render deploy
-
-# Get URL
-render services list
-```
-
-### Update Agent Gateway
-
-After deploying to Render:
-
-```bash
-cd services/agent-gateway
-
-# Update workflow service URL
-npx wrangler@latest secret put WORKFLOW_SERVICE_URL
-# Enter: https://your-actual-render-url.onrender.com
-
-# Redeploy
-npx wrangler@latest deploy
-```
-
----
-
-## 📊 What You'll Have After Deployment
-
-```
-✅ Frontend:        https://erpnext-coagent-ui.pages.dev
-✅ Agent Gateway:   https://erpnext-agent-gateway.XXXX.workers.dev
-✅ Workflows:       https://erpnext-workflows.onrender.com (if deployed)
-✅ Database:        Cloudflare D1 (erpnext-workflows-db)
-✅ Sessions:        Cloudflare KV (SESSIONS + WORKFLOW_STATE)
-```
-
-**Total Cost**: $0/month 🎉
-
----
 
 ## 🐛 Troubleshooting
 
-### Issue: "Worker not found" when setting secrets
+### "OPENROUTER_API_KEY not found"
+Check your `.env` file contains:
+```bash
+OPENROUTER_API_KEY=sk-or-v1-1b38cf67cd06...
+```
 
-**Fix**: This is normal before first deployment. Set secrets first, then deploy.
-
-### Issue: Build fails with TypeScript errors
-
+### "Build failed"
+Install dependencies:
 ```bash
 cd services/agent-gateway
-npm install --force
-npm run build
+pnpm install
+pnpm run build
 ```
 
-### Issue: Pages deployment asks for project name
-
+### "Deployment error"
+Check Wrangler is logged in:
 ```bash
-# Use exact name
-npx wrangler@latest pages deploy dist --project-name=erpnext-coagent-ui
+pnpm dlx wrangler whoami
 ```
 
-### Issue: Secrets not taking effect
-
+If not logged in:
 ```bash
-# Verify secrets are set
-npx wrangler@latest secret list
-
-# Redeploy to apply
-npx wrangler@latest deploy
+pnpm dlx wrangler login
 ```
+
+## 📈 Next Steps
+
+1. **Test the deployment**: Visit your frontend URL
+2. **Check logs**: `pnpm dlx wrangler tail erpnext-agent-gateway`
+3. **Update tasks.md**: Mark deployment complete
+4. **Configure ERPNext**: Add real ERPNext credentials or use mock mode
+
+## 💡 Current Configuration
+
+### AI Provider: OpenRouter
+- **Model**: `zhipu/glm-4-9b-chat` (Cost-effective)
+- **API Key**: Loaded from `.env`
+- **Base URL**: `https://openrouter.ai/api/v1`
+
+### ERPNext Mode: Mock (Default)
+- **USE_MOCK_ERPNEXT**: `true`
+- For real ERPNext, set credentials in secrets
+
+### Free Tier Compatible: ✅
+- OpenRouter has free credits
+- Cloudflare Workers: 100k requests/day free
+- Cloudflare Pages: Unlimited static requests
+- KV: 100k reads/day free
+- D1: 5M rows read/day free
 
 ---
 
-## ✅ Quick Deploy Checklist
-
-- [ ] Run `./SET_SECRETS.sh` (or set 5 secrets manually)
-- [ ] Deploy agent gateway: `cd services/agent-gateway && npm run build && npx wrangler@latest deploy`
-- [ ] Note gateway URL
-- [ ] Update frontend .env.production with gateway URL
-- [ ] Deploy frontend: `cd frontend/coagent && npm run build && npx wrangler@latest pages deploy dist`
-- [ ] Test: Visit frontend URL and try a chat
-- [ ] (Optional) Deploy workflows to Render
-- [ ] (Optional) Update WORKFLOW_SERVICE_URL secret with Render URL
-
----
-
-## 📞 Support
-
-**Documentation**:
-- Complete guide: `DEPLOYMENT_SECRETS_GUIDE.md`
-- Free tier details: `CLOUDFLARE_FREE_TIER_DEPLOY.md`
-- Resource info: `DEPLOYMENT_INFO.txt`
-
-**Cloudflare Dashboard**: https://dash.cloudflare.com/5a34e22d045e4ff3538a636317a631e8
-
----
-
-## 🎯 Start Now
-
-**Fastest path** (use mock mode for testing):
-
-```bash
-# 1. Set secrets (interactive - 5 min)
-./SET_SECRETS.sh
-
-# 2. Deploy everything (10 min)
-cd services/agent-gateway && npm run build && npx wrangler@latest deploy
-cd ../../frontend/coagent && npm run build && npx wrangler@latest pages deploy dist --project-name=erpnext-coagent-ui
-
-# 3. Test!
-# Visit the Pages URL and chat with "Check in guest John Doe"
-```
-
-**Ready to deploy! 🚀**
+**🎉 Ready to deploy? Run `./deploy-with-mcp.sh`**

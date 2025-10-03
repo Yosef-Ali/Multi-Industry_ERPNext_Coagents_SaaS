@@ -1,9 +1,7 @@
-import './globals.css';
+'use client';
 
-export const metadata = {
-  title: 'ERPNext CoAgent Assistant',
-  description: 'AI-powered ERPNext assistant with CopilotKit',
-}
+import './globals.css';
+import { CopilotKit } from '@copilotkit/react-core';
 
 export default function RootLayout({
   children,
@@ -12,7 +10,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <CopilotKit 
+          runtimeUrl="/api/copilot/runtime"
+          agent="erpnext_coagent"
+        >
+          {children}
+        </CopilotKit>
+      </body>
     </html>
   )
 }
