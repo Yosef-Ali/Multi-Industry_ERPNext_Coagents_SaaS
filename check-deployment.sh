@@ -1,0 +1,22 @@
+#!/bin/bash
+# Quick check script to verify Cloudflare Pages deployment status
+
+echo "🔍 Checking Cloudflare Pages deployment status..."
+echo ""
+echo "Latest commit: $(git log -1 --pretty=format:'%h - %s')"
+echo ""
+echo "📋 Your deployment URLs should be:"
+echo ""
+echo "Branch deployment:"
+echo "  https://feature-frontend-copilotkit-integration.erpnext-coagent-ui.pages.dev"
+echo ""
+echo "Or commit-based:"
+echo "  https://0b2c38f.erpnext-coagent-ui.pages.dev"
+echo ""
+echo "⚠️  Note: Deployments take 3-5 minutes. If you get 404:"
+echo "  1. Check GitHub Actions: https://github.com/Yosef-Ali/Multi-Industry_ERPNext_Coagents_SaaS/actions"
+echo "  2. Wait for the workflow to complete"
+echo "  3. Check Cloudflare dashboard for the new deployment"
+echo ""
+echo "🔧 To manually deploy now:"
+echo "  ./deploy-cloudflare-frontend.sh"

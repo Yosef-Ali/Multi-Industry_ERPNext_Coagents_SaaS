@@ -39,8 +39,8 @@ echo -e "${YELLOW}📦 Installing dependencies...${NC}"
 npm install
 
 echo ""
-echo -e "${YELLOW}🔨 Building Next.js application...${NC}"
-npm run build
+echo -e "${YELLOW}🔨 Building Next.js application with OpenNext...${NC}"
+npm run pages:build
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ Build failed! Please fix errors and try again.${NC}"
@@ -57,14 +57,14 @@ if ! command -v wrangler &> /dev/null; then
     npm install -g wrangler
 fi
 
-echo -e "${YELLOW}🚀 Deploying to Cloudflare Pages...${NC}"
+echo -e "${YELLOW}🚀 Deploying to Cloudflare Workers...${NC}"
 
 if [ "$BRANCH" = "production" ]; then
     echo -e "${BLUE}📍 Deploying to PRODUCTION${NC}"
-    npx wrangler pages deploy .next --project-name=$PROJECT_NAME --branch=main
+    npx @opennextjs/cloudflare deploy
 else
     echo -e "${BLUE}📍 Deploying to PREVIEW${NC}"
-    npx wrangler pages deploy .next --project-name=$PROJECT_NAME
+    npx @opennextjs/cloudflare deploy
 fi
 
 if [ $? -eq 0 ]; then
@@ -74,13 +74,13 @@ if [ $? -eq 0 ]; then
     echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo ""
     echo -e "${BLUE}📋 Next Steps:${NC}"
-    echo "1. Set environment variables in Cloudflare Pages dashboard:"
+    echo "1. Set environment variables in Cloudflare Workers dashboard:"
     echo "   - OPENROUTER_API_KEY"
     echo "   - OPENROUTER_MODEL (default: mistralai/mistral-7b-instruct)"
     echo "   - OPENROUTER_HTTP_REFERER"
     echo ""
     echo "2. View your deployment at:"
-    echo "   https://$PROJECT_NAME.pages.dev"
+    echo "   https://$PROJECT_NAME.workers.dev"
     echo ""
 else
     echo -e "${RED}❌ Deployment failed!${NC}"

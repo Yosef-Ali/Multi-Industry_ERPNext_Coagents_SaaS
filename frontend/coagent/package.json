@@ -8,13 +8,14 @@
     "@copilotkit/runtime": "^1.10.5",
     "@tanstack/react-query": "^5.14.0",
     "axios": "^1.6.0",
-    "next": "^14.0.4",
+    "next": "^15.5.2",
     "openai": "^4.24.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@opennextjs/cloudflare": "^1.9.1",
     "@testing-library/jest-dom": "^6.1.5",
     "@testing-library/react": "^14.1.2",
     "@types/node": "^20.10.4",
@@ -34,8 +35,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "pages:build": "npx @opennextjs/cloudflare build",
     "start": "next start",
-    "preview": "next start",
     "test": "vitest",
     "lint": "eslint src --ext ts,tsx",
     "format": "prettier --write \"src/**/*.{ts,tsx}\""
