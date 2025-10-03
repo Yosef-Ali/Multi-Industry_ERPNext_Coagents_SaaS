@@ -13,9 +13,11 @@ app_email = "support@erpnext-coagents.com"
 app_license = "MIT"
 
 # Client Scripts registration
+# Maps DocType names to JavaScript file paths
+# These scripts add the Copilot AI Assistant button to forms
 doctype_js = {
-    "Reservation": "erpnext_hotel/client_scripts/reservation.js",
-    "Invoice": "erpnext_hotel/client_scripts/invoice.js",
+    "Hotel Reservation": "public/js/reservation.js",
+    "Sales Invoice": "public/js/invoice.js",
 }
 
 # Fixtures for seed data
