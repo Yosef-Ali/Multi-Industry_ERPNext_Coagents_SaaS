@@ -27,14 +27,21 @@ binding = "DB"
 database_name = "erpnext-workflows-db"
 database_id = "438122c1-fe33-446c-a222-4bb3cfeb8fa5"
 
+# Cloudflare Workers AI binding (T146: Free tier AI models)
+[ai]
+binding = "AI"
+
 # Secrets (set via: pnpm dlx wrangler secret put <NAME>)
 # Environment variables required:
-# - OPENROUTER_API_KEY
-# - OPENROUTER_MODEL
-# - OPENROUTER_BASE_URL
+# - OPENROUTER_API_KEY (optional if using Cloudflare AI)
+# - OPENROUTER_MODEL (optional)
+# - OPENROUTER_BASE_URL (optional)
 # - ERPNEXT_API_KEY
 # - ERPNEXT_API_SECRET
 # - ERPNEXT_BASE_URL
+# - AI_PROVIDER (optional: 'openrouter' | 'cloudflare' | 'auto', default: 'auto')
+# - CLOUDFLARE_MODEL (optional, default: '@cf/meta/llama-3.1-8b-instruct')
+# - PREFER_FREE_TIER (optional: 'true' | 'false', default: 'false')
 
 # Build configuration
 [build]
