@@ -1,0 +1,94 @@
+[
+  {
+    "doctype": "Clinical Procedure Template",
+    "template": "Chest X-Ray",
+    "item": "LAB-XRAY-CHEST",
+    "item_name": "Chest X-Ray",
+    "item_group": "Laboratory",
+    "medical_department": "Radiology",
+    "description": "Standard chest radiography, PA and lateral views",
+    "rate": 150.00,
+    "sample_collection_required": 0
+  },
+  {
+    "doctype": "Clinical Procedure Template",
+    "template": "Complete Blood Count (CBC)",
+    "item": "LAB-CBC",
+    "item_name": "Complete Blood Count",
+    "item_group": "Laboratory",
+    "medical_department": "Pathology",
+    "description": "Full blood count with differential",
+    "rate": 45.00,
+    "sample_collection_required": 1,
+    "sample": "Blood"
+  },
+  {
+    "doctype": "Clinical Procedure Template",
+    "template": "ECG - Electrocardiogram",
+    "item": "LAB-ECG",
+    "item_name": "Electrocardiogram",
+    "item_group": "Laboratory",
+    "medical_department": "Cardiology",
+    "description": "12-lead ECG recording and interpretation",
+    "rate": 80.00,
+    "sample_collection_required": 0
+  },
+  {
+    "doctype": "Clinical Procedure Template",
+    "template": "Basic Metabolic Panel",
+    "item": "LAB-BMP",
+    "item_name": "Basic Metabolic Panel",
+    "item_group": "Laboratory",
+    "medical_department": "Pathology",
+    "description": "Glucose, electrolytes, kidney function tests",
+    "rate": 65.00,
+    "sample_collection_required": 1,
+    "sample": "Blood"
+  },
+  {
+    "doctype": "Clinical Procedure Template",
+    "template": "Ultrasound - Abdomen",
+    "item": "LAB-US-ABD",
+    "item_name": "Abdominal Ultrasound",
+    "item_group": "Laboratory",
+    "medical_department": "Radiology",
+    "description": "Complete abdominal ultrasound scan",
+    "rate": 200.00,
+    "sample_collection_required": 0
+  },
+  {
+    "doctype": "Clinical Procedure Template",
+    "template": "CT Scan - Head",
+    "item": "LAB-CT-HEAD",
+    "item_name": "CT Scan Head",
+    "item_group": "Laboratory",
+    "medical_department": "Radiology",
+    "description": "Non-contrast CT scan of the head",
+    "rate": 500.00,
+    "sample_collection_required": 0
+  },
+  {
+    "doctype": "Clinical Procedure Template",
+    "template": "Urinalysis",
+    "item": "LAB-URINE",
+    "item_name": "Urinalysis",
+    "item_group": "Laboratory",
+    "medical_department": "Pathology",
+    "description": "Complete urinalysis with microscopy",
+    "rate": 35.00,
+    "sample_collection_required": 1,
+    "sample": "Urine"
+  },
+  {
+    "doctype": "Clinical Procedure Template",
+    "template": "Lipid Profile",
+    "item": "LAB-LIPID",
+    "item_name": "Lipid Profile",
+    "item_group": "Laboratory",
+    "medical_department": "Pathology",
+    "description": "Cholesterol, triglycerides, HDL, LDL",
+    "rate": 75.00,
+    "sample_collection_required": 1,
+    "sample": "Blood"
+  }
+]

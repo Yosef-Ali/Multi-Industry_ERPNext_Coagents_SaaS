@@ -1,0 +1,66 @@
+[
+  {
+    "doctype": "Appointment Type",
+    "name": "Consultation",
+    "appointment_type": "Consultation",
+    "default_duration": 30,
+    "color": "#3498db",
+    "description": "Standard medical consultation"
+  },
+  {
+    "doctype": "Appointment Type",
+    "name": "Follow-up",
+    "appointment_type": "Follow-up",
+    "default_duration": 15,
+    "color": "#2ecc71",
+    "description": "Follow-up visit after treatment"
+  },
+  {
+    "doctype": "Appointment Type",
+    "name": "Emergency",
+    "appointment_type": "Emergency",
+    "default_duration": 45,
+    "color": "#e74c3c",
+    "description": "Emergency medical care"
+  },
+  {
+    "doctype": "Appointment Type",
+    "name": "Physical Exam",
+    "appointment_type": "Physical Exam",
+    "default_duration": 45,
+    "color": "#9b59b6",
+    "description": "Comprehensive physical examination"
+  },
+  {
+    "doctype": "Appointment Type",
+    "name": "Vaccination",
+    "appointment_type": "Vaccination",
+    "default_duration": 15,
+    "color": "#f39c12",
+    "description": "Immunization and vaccination"
+  },
+  {
+    "doctype": "Appointment Type",
+    "name": "Lab Results Review",
+    "appointment_type": "Lab Results Review",
+    "default_duration": 20,
+    "color": "#1abc9c",
+    "description": "Review laboratory test results"
+  },
+  {
+    "doctype": "Appointment Type",
+    "name": "Pre-Operative",
+    "appointment_type": "Pre-Operative",
+    "default_duration": 60,
+    "color": "#34495e",
+    "description": "Pre-operative assessment and preparation"
+  },
+  {
+    "doctype": "Appointment Type",
+    "name": "Post-Operative",
+    "appointment_type": "Post-Operative",
+    "default_duration": 30,
+    "color": "#16a085",
+    "description": "Post-operative follow-up and wound check"
+  }
+]
