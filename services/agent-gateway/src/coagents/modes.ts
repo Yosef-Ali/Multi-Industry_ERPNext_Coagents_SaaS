@@ -178,12 +178,13 @@ export class ChatCoAgent extends BaseCoAgent {
             [ArtifactType.DIAGRAM]: 'Diagram',
             [ArtifactType.ERPNEXT_DOCTYPE]: 'ERPNext DocType',
             [ArtifactType.FRAPPE_WORKFLOW]: 'Frappe Workflow',
-            [ArtifactType.ERPNEXT_HOTEL_CHECKIN]: 'Hotel Check-in System',
-            [ArtifactType.ERPNEXT_HOTEL_ROOM]: 'Hotel Room Management',
-            [ArtifactType.ERPNEXT_SALES_ORDER]: 'Sales Order System',
-            [ArtifactType.ERPNEXT_CUSTOM_DOCTYPE]: 'Custom DocType',
+            [ArtifactType.ERPNEXT_FORM_UI]: 'Form Interface',
+            [ArtifactType.ERPNEXT_LIST_VIEW]: 'List View',
             [ArtifactType.ERPNEXT_REPORT]: 'ERPNext Report',
             [ArtifactType.ERPNEXT_DASHBOARD]: 'ERPNext Dashboard',
+            [ArtifactType.ERPNEXT_APP]: 'ERPNext Application',
+            [ArtifactType.ERPNEXT_SERVER_SCRIPT]: 'Server Script',
+            [ArtifactType.ERPNEXT_CLIENT_SCRIPT]: 'Client Script',
         };
 
         return typeNames[request.artifactType] || 'Generated Artifact';
@@ -299,47 +300,56 @@ export class ChatCoAgent extends BaseCoAgent {
                     'Document workflow steps',
                 ],
             },
-            [ArtifactType.ERPNEXT_HOTEL_CHECKIN]: {
-                domain: 'ERPNext Hotel Management',
-                name: 'hotel check-in UI and workflow',
+            [ArtifactType.ERPNEXT_FORM_UI]: {
+                domain: 'ERPNext UI Development',
+                name: 'form interface',
                 guidelines: [
-                    'Follow ERPNext hotel management best practices',
-                    'Include guest information, room assignment, and payment',
-                    'Integrate with Room Booking and Invoice DocTypes',
-                    'Add real-time room availability checks',
+                    'Create React form component with TypeScript',
+                    'Use useCoAgent hook for state management',
+                    'Integrate with ERPNext DocType API',
+                    'Add real-time validation and error handling',
                     'Include CopilotKit streaming for better UX',
                 ],
             },
-            [ArtifactType.ERPNEXT_HOTEL_ROOM]: {
-                domain: 'ERPNext Hotel Management',
-                name: 'hotel room management',
+            [ArtifactType.ERPNEXT_LIST_VIEW]: {
+                domain: 'ERPNext UI Development',
+                name: 'list view',
                 guidelines: [
-                    'Follow ERPNext inventory best practices',
-                    'Track room status (Available, Occupied, Maintenance)',
-                    'Link to Room Type and Booking DocTypes',
-                    'Include housekeeping integration',
+                    'Create list view with filters and search',
+                    'Add sorting and pagination',
+                    'Include bulk actions',
+                    'Support export to Excel/PDF',
                 ],
             },
-            [ArtifactType.ERPNEXT_SALES_ORDER]: {
-                domain: 'ERPNext Sales',
-                name: 'sales order UI and workflow',
+            [ArtifactType.ERPNEXT_APP]: {
+                domain: 'ERPNext Application Development',
+                name: 'complete ERPNext application',
                 guidelines: [
-                    'Follow ERPNext sales flow best practices',
-                    'Include item selection, pricing, and customer info',
-                    'Integrate with Item, Customer, and Quotation DocTypes',
-                    'Add inventory availability checks',
-                    'Support multi-currency and tax calculations',
+                    'Generate complete app structure',
+                    'Include necessary DocTypes for the domain',
+                    'Add workflows for business processes',
+                    'Create forms, list views, reports, and dashboards',
+                    'Include documentation and setup instructions',
                 ],
             },
-            [ArtifactType.ERPNEXT_CUSTOM_DOCTYPE]: {
-                domain: 'ERPNext Custom Development',
-                name: 'custom DocType with best practices',
+            [ArtifactType.ERPNEXT_SERVER_SCRIPT]: {
+                domain: 'ERPNext Backend Development',
+                name: 'server script',
                 guidelines: [
-                    'Follow ERPNext DocType conventions',
-                    'Include proper field types and validation',
-                    'Add server-side and client-side scripts',
-                    'Configure permissions and roles',
-                    'Consider naming series and workflow',
+                    'Write Python server-side logic',
+                    'Use Frappe framework APIs',
+                    'Add proper error handling and logging',
+                    'Follow Python best practices (PEP 8)',
+                ],
+            },
+            [ArtifactType.ERPNEXT_CLIENT_SCRIPT]: {
+                domain: 'ERPNext Frontend Development',
+                name: 'client script',
+                guidelines: [
+                    'Write JavaScript client-side logic',
+                    'Use Frappe JavaScript API',
+                    'Add form event handlers and validations',
+                    'Consider user experience and feedback',
                 ],
             },
             [ArtifactType.ERPNEXT_REPORT]: {
@@ -484,9 +494,16 @@ export class DeveloperCoAgent extends BaseCoAgent {
      * Build ERPNext-focused system prompt with best practices
      */
     private buildERPNextSystemPrompt(request: VariantGenerationRequest): string {
-        let prompt = `You are an expert ERPNext developer with deep knowledge of Frappe framework, hotel management, and sales workflows.\n\n`;
+        let prompt = `You are an expert ERPNext developer co-agent with deep knowledge of Frappe framework.\n\n`;
         
-        prompt += `Your role is to generate production-ready, best-practice solutions following ERPNext conventions.\n\n`;
+        prompt += `Your role is to generate custom ERPNext applications for ANY industry based on user requirements.\n`;
+        prompt += `Generate production-ready, best-practice solutions following ERPNext conventions.\n\n`;
+        
+        prompt += `Examples of what you can generate:\n`;
+        prompt += `- "Create detailed clinic management app" → Generate Patient, Appointment, Medical Record DocTypes with workflows\n`;
+        prompt += `- "Generate warehouse management app" → Create Item, Stock Movement, Inventory DocTypes with tracking\n`;
+        prompt += `- "Build school management system" → Generate Student, Course, Attendance DocTypes with enrollment workflow\n`;
+        prompt += `- "Create retail POS system" → Generate Sales, Payment, Customer DocTypes with point-of-sale interface\n\n`;
 
         // Add artifact-specific ERPNext guidelines
         const erpnextGuidelines = this.getERPNextGuidelines(request.artifactType);
@@ -539,57 +556,85 @@ export class DeveloperCoAgent extends BaseCoAgent {
      */
     private getERPNextGuidelines(artifactType: ArtifactType): string[] | null {
         const guidelines: Partial<Record<ArtifactType, string[]>> = {
-            [ArtifactType.ERPNEXT_HOTEL_CHECKIN]: [
-                'Create a hotel check-in form with guest details, room selection, and payment',
-                'Integrate with ERPNext Room Booking DocType',
-                'Use useCoAgent hook to manage check-in state',
-                'Add real-time room availability validation',
-                'Include invoice generation on check-in completion',
-                'Handle reservation vs walk-in scenarios',
-                'Add document upload for ID verification',
-                'Support multi-room bookings',
-            ],
-            [ArtifactType.ERPNEXT_HOTEL_ROOM]: [
-                'Define Room DocType with fields: room_number, room_type, floor, status',
-                'Link to Room Type master (pricing, amenities)',
-                'Track room status: Available, Occupied, Cleaning, Maintenance',
-                'Add housekeeping checklist integration',
-                'Include occupancy history',
-                'Support room blocking for maintenance',
-            ],
-            [ArtifactType.ERPNEXT_SALES_ORDER]: [
-                'Create sales order form with customer selection and item list',
-                'Integrate with ERPNext Customer, Item, and Pricing DocTypes',
-                'Add real-time inventory availability checks',
-                'Calculate taxes, discounts, and totals automatically',
-                'Support multi-currency if needed',
-                'Include payment terms and delivery date',
-                'Generate quotation option before order',
-            ],
-            [ArtifactType.ERPNEXT_CUSTOM_DOCTYPE]: [
-                'Define DocType with proper field types (Data, Link, Table, etc.)',
+            [ArtifactType.ERPNEXT_DOCTYPE]: [
+                'Define DocType with proper field types (Data, Link, Select, Table, etc.)',
                 'Add naming series for auto-numbering',
                 'Configure permissions for different roles',
                 'Write server-side validation in Python',
                 'Add client-side scripts for UI behavior',
                 'Include workflow states if approval needed',
                 'Add custom print format',
+                'Consider relationships with existing ERPNext DocTypes',
+            ],
+            [ArtifactType.FRAPPE_WORKFLOW]: [
+                'Define clear workflow states and transitions',
+                'Include proper permissions for each state',
+                'Add validation logic before state transitions',
+                'Document workflow steps and approvals',
+                'Consider role-based access control',
+                'Add email notifications for state changes',
+            ],
+            [ArtifactType.ERPNEXT_FORM_UI]: [
+                'Create React form component with TypeScript',
+                'Use useCoAgent hook for state management',
+                'Integrate with ERPNext DocType API',
+                'Add real-time validation',
+                'Include proper error handling',
+                'Support mobile responsive design',
+                'Add loading states and user feedback',
+            ],
+            [ArtifactType.ERPNEXT_LIST_VIEW]: [
+                'Create list view with filters and search',
+                'Add sorting and pagination',
+                'Include bulk actions',
+                'Add custom columns based on requirements',
+                'Support export to Excel/PDF',
+                'Add real-time data updates',
             ],
             [ArtifactType.ERPNEXT_REPORT]: [
                 'Use Script Report for complex queries',
-                'Add filters: date range, customer, status',
+                'Add relevant filters based on domain',
                 'Optimize SQL queries with proper indexes',
-                'Format currency and date fields',
+                'Format currency, date, and numeric fields',
                 'Support export to Excel/PDF',
                 'Include summary rows and totals',
+                'Add chart visualization if applicable',
             ],
             [ArtifactType.ERPNEXT_DASHBOARD]: [
                 'Use ERPNext Chart and Number Card components',
-                'Display key metrics: revenue, bookings, occupancy',
-                'Add date range filters',
+                'Display key metrics relevant to the domain',
+                'Add date range and custom filters',
                 'Include drill-down capabilities',
                 'Real-time data updates',
                 'Mobile-responsive layout',
+                'Color-coded indicators for status',
+            ],
+            [ArtifactType.ERPNEXT_APP]: [
+                'Generate complete ERPNext app structure',
+                'Include all necessary DocTypes for the domain',
+                'Add workflows for business processes',
+                'Create forms and list views',
+                'Add reports and dashboards',
+                'Include documentation and setup instructions',
+                'Add demo data and fixtures',
+                'Configure app dependencies',
+            ],
+            [ArtifactType.ERPNEXT_SERVER_SCRIPT]: [
+                'Write Python server-side logic',
+                'Use Frappe framework APIs',
+                'Add proper error handling',
+                'Include logging for debugging',
+                'Follow Python best practices (PEP 8)',
+                'Add docstrings and comments',
+                'Consider performance and security',
+            ],
+            [ArtifactType.ERPNEXT_CLIENT_SCRIPT]: [
+                'Write JavaScript client-side logic',
+                'Use Frappe JavaScript API',
+                'Add form event handlers (refresh, validate, etc.)',
+                'Include field-level validations',
+                'Add dynamic field behavior',
+                'Consider user experience and feedback',
             ],
         };
 
@@ -601,12 +646,15 @@ export class DeveloperCoAgent extends BaseCoAgent {
      */
     private getERPNextApproach(artifactType: ArtifactType): string {
         const approaches: Partial<Record<ArtifactType, string>> = {
-            [ArtifactType.ERPNEXT_HOTEL_CHECKIN]: 'Production-ready hotel check-in system following ERPNext hotel management best practices',
-            [ArtifactType.ERPNEXT_HOTEL_ROOM]: 'Comprehensive room management following ERPNext inventory patterns',
-            [ArtifactType.ERPNEXT_SALES_ORDER]: 'Full-featured sales order system following ERPNext sales workflow',
-            [ArtifactType.ERPNEXT_CUSTOM_DOCTYPE]: 'Custom DocType with ERPNext conventions and best practices',
+            [ArtifactType.ERPNEXT_DOCTYPE]: 'Custom DocType with ERPNext conventions and best practices',
+            [ArtifactType.FRAPPE_WORKFLOW]: 'Business process workflow with state management and approvals',
+            [ArtifactType.ERPNEXT_FORM_UI]: 'React form component with ERPNext integration and real-time updates',
+            [ArtifactType.ERPNEXT_LIST_VIEW]: 'List view with filters, sorting, and bulk actions',
             [ArtifactType.ERPNEXT_REPORT]: 'Optimized ERPNext report with filters and exports',
             [ArtifactType.ERPNEXT_DASHBOARD]: 'Interactive dashboard with real-time ERPNext data',
+            [ArtifactType.ERPNEXT_APP]: 'Complete ERPNext application with DocTypes, workflows, and UI',
+            [ArtifactType.ERPNEXT_SERVER_SCRIPT]: 'Python server-side logic using Frappe framework',
+            [ArtifactType.ERPNEXT_CLIENT_SCRIPT]: 'JavaScript client-side logic for forms and UI',
             [ArtifactType.REACT_COMPONENT]: 'ERPNext-integrated React component with TypeScript',
         };
 
@@ -671,12 +719,13 @@ export class DeveloperCoAgent extends BaseCoAgent {
             [ArtifactType.DIAGRAM]: 'Diagram',
             [ArtifactType.ERPNEXT_DOCTYPE]: 'ERPNext DocType',
             [ArtifactType.FRAPPE_WORKFLOW]: 'Frappe Workflow',
-            [ArtifactType.ERPNEXT_HOTEL_CHECKIN]: 'Hotel Check-in System',
-            [ArtifactType.ERPNEXT_HOTEL_ROOM]: 'Hotel Room Management',
-            [ArtifactType.ERPNEXT_SALES_ORDER]: 'Sales Order System',
-            [ArtifactType.ERPNEXT_CUSTOM_DOCTYPE]: 'Custom DocType',
+            [ArtifactType.ERPNEXT_FORM_UI]: 'Form Interface',
+            [ArtifactType.ERPNEXT_LIST_VIEW]: 'List View',
             [ArtifactType.ERPNEXT_REPORT]: 'ERPNext Report',
             [ArtifactType.ERPNEXT_DASHBOARD]: 'ERPNext Dashboard',
+            [ArtifactType.ERPNEXT_APP]: 'ERPNext Application',
+            [ArtifactType.ERPNEXT_SERVER_SCRIPT]: 'Server Script',
+            [ArtifactType.ERPNEXT_CLIENT_SCRIPT]: 'Client Script',
         };
 
         return typeNames[request.artifactType] || 'ERPNext Artifact';

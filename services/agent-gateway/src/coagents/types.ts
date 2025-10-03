@@ -2,7 +2,12 @@
  * Co-Agent Type Definitions
  * 
  * Defines the core types for the ERPNext-focused developer co-agent system.
- * Generates single best-practice solutions following ERPNext conventions and patterns.
+ * Generates custom ERPNext applications for ANY industry based on user requirements.
+ * 
+ * Example prompts:
+ * - "Create a detailed clinic management app with patient records and appointments"
+ * - "Generate warehouse management app with inventory tracking and stock movements"
+ * - "Build a school management system with student enrollment and attendance"
  */
 
 /**
@@ -24,7 +29,8 @@ export enum CoAgentMode {
 
 /**
  * Types of artifacts that can be generated
- * ERPNext-focused artifact types for hotel management and sales workflows
+ * ERPNext-focused co-agent for generating custom applications in any industry
+ * Examples: "Create clinic management app", "Generate warehouse workflow", "Build retail POS system"
  */
 export enum ArtifactType {
     /** TypeScript/JavaScript code */
@@ -51,29 +57,32 @@ export enum ArtifactType {
     /** Mermaid diagram */
     DIAGRAM = 'diagram',
 
-    /** ERPNext DocType definition */
+    /** ERPNext DocType definition - Generate custom DocTypes for any domain */
     ERPNEXT_DOCTYPE = 'erpnext_doctype',
 
-    /** Frappe workflow */
+    /** Frappe workflow - Generate workflows for any business process */
     FRAPPE_WORKFLOW = 'frappe_workflow',
 
-    /** ERPNext Hotel Check-in UI and workflow */
-    ERPNEXT_HOTEL_CHECKIN = 'erpnext_hotel_checkin',
+    /** ERPNext Form UI - Generate form interface for any DocType */
+    ERPNEXT_FORM_UI = 'erpnext_form_ui',
 
-    /** ERPNext Hotel Room Management */
-    ERPNEXT_HOTEL_ROOM = 'erpnext_hotel_room',
+    /** ERPNext List View - Generate list view with filters for any DocType */
+    ERPNEXT_LIST_VIEW = 'erpnext_list_view',
 
-    /** ERPNext Sales Order UI and workflow */
-    ERPNEXT_SALES_ORDER = 'erpnext_sales_order',
-
-    /** ERPNext Custom DocType with best practices */
-    ERPNEXT_CUSTOM_DOCTYPE = 'erpnext_custom_doctype',
-
-    /** ERPNext Report Definition */
+    /** ERPNext Report - Generate Script/Query reports for any domain */
     ERPNEXT_REPORT = 'erpnext_report',
 
-    /** ERPNext Dashboard */
+    /** ERPNext Dashboard - Generate dashboards with charts for any domain */
     ERPNEXT_DASHBOARD = 'erpnext_dashboard',
+
+    /** ERPNext Complete App - Generate full ERPNext app with DocTypes, workflows, UI */
+    ERPNEXT_APP = 'erpnext_app',
+
+    /** ERPNext Server Script - Generate Python server-side logic */
+    ERPNEXT_SERVER_SCRIPT = 'erpnext_server_script',
+
+    /** ERPNext Client Script - Generate JavaScript client-side logic */
+    ERPNEXT_CLIENT_SCRIPT = 'erpnext_client_script',
 }
 
 /**
