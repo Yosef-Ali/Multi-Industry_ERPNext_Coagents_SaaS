@@ -29,7 +29,19 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./src/*"
+        "./*"
+      ],
+      "@/components/*": [
+        "./components/*"
+      ],
+      "@/lib/*": [
+        "./lib/*"
+      ],
+      "@/hooks/*": [
+        "./hooks/*"
+      ],
+      "@/app/*": [
+        "./app/*"
       ]
     },
     "allowJs": true,
@@ -43,6 +55,9 @@
   "include": [
     "src",
     "app",
+    "components",
+    "lib",
+    "hooks",
     ".next/types/**/*.ts"
   ],
   "references": [

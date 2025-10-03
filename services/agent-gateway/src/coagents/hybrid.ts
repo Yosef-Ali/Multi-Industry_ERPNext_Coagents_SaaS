@@ -367,7 +367,7 @@ Provide comprehensive, production-ready recommendations.`,
     ): Promise<CoAgentResponse> {
         // Find relevant templates
         const relevantTemplates = Object.entries(OFFICIAL_TEMPLATES)
-            .filter(([key]) => key === analysis.domain || analysis.entities.some(e => 
+            .filter(([key]) => key === analysis.domain || analysis.entities.some(e =>
                 OFFICIAL_TEMPLATES[key as keyof typeof OFFICIAL_TEMPLATES]?.docTypes
                     .some((dt: string) => dt.toLowerCase().includes(e.toLowerCase()))
             ))

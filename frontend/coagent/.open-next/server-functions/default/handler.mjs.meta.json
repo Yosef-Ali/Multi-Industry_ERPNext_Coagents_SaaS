@@ -3365,11 +3365,6 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/693.js": {
-      "bytes": 2013,
-      "imports": [],
-      "format": "cjs"
-    },
     ".open-next/server-functions/default/.next/server/chunks/822.js": {
       "bytes": 1570,
       "imports": [],
@@ -3391,7 +3386,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/webpack-runtime.js": {
-      "bytes": 2462,
+      "bytes": 2407,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/120.js",
@@ -3442,11 +3437,6 @@
           "path": ".open-next/server-functions/default/.next/server/chunks/611.js",
           "kind": "require-call",
           "original": "./chunks/611.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/.next/server/chunks/693.js",
-          "kind": "require-call",
-          "original": "./chunks/693.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/822.js",
@@ -4293,7 +4283,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/api/copilotkit/route.js": {
-      "bytes": 4569376,
+      "bytes": 4407085,
       "imports": [
         {
           "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/router/utils/app-paths.js",
@@ -4554,7 +4544,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/page.js": {
-      "bytes": 1484848,
+      "bytes": 1490857,
       "imports": [
         {
           "path": ".open-next/server-functions/default/node_modules/next/dist/shared/lib/router/utils/app-paths.js",
@@ -4570,6 +4560,11 @@
           "path": ".open-next/server-functions/default/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js",
           "kind": "require-call",
           "original": "next/dist/compiled/next-server/app-page.runtime.prod.js"
+        },
+        {
+          "path": "node:process",
+          "kind": "require-call",
+          "external": true
         },
         {
           "path": ".open-next/server-functions/default/node_modules/next/dist/server/app-render/action-async-storage.external.js",
@@ -4613,11 +4608,6 @@
         },
         {
           "path": "node:url",
-          "kind": "require-call",
-          "external": true
-        },
-        {
-          "path": "node:process",
           "kind": "require-call",
           "external": true
         },
@@ -7131,6 +7121,11 @@
           "external": true
         },
         {
+          "path": "node:process",
+          "kind": "require-call",
+          "external": true
+        },
+        {
           "path": "process",
           "kind": "require-call",
           "external": true
@@ -7147,11 +7142,6 @@
         },
         {
           "path": "node:url",
-          "kind": "require-call",
-          "external": true
-        },
-        {
-          "path": "node:process",
           "kind": "require-call",
           "external": true
         },
@@ -8165,9 +8155,6 @@
         ".open-next/server-functions/default/.next/server/chunks/611.js": {
           "bytesInOutput": 71703
         },
-        ".open-next/server-functions/default/.next/server/chunks/693.js": {
-          "bytesInOutput": 2216
-        },
         ".open-next/server-functions/default/.next/server/chunks/822.js": {
           "bytesInOutput": 1726
         },
@@ -8181,7 +8168,7 @@
           "bytesInOutput": 6017
         },
         ".open-next/server-functions/default/.next/server/webpack-runtime.js": {
-          "bytesInOutput": 2275
+          "bytesInOutput": 2242
         },
         ".open-next/server-functions/default/.next/server/pages/_app.js": {
           "bytesInOutput": 3581
@@ -8286,10 +8273,10 @@
           "bytesInOutput": 167797
         },
         ".open-next/server-functions/default/.next/server/app/api/copilotkit/route.js": {
-          "bytesInOutput": 4833354
+          "bytesInOutput": 4656575
         },
         ".open-next/server-functions/default/.next/server/app/page.js": {
-          "bytesInOutput": 1598400
+          "bytesInOutput": 1604806
         },
         ".open-next/server-functions/default/node_modules/next/dist/server/require.js": {
           "bytesInOutput": 9760
@@ -8562,7 +8549,7 @@
           "bytesInOutput": 51613
         }
       },
-      "bytes": 9271107
+      "bytes": 9098485
     }
   }
 }

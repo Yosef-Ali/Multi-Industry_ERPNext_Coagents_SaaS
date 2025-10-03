@@ -495,10 +495,10 @@ export class DeveloperCoAgent extends BaseCoAgent {
      */
     private buildERPNextSystemPrompt(request: VariantGenerationRequest): string {
         let prompt = `You are an expert ERPNext developer co-agent with deep knowledge of Frappe framework.\n\n`;
-        
+
         prompt += `Your role is to generate custom ERPNext applications for ANY industry based on user requirements.\n`;
         prompt += `Generate production-ready, best-practice solutions following ERPNext conventions.\n\n`;
-        
+
         prompt += `Examples of what you can generate:\n`;
         prompt += `- "Create detailed clinic management app" → Generate Patient, Appointment, Medical Record DocTypes with workflows\n`;
         prompt += `- "Generate warehouse management app" → Create Item, Stock Movement, Inventory DocTypes with tracking\n`;
@@ -666,7 +666,7 @@ export class DeveloperCoAgent extends BaseCoAgent {
      */
     private extractFeatures(responseText: string): string[] {
         const features: string[] = [];
-        
+
         // Look for bullet points that describe features
         const featurePatterns = [
             /(?:^|\n)[-*]\s+([^\n]+)/g,

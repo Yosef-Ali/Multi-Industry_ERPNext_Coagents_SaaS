@@ -16,13 +16,13 @@ export { ProviderFactory, getGlobalProvider, resetGlobalProvider } from './unive
 
 // Re-export commonly used items
 export type {
-  IAIProvider,
-  AIMessage,
-  AIToolDefinition,
-  AICompletionResponse,
-  StreamEventHandler,
-  AIProviderConfig,
-  MessageContent,
+    IAIProvider,
+    AIMessage,
+    AIToolDefinition,
+    AICompletionResponse,
+    StreamEventHandler,
+    AIProviderConfig,
+    MessageContent,
 } from './types';
 
 export { AIProvider } from './types';

@@ -121,7 +121,7 @@ export function validateEnvironment(): EnvConfig {
             warnings.push('OPENROUTER_API_KEY seems too short - may be invalid');
         }
     }
-    
+
     const openrouterURL = process.env.OPENROUTER_BASE_URL;
     if (openrouterURL && !openrouterURL.startsWith('http://') && !openrouterURL.startsWith('https://')) {
         invalid.push('OPENROUTER_BASE_URL must be a valid URL');
@@ -131,7 +131,7 @@ export function validateEnvironment(): EnvConfig {
     if (!process.env.ERPNEXT_API_KEY && !process.env.USE_MOCK_ERPNEXT) {
         warnings.push('ERPNEXT_API_KEY not set - ERPNext integration may not work');
     }
-    
+
     // T147: Warn if no AI provider is configured
     if (!process.env.OPENROUTER_API_KEY) {
         warnings.push('OPENROUTER_API_KEY not set - will use Cloudflare Workers AI if available, otherwise agent will fail');
@@ -246,12 +246,12 @@ export function logConfiguration(): void {
     const config = getEnvConfig();
 
     console.log('📋 Configuration:');
-    
+
     // AI Provider (T147)
     if (config.AI_PROVIDER) {
         console.log(`   AI Provider: ${config.AI_PROVIDER}`);
     }
-    
+
     // OpenRouter (now optional)
     if (config.OPENROUTER_API_KEY) {
         console.log(`   OpenRouter Model: ${config.OPENROUTER_MODEL || 'default'}`);
@@ -260,12 +260,12 @@ export function logConfiguration(): void {
     } else {
         console.log('   OpenRouter: Not configured');
     }
-    
+
     // Cloudflare (T146)
     if (config.CLOUDFLARE_MODEL) {
         console.log(`   Cloudflare Model: ${config.CLOUDFLARE_MODEL}`);
     }
-    
+
     console.log(`   ERPNext URL: ${config.ERPNEXT_API_URL}`);
     console.log(`   Gateway: ${config.GATEWAY_HOST}:${config.GATEWAY_PORT}`);
     console.log(`   Environment: ${config.NODE_ENV || 'development'}`);
