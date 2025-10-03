@@ -2,10 +2,10 @@
 
 import { useAppCopilot } from '@/hooks/use-app-copilot';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-    Users, 
-    BookOpen, 
-    Calendar, 
+import {
+    Users,
+    BookOpen,
+    Calendar,
     TrendingUp,
     AlertTriangle,
     CheckCircle,
@@ -192,9 +192,8 @@ function StatCard({
                 <div className="flex items-center justify-between mb-4">
                     <div className="text-primary">{icon}</div>
                     {trend && (
-                        <span className={`text-xs font-medium ${
-                            trendUp ? 'text-green-600' : 'text-gray-600'
-                        }`}>
+                        <span className={`text-xs font-medium ${trendUp ? 'text-green-600' : 'text-gray-600'
+                            }`}>
                             {trend}
                         </span>
                     )}

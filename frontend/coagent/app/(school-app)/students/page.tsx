@@ -3,9 +3,9 @@
 import { useAppCopilot } from '@/hooks/use-app-copilot';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-    UserPlus, 
-    Search, 
+import {
+    UserPlus,
+    Search,
     Filter,
     Download,
     AlertCircle,
@@ -93,8 +93,8 @@ export default function StudentsPage() {
     const filteredStudents = students.filter(student => {
         const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             student.id.toLowerCase().includes(searchQuery.toLowerCase());
-        
-        const matchesFilter = filterStatus === 'all' || 
+
+        const matchesFilter = filterStatus === 'all' ||
             (filterStatus === 'low-attendance' && student.attendance < 75);
 
         return matchesSearch && matchesFilter;
@@ -163,7 +163,7 @@ export default function StudentsPage() {
                         className="w-full pl-10 pr-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                 </div>
-                
+
                 <div className="flex gap-2">
                     <Button
                         variant={filterStatus === 'all' ? 'default' : 'outline'}
@@ -208,13 +208,12 @@ export default function StudentsPage() {
                                             <div className="flex items-center gap-2">
                                                 <div className="flex-1 max-w-[100px] bg-gray-200 rounded-full h-2">
                                                     <div
-                                                        className={`h-2 rounded-full ${
-                                                            student.attendance >= 85
+                                                        className={`h-2 rounded-full ${student.attendance >= 85
                                                                 ? 'bg-green-500'
                                                                 : student.attendance >= 75
-                                                                ? 'bg-yellow-500'
-                                                                : 'bg-red-500'
-                                                        }`}
+                                                                    ? 'bg-yellow-500'
+                                                                    : 'bg-red-500'
+                                                            }`}
                                                         style={{ width: `${student.attendance}%` }}
                                                     />
                                                 </div>
@@ -250,7 +249,7 @@ export default function StudentsPage() {
             {/* AI Assistant Hint */}
             <div className="rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 p-4">
                 <p className="text-sm text-center text-muted-foreground">
-                    💬 <strong>Ask the AI:</strong> "Enroll a new student named John Doe in 5th grade" or 
+                    💬 <strong>Ask the AI:</strong> "Enroll a new student named John Doe in 5th grade" or
                     "Show me students with attendance below 70%"
                 </p>
             </div>

@@ -29,7 +29,7 @@ interface AppState {
 export function useAppCopilot(appType: string) {
     const pathname = usePathname();
     const router = useRouter();
-    
+
     const [state, setState] = useState<AppState>({
         currentPage: '',
         pageData: {},
@@ -98,22 +98,22 @@ export function useAppCopilot(appType: string) {
             case 'navigate':
                 router.push(value);
                 break;
-            
+
             case 'filter':
                 // Trigger filter event
                 window.dispatchEvent(new CustomEvent('apply-filter', { detail: value }));
                 break;
-            
+
             case 'open':
                 // Trigger modal/dialog event
                 window.dispatchEvent(new CustomEvent('open-dialog', { detail: value }));
                 break;
-            
+
             case 'generate':
                 // Trigger generation event
                 window.dispatchEvent(new CustomEvent('generate-report', { detail: value }));
                 break;
-            
+
             case 'api':
                 // Direct API call
                 try {
@@ -124,7 +124,7 @@ export function useAppCopilot(appType: string) {
                     console.error('Action API call failed:', error);
                 }
                 break;
-            
+
             default:
                 console.warn('Unknown action type:', type);
         }

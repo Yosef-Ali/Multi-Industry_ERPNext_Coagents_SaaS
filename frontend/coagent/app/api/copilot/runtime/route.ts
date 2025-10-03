@@ -249,7 +249,7 @@ export async function POST(req: NextRequest) {
                     ],
                     handler: async ({ doctype, query, filters }) => {
                         try {
-                            const filterStr = filters 
+                            const filterStr = filters
                                 ? `&filters=${encodeURIComponent(JSON.stringify(filters))}`
                                 : '';
 

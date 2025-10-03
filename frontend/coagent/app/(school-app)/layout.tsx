@@ -3,10 +3,10 @@
 import { AppCopilotProvider } from '@/components/providers/copilot-provider';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { 
-    LayoutDashboard, 
-    Users, 
-    BookOpen, 
+import {
+    LayoutDashboard,
+    Users,
+    BookOpen,
     Calendar,
     FileText,
     Settings,
@@ -43,10 +43,9 @@ export default function SchoolAppLayout({
         >
             <div className="flex h-screen bg-gray-50">
                 {/* Sidebar */}
-                <aside 
-                    className={`${
-                        sidebarOpen ? 'w-64' : 'w-20'
-                    } border-r bg-white shadow-sm transition-all duration-300`}
+                <aside
+                    className={`${sidebarOpen ? 'w-64' : 'w-20'
+                        } border-r bg-white shadow-sm transition-all duration-300`}
                 >
                     <div className="flex h-full flex-col">
                         {/* Logo */}
@@ -178,11 +177,10 @@ function NavItem({
     return (
         <Link
             href={href}
-            className={`flex items-center gap-3 rounded-md px-3 py-2 transition-colors ${
-                active
+            className={`flex items-center gap-3 rounded-md px-3 py-2 transition-colors ${active
                     ? 'bg-primary text-white'
                     : 'text-gray-700 hover:bg-gray-100'
-            }`}
+                }`}
             title={collapsed ? label : undefined}
         >
             <div className="h-5 w-5 flex-shrink-0">{icon}</div>
