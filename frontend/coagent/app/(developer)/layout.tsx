@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { CopilotKit } from '@copilotkit/react-core';
 import { useArtifactStore } from '@/lib/store/artifact-store';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { VariantSelector } from '@/components/developer/variant-selector';
 import { RefinementInput } from '@/components/developer/refinement-input';
 import { DeploymentPanel } from '@/components/developer/deployment-panel';
@@ -18,6 +19,9 @@ export default function DeveloperLayout({
   const [leftWidth, setLeftWidth] = useState(40); // 40% chat, 60% preview
   const isDraggingRef = useRef(false);
   const { previewArtifact } = useArtifactStore();
+  
+  // Enable keyboard shortcuts
+  useKeyboardShortcuts();
 
   const handleMouseDown = useCallback(() => {
     isDraggingRef.current = true;
@@ -49,7 +53,7 @@ export default function DeveloperLayout({
   useEffect(() => {
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-    
+
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
@@ -104,8 +108,8 @@ export default function DeveloperLayout({
                 {(previewArtifact.type === 'code' ||
                   previewArtifact.type === 'page' ||
                   previewArtifact.type === 'report') && (
-                  <CodePreview artifact={previewArtifact} />
-                )}
+                    <CodePreview artifact={previewArtifact} />
+                  )}
               </>
             ) : (
               <div className="flex items-center justify-center h-full">
