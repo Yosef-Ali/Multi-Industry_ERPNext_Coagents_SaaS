@@ -4,6 +4,7 @@ import { useCopilotReadable, useCopilotAction } from '@copilotkit/react-core';
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import type { Recommendation } from '@/components/copilot/recommendation-cards';
+import { normalizeIndustry } from '@/lib/types/industry';
 
 interface AppState {
     currentPage: string;
@@ -76,8 +77,9 @@ export function useAppCopilot(appType: string) {
 
     // Generate context-aware recommendations
     const recommendations = useMemo(() => {
+        const industryOrApp = normalizeIndustry(appType) ?? appType;
         return getRecommendationsForPage(
-            appType,
+            industryOrApp,
             state.currentPage,
             state.pageData,
             state.userRole
@@ -142,15 +144,16 @@ export function useAppCopilot(appType: string) {
  * Get page-specific recommendations based on app type and current page
  */
 function getRecommendationsForPage(
-    appType: string,
+    appIdentifier: string,
     page: string,
     data: any,
     userRole: string
 ): Recommendation[] {
     const recommendations: Recommendation[] = [];
+    const industry = normalizeIndustry(appIdentifier) ?? appIdentifier;
 
     // School Management System
-    if (appType === 'school') {
+    if (industry === 'education') {
         if (page === 'students' || page === 'student-list') {
             recommendations.push({
                 title: 'Add New Student',
@@ -193,12 +196,14 @@ function getRecommendationsForPage(
                 icon: 'FileText',
             });
 
-            recommendations.push({
-                title: 'View Attendance History',
-                description: 'See attendance records for this student',
-                action: 'navigate:/attendance/' + data?.studentId,
-                icon: 'Calendar',
-            });
+            if (data?.studentId) {
+                recommendations.push({
+                    title: 'View Attendance History',
+                    description: 'See attendance records for this student',
+                    action: 'navigate:/attendance/' + data.studentId,
+                    icon: 'Calendar',
+                });
+            }
         }
 
         if (page === 'dashboard') {
@@ -220,7 +225,7 @@ function getRecommendationsForPage(
     }
 
     // Clinic Management System
-    if (appType === 'clinic') {
+    if (industry === 'hospital') {
         if (page === 'patients' || page === 'patient-list') {
             recommendations.push({
                 title: 'Register New Patient',
@@ -247,12 +252,14 @@ function getRecommendationsForPage(
                 priority: 'high',
             });
 
-            recommendations.push({
-                title: 'View Medical History',
-                description: 'See complete medical records',
-                action: 'navigate:/medical-history/' + data?.patientId,
-                icon: 'ClipboardList',
-            });
+            if (data?.patientId) {
+                recommendations.push({
+                    title: 'View Medical History',
+                    description: 'See complete medical records',
+                    action: 'navigate:/medical-history/' + data.patientId,
+                    icon: 'ClipboardList',
+                });
+            }
 
             recommendations.push({
                 title: 'Generate Bill',
@@ -264,7 +271,7 @@ function getRecommendationsForPage(
     }
 
     // Warehouse Management System
-    if (appType === 'warehouse') {
+    if (industry === 'manufacturing') {
         if (page === 'inventory' || page === 'stock-list') {
             recommendations.push({
                 title: 'Add New Item',
@@ -310,7 +317,7 @@ function getRecommendationsForPage(
     }
 
     // Hotel Management System
-    if (appType === 'hotel') {
+    if (industry === 'hotel') {
         if (page === 'reservations' || page === 'booking-list') {
             recommendations.push({
                 title: 'New Reservation',
@@ -346,7 +353,7 @@ function getRecommendationsForPage(
     }
 
     // Retail Management System
-    if (appType === 'retail') {
+    if (industry === 'retail') {
         if (page === 'sales' || page === 'orders') {
             recommendations.push({
                 title: 'Create Sales Order',

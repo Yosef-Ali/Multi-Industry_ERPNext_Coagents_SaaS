@@ -41,7 +41,7 @@ export default {
           JSON.stringify({
             status: 'healthy',
             timestamp: new Date().toISOString(),
-            service: 'erpnext-agent-gateway',
+            service: 'multi-industry-coagents-gateway',
             version: '1.0.0',
             environment: 'production',
             openrouter: {
@@ -77,21 +77,79 @@ export default {
         );
       }
 
-      // AG-UI endpoint (placeholder for now)
+      // AG-UI endpoint (Workers streaming proxy to Workflow Service)
       if (path === '/agui' && request.method === 'POST') {
-        const body = await request.json();
+        const body = await request.json().catch(() => ({} as any));
+        const graph_name = body?.graph_name || body?.graphName || 'hotel_o2c';
+        const initial_state = body?.initial_state || body?.initialState || {};
 
-        return new Response(
-          JSON.stringify({
-            message: 'AG-UI endpoint (Workers version)',
-            received: body,
-            note: 'Full implementation coming soon',
-          }),
-          {
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        if (!env.WORKFLOW_SERVICE_URL) {
+          return new Response(
+            JSON.stringify({
+              error: 'configuration_error',
+              message: 'WORKFLOW_SERVICE_URL is not configured in the Worker environment.',
+            }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Forward to workflow service /execute with SSE streaming
+        const upstream = await fetch(new URL('/execute', env.WORKFLOW_SERVICE_URL).toString(), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'text/event-stream',
+          },
+          body: JSON.stringify({ graph_name, initial_state, stream: true }),
+        });
+
+        if (!upstream.ok || !upstream.body) {
+          const text = await upstream.text().catch(() => '');
+          return new Response(
+            JSON.stringify({ error: 'upstream_error', status: upstream.status, detail: text }),
+            { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Pipe upstream SSE directly to client
+        const { readable, writable } = new TransformStream();
+        const upstreamReader = upstream.body.getReader();
+        const downstreamWriter = writable.getWriter();
+
+        // Optional: heartbeat to keep connection alive
+        let heartbeatTimer: number | undefined;
+        const encoder = new TextEncoder();
+
+        const pump = async () => {
+          try {
+            while (true) {
+              const { done, value } = await upstreamReader.read();
+              if (done) break;
+              if (value) {
+                await downstreamWriter.write(value);
+              }
+            }
+          } finally {
+            try { await downstreamWriter.close(); } catch { }
+            if (heartbeatTimer) clearInterval(heartbeatTimer as any);
           }
-        );
+        };
+        pump();
+
+        // Send a heartbeat every 30s
+        heartbeatTimer = setInterval(() => {
+          downstreamWriter.write(encoder.encode(': ping\n\n'));
+        }, 30000) as any;
+
+        return new Response(readable, {
+          status: 200,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            Connection: 'keep-alive',
+          },
+        });
       }
 
       // 404 for other routes

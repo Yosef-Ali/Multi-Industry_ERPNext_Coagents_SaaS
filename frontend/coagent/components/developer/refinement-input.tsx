@@ -25,16 +25,16 @@ export function RefinementInput() {
                 <label className="text-sm font-medium">Refine this variant</label>
 
                 <div className="flex gap-2">
-          <input
-            type="text"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleRefine()}
-            placeholder="e.g., 'Add a payment tracking field' or 'Remove the description field'"
-            className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isRefining}
-            data-input="refinement"
-          />                    <button
+                    <input
+                        type="text"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleRefine()}
+                        placeholder="e.g., 'Add a payment tracking field' or 'Remove the description field'"
+                        className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        disabled={isRefining}
+                        data-input="refinement"
+                    />                    <button
                         onClick={handleRefine}
                         disabled={!prompt.trim() || isRefining}
                         className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

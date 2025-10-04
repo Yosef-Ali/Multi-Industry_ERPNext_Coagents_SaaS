@@ -22,3 +22,10 @@ export type { InventoryItem } from './InventoryHeatmap';
 
 export { InterviewCalendar } from './InterviewCalendar';
 export type { Interview } from './InterviewCalendar';
+
+export {
+    INDUSTRY_WIDGETS,
+    getWidgetsForIndustry,
+    getIndustryDisplayName,
+    type DomainWidgetMeta,
+} from './industry-catalog';

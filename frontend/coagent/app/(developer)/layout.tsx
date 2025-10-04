@@ -19,7 +19,7 @@ export default function DeveloperLayout({
   const [leftWidth, setLeftWidth] = useState(40); // 40% chat, 60% preview
   const isDraggingRef = useRef(false);
   const { previewArtifact } = useArtifactStore();
-  
+
   // Enable keyboard shortcuts
   useKeyboardShortcuts();
 

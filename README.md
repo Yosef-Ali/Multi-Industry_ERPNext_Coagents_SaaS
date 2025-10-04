@@ -92,6 +92,16 @@ cp .env.example .env
 # - REDIS_URL
 ```
 
+### **Frontend Chatbot Workspace**
+```bash
+cd frontend/coagent
+pnpm install
+pnpm dev
+```
+- The Next.js dev server runs at `http://localhost:3000`; open `http://localhost:3000/developer` to work with the cloned chatbot experience.
+- We are currently copying the Vercel-style chatbot into the frontend — component status lives in `frontend/coagent/AG_UI_README.md`.
+- Skip build-time database migrations for now; rely on the dev server while iterating on the `/developer` flow.
+
 ---
 
 ## ✨ **Key Features**

@@ -1,7 +1,7 @@
 'use client';
 
 import { Card } from '../ui/card';
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Package, AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react';
 
 export interface InventoryItem {
@@ -60,23 +60,7 @@ export function InventoryHeatmap({
         return Array.from(grouped.entries()).sort(([a], [b]) => a.localeCompare(b));
     }, [items, groupBy]);
 
-    // Calculate overall statistics
-    const stats = useMemo(() => {
-        const total = items.length;
-        const healthy = items.filter(item => {
-            if (!item.reorder_level) return item.available_qty > 0;
-            return item.available_qty >= item.reorder_level * 1.5;
-        }).length;
-        const lowStock = items.filter(item => {
-            if (!item.reorder_level) return item.available_qty > 0 && item.available_qty < 10;
-            return item.available_qty < item.reorder_level && item.available_qty > 0;
-        }).length;
-        const outOfStock = items.filter(item => item.available_qty <= 0).length;
-
-        return { total, healthy, lowStock, outOfStock };
-    }, [items]);
-
-    const getStockLevel = (item: InventoryItem): 'healthy' | 'low' | 'critical' | 'out' => {
+    const getStockLevel = useCallback((item: InventoryItem): 'healthy' | 'low' | 'critical' | 'out' => {
         if (item.available_qty <= 0) return 'out';
 
         if (item.reorder_level) {
@@ -89,7 +73,28 @@ export function InventoryHeatmap({
         if (item.available_qty < 5) return 'critical';
         if (item.available_qty < 20) return 'low';
         return 'healthy';
-    };
+    }, []);
+
+    // Calculate overall statistics
+    const stats = useMemo(() => {
+        return items.reduce(
+            (acc, item) => {
+                acc.total += 1;
+                const level = getStockLevel(item);
+
+                if (level === 'healthy') {
+                    acc.healthy += 1;
+                } else if (level === 'out') {
+                    acc.outOfStock += 1;
+                } else {
+                    acc.lowStock += 1;
+                }
+
+                return acc;
+            },
+            { total: 0, healthy: 0, lowStock: 0, outOfStock: 0 }
+        );
+    }, [items, getStockLevel]);
 
     const getHeatmapColor = (level: string) => {
         switch (level) {

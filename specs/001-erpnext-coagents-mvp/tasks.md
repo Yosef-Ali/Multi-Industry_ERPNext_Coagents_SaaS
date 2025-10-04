@@ -518,6 +518,62 @@ cat frontend/coagent/app/api/copilot/runtime/route.ts
 
 ### Domain Widgets [P]
 - [ ] T100 [P] Implement AvailabilityGrid widget in frontend/coagent/src/components/widgets/AvailabilityGrid.tsx for hotel room availability
+
+## Phase 4.0: ERPNext Copilot — MCP + CopilotKit Hooks + LangGraph (HITL)
+
+Goal: Implement a domain-specialized ERPNext copilot using Context7 MCP tools, CopilotKit hooks (no new UI), and LangGraph workflows with human-in-the-loop interrupts. Deliver streaming artifacts at each stage (spec, schema plan, code, tests, package) via the existing UI message stream protocol.
+
+### 4.1 Architecture & Contracts
+- [ ] T200 Draft ERPNext Copilot Architecture (Concept) with Mermaid diagram and node annotations for `interrupt()` usage
+- [ ] T201 Define artifact schemas (SpecDoc, SchemaPlan, CodeDiff, TestPlan, PackageManifest) in `services/workflows/src/core/artifacts.py`
+- [ ] T202 Define UI stream contracts for each stage (text, data-* parts) mapping to existing UI message stream chunks
+
+### 4.2 Context7 MCP Integration (Domain Tools)
+- [ ] T210 Implement MCP client bootstrap in `services/agent-gateway/src/mcp/context7.ts` (provider registry, auth, retry)
+- [ ] T211 Define ERPNext MCP tools: metadata introspection, DocType CRUD, report search, script lint/validate, diff tool
+- [ ] T212 Add tool input/output Zod schemas and contract tests (TypeScript) in `services/agent-gateway/tests/contract/mcp_tools.test.ts`
+- [ ] T213 Implement safe-guard rails (permission checks, destructive op approvals) in MCP tool wrappers
+  
+Progress:
+- [x] T210 Stubbed Context7 MCP client with typed search and safe fallback.
+- [x] T211 Added read-only ERPNext tools: DocType introspection, list DocTypes/fields/link fields/child tables, list/search/run reports, get report info, list print formats/roles/workflows/files/comments/versions, count docs; write ops deferred.
+- [x] T212 Added Zod schemas and minimal contract tests.
+- [ ] T213 Guard rails to be extended for write ops when added.
+
+### 4.3 CopilotKit Hooks (No New UI)
+- [ ] T220 Implement `useErpNextCopilot()` hook wrapper in `frontend/coagent/hooks/use-app-copilot.tsx` to expose: readable context, actions to start/resume/cancel workflows, and receive artifact deltas
+- [ ] T221 Add CopilotKit runtime endpoint `frontend/coagent/app/api/copilot/runtime/route.ts` to bridge hooks → agent-gateway (stream UI chunks using `JsonToSseTransformStream`)
+- [ ] T222 Register actions (start_workflow, approve_step, reject_step, provide_edit) and wire to runtime endpoint
+  
+Progress:
+- [x] Initial `useErpNextCopilot` hook now streams `/agui` workflow events (via Worker proxy) into the Copilot data stream and sidebar viewer.
+
+### 4.4 LangGraph Workflow (HITL)
+- [ ] T230 Define `ErpCopilotState` (TypedDict) in `services/workflows/src/core/state.py` with fields for prompt, stage, artifacts, approvals
+- [ ] T231 Implement nodes: interpret_intent → design_spec → schema_plan → generate_code → test_plan → package_artifact
+- [ ] T232 Insert `interrupt()` gates after design_spec, schema_plan, generate_code, test_plan, package_artifact
+- [ ] T233 Implement WorkflowExecutor streaming adapter to emit UI chunks per stage and artifact piece
+- [ ] T234 Add integration tests for happy-path and rejection/regenerate loops
+
+### 4.5 Persistence & Resume
+- [ ] T240 Add Redis-backed checkpointing (MemorySaver + TTL) for workflow state and artifacts
+- [ ] T241 Implement resume endpoint in `services/workflows/src/server.py` and hook in CopilotKit runtime
+
+### 4.6 Artifact Packaging & Delivery
+- [ ] T250 Implement artifact repository (local disk first) with versioned manifests and zip bundling
+- [ ] T251 Add diff generation utility and linter/validator integration (ERPNext script validation)
+- [ ] T252 Provide deployment instructions and rollback plan in generated package
+
+### 4.7 Observability, Safety, and Auditing
+- [ ] T260 Add audit trail: record all interrupts, human decisions, and agent deltas (DB table or file log)
+- [ ] T261 Add telemetry for latency, error rates, and step durations
+- [ ] T262 Add safety checks to block destructive schema ops without explicit approval
+
+### 4.8 Developer Experience
+- [ ] T270 Add `docs/ERPNext_Copilot_ARCH.md` with diagram and contracts
+- [ ] T271 Provide `make dev-copilot` scripts and `.env.example` entries for MCP/agent-gateway endpoints
+- [ ] T272 Add seed examples and fixtures for sample ERPNext data to exercise the workflow
+
 - [ ] T101 [P] Implement BedCensus widget in frontend/coagent/src/components/widgets/BedCensus.tsx for hospital census display
 - [ ] T102 [P] Implement OrderPreview widget in frontend/coagent/src/components/widgets/OrderPreview.tsx for hospital order sets
 - [ ] T103 [P] Implement BOMTree widget in frontend/coagent/src/components/widgets/BOMTree.tsx for manufacturing BOM explosion
@@ -1551,5 +1607,94 @@ pnpm run storybook
 **Why**: This is the user-facing experience. Core backend is working (Agent Gateway deployed). Now we need the professional frontend to match.
 
 **Next Action**: Follow `PHASE_7_V0_STYLE_FRONTEND.md` step-by-step.
+
+---
+
+## 🎨 Phase 8: Production-Ready Developer UI (22 Tasks)
+
+**Goal**: Build Vercel AI Chatbot-quality UI with CopilotKit + Claude Agent SDK  
+**Status**: 📋 PLANNED (Not Started)  
+**Estimated**: 15-20 hours  
+**File**: `PHASE_8_PRODUCTION_UI.md`
+
+### Overview
+
+Upgrade from Phase 7 prototype to a **production-grade chat interface** with:
+- Multi-session chat management
+- Real-time streaming with Claude SDK
+- Enhanced code previews
+- Local persistence (IndexedDB)
+- Authentication (Next Auth)
+- Dark/light mode
+- Mobile responsive
+- E2E tested
+
+### Task Groups
+
+**Phase 8.1: Core Chat Experience** (T217-T221) - 5 tasks, 9.5 hours
+- Modern chat layout with sidebar
+- Streaming message component
+- Rich input with attachments
+- Virtual scrolling
+- CopilotKit integration layer
+
+**Phase 8.2: Session Management** (T222-T225) - 4 tasks, 7.5 hours
+- Chat history sidebar
+- Zustand session store
+- IndexedDB persistence layer
+- Import/export sessions
+
+**Phase 8.3: Artifact System** (T226-T229) - 4 tasks, 8.5 hours
+- Enhanced artifact types
+- Advanced code preview
+- Actions panel (copy/download/deploy)
+- Interactive previews
+
+**Phase 8.4: Claude Agent SDK** (T230-T232) - 3 tasks, 6.5 hours
+- Agent configuration
+- Tool definitions
+- Streaming handler
+
+**Phase 8.5: UI Polish** (T233-T235) - 3 tasks, 5 hours
+- Theme system
+- Framer Motion animations
+- Empty states + onboarding
+
+**Phase 8.6: Auth & Security** (T236-T237) - 2 tasks, 3.5 hours
+- Auth.js integration
+- User settings panel
+
+**Phase 8.7: Testing** (T238) - 1 task, 2 hours
+- E2E test suite
+
+### Key Technologies
+
+```json
+{
+  "@anthropic-ai/sdk": "^0.28.0",
+  "idb": "^8.0.0",
+  "diff-match-patch": "^1.0.5",
+  "next-auth": "^5.0.0-beta.24",
+  "react-markdown": "^9.0.1",
+  "react-window": "^1.8.10"
+}
+```
+
+### Success Criteria
+
+- [ ] Performance: FCP < 1.5s
+- [ ] Mobile: Works on 375px+
+- [ ] Accessibility: WCAG 2.1 AA
+- [ ] Streaming: Real-time display
+- [ ] Persistence: Survives refresh
+- [ ] Tests: 80%+ coverage
+
+### Implementation Order
+
+1. **Week 1**: Core chat experience (T217-T221)
+2. **Week 2**: Sessions + artifacts (T222-T229)
+3. **Week 3**: Claude SDK + polish (T230-T238)
+
+**See**: `PHASE_8_PRODUCTION_UI.md` for complete task breakdown
 
 ---

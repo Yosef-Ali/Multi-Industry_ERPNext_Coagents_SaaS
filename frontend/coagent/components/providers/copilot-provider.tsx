@@ -4,12 +4,29 @@ import { CopilotKit } from '@copilotkit/react-core';
 import { CopilotSidebar } from '@copilotkit/react-ui';
 import '@copilotkit/react-ui/styles.css';
 import { RecommendationCards } from '../copilot/recommendation-cards';
+import { WorkflowStreamPanel } from '../workflow-stream-panel';
 import { useAppCopilot } from '@/hooks/use-app-copilot';
+import { useErpNextCopilot } from '@/hooks/use-erpnext-copilot';
+import {
+    normalizeIndustry,
+    INDUSTRY_DISPLAY_NAMES,
+    INDUSTRY_CAPABILITIES,
+    toDisplayName,
+} from '@/lib/types/industry';
 
 interface AppCopilotProviderProps {
     children: React.ReactNode;
     appContext: {
-        appType: 'school' | 'clinic' | 'warehouse' | 'hotel' | 'retail' | string;
+        appType:
+            | 'school'
+            | 'education'
+            | 'clinic'
+            | 'hospital'
+            | 'warehouse'
+            | 'manufacturing'
+            | 'hotel'
+            | 'retail'
+            | string;
         currentPage: string;
         userRole: string;
         appData?: any;
@@ -34,14 +51,31 @@ interface AppCopilotProviderProps {
  */
 export function AppCopilotProvider({ children, appContext }: AppCopilotProviderProps) {
     const { recommendations, handleActionClick } = useAppCopilot(appContext.appType);
+    const {
+        workflowEvents,
+        isWorkflowStreaming,
+    } = useErpNextCopilot({
+        appType: appContext.appType,
+        currentPage: appContext.currentPage,
+        userRole: appContext.userRole,
+        appData: appContext.appData,
+    });
 
-    // Format app type for display
-    const appDisplayName = appContext.appType.charAt(0).toUpperCase() + appContext.appType.slice(1);
+    const canonicalIndustry = normalizeIndustry(appContext.appType);
+    const appDisplayName = canonicalIndustry
+        ? INDUSTRY_DISPLAY_NAMES[canonicalIndustry]
+        : toDisplayName(appContext.appType);
+    const capabilitySummary = canonicalIndustry
+        ? INDUSTRY_CAPABILITIES[canonicalIndustry]
+        : 'managing your ERPNext application';
+    const agentSlug = canonicalIndustry
+        ? `${canonicalIndustry}_management_agent`
+        : `${appContext.appType}_management_agent`;
 
     return (
         <CopilotKit
             runtimeUrl="/api/copilot/runtime"
-            agent={`${appContext.appType}_management_agent`}
+            agent={agentSlug}
             publicApiKey={process.env.NEXT_PUBLIC_COPILOT_API_KEY}
             // Pass app context to the agent
             properties={{
@@ -56,11 +90,15 @@ export function AppCopilotProvider({ children, appContext }: AppCopilotProviderP
                 clickOutsideToClose={true}
                 labels={{
                     title: `${appDisplayName} Assistant`,
-                    initial: `Hi! I'm your ${appDisplayName} management assistant. I can help you with ${getAppCapabilities(appContext.appType)}. What would you like to do?`,
+                    initial: `Hi! I'm your ${appDisplayName} management assistant. I can help you with ${capabilitySummary}. What would you like to do?`,
                 }}
             >
                 {/* Inject recommendation cards above chat */}
                 <div className="copilot-sidebar-content">
+                    <WorkflowStreamPanel
+                        events={workflowEvents}
+                        isStreaming={isWorkflowStreaming}
+                    />
                     <RecommendationCards
                         recommendations={recommendations}
                         onActionClick={handleActionClick}
@@ -70,19 +108,4 @@ export function AppCopilotProvider({ children, appContext }: AppCopilotProviderP
             </CopilotSidebar>
         </CopilotKit>
     );
-}
-
-/**
- * Get app-specific capabilities for initial message
- */
-function getAppCapabilities(appType: string): string {
-    const capabilities: Record<string, string> = {
-        school: 'student enrollment, attendance tracking, grade management, and generating reports',
-        clinic: 'patient registration, appointment scheduling, prescription management, and billing',
-        warehouse: 'inventory management, stock transfers, shipment tracking, and purchase orders',
-        hotel: 'room reservations, guest check-ins, billing, and housekeeping management',
-        retail: 'sales orders, customer management, inventory, and point of sale operations',
-    };
-
-    return capabilities[appType] || 'managing your ERPNext application';
 }
