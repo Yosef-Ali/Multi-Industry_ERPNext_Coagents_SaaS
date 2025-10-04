@@ -4,6 +4,6 @@
  */
 
 export * from './artifact-container';
+export * from './artifact-toolbar';
 export * from './code-artifact';
 export * from './preview-artifact';
-export * from './artifact-toolbar';

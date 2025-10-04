@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import type { VisibilityType } from "@/components/visibility-selector";
+import { useState } from 'react';
+import type { VisibilityType } from '@/components/visibility-selector';
 
 export function useChatVisibility({
-  chatId,
-  initialVisibilityType,
+	chatId,
+	initialVisibilityType,
 }: {
-  chatId: string;
-  initialVisibilityType: VisibilityType;
+	chatId: string;
+	initialVisibilityType: VisibilityType;
 }) {
-  const [visibilityType, setVisibilityType] = useState<VisibilityType>(initialVisibilityType);
+	const [visibilityType, setVisibilityType] = useState<VisibilityType>(initialVisibilityType);
 
-  return { visibilityType, setVisibilityType };
+	return { visibilityType, setVisibilityType };
 }

@@ -5,27 +5,21 @@
  * and generated ERPNext apps with CopilotKit integration
  */
 
-export { AvailabilityGrid } from './AvailabilityGrid';
 export type { Room } from './AvailabilityGrid';
-
-export { BedCensus } from './BedCensus';
+export { AvailabilityGrid } from './AvailabilityGrid';
 export type { Patient, WardCensus } from './BedCensus';
-
-export { OrderPreview } from './OrderPreview';
-export type { OrderItem, OrderSet } from './OrderPreview';
-
-export { BOMTree } from './BOMTree';
+export { BedCensus } from './BedCensus';
 export type { BOMComponent, BOMData } from './BOMTree';
-
-export { InventoryHeatmap } from './InventoryHeatmap';
-export type { InventoryItem } from './InventoryHeatmap';
-
-export { InterviewCalendar } from './InterviewCalendar';
+export { BOMTree } from './BOMTree';
 export type { Interview } from './InterviewCalendar';
-
+export { InterviewCalendar } from './InterviewCalendar';
+export type { InventoryItem } from './InventoryHeatmap';
+export { InventoryHeatmap } from './InventoryHeatmap';
 export {
-    INDUSTRY_WIDGETS,
-    getWidgetsForIndustry,
-    getIndustryDisplayName,
-    type DomainWidgetMeta,
+	type DomainWidgetMeta,
+	getIndustryDisplayName,
+	getWidgetsForIndustry,
+	INDUSTRY_WIDGETS,
 } from './industry-catalog';
+export type { OrderItem, OrderSet } from './OrderPreview';
+export { OrderPreview } from './OrderPreview';

@@ -74,8 +74,12 @@ export class ErpNextTools {
     const { doctype, query, limit } = SearchRecordsInput.parse(input);
     // Uses Frappe's /resource/<doctype>?fields=...&filters=... if available,
     // otherwise falls back to a quick search endpoint if configured.
+    const fields = encodeURIComponent(JSON.stringify(['name']));
+    const orFilters = encodeURIComponent(
+      JSON.stringify([['name', 'like', `%${query}%`]])
+    );
     const res = await this.client.get(
-      `/api/resource/${encodeURIComponent(doctype)}?limit=${limit}&fields=${encodeURIComponent('["name"]')}&or_filters=${encodeURIComponent('[ ["name","like", "%'+query+'%" ] ]')}`
+      `/api/resource/${encodeURIComponent(doctype)}?limit=${limit}&fields=${fields}&or_filters=${orFilters}`
     );
     const results = Array.isArray(res?.data) ? res.data : [];
     return { results };

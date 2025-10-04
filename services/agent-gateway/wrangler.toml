@@ -31,8 +31,15 @@ database_id = "438122c1-fe33-446c-a222-4bb3cfeb8fa5"
 [ai]
 binding = "AI"
 
+# Workflow Service Integration
+# Set WORKFLOW_SERVICE_URL as a secret for production:
+# pnpm dlx wrangler secret put WORKFLOW_SERVICE_URL
+# Or uncomment below for development:
+# WORKFLOW_SERVICE_URL = "http://localhost:8000"
+
 # Secrets (set via: pnpm dlx wrangler secret put <NAME>)
 # Environment variables required:
+# - WORKFLOW_SERVICE_URL (REQUIRED: URL of the workflow service, e.g., https://erpnext-workflows.onrender.com)
 # - OPENROUTER_API_KEY (optional if using Cloudflare AI)
 # - OPENROUTER_MODEL (optional)
 # - OPENROUTER_BASE_URL (optional)

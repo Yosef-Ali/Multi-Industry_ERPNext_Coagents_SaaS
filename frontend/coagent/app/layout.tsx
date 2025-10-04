@@ -1,35 +1,35 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Toaster } from "sonner";
-import { ThemeProvider } from "@/components/theme-provider";
-import { SessionProvider } from "next-auth/react";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import { SessionProvider } from 'next-auth/react';
+import { Toaster } from 'sonner';
+import { ThemeProvider } from '@/components/theme-provider';
 
-import "./globals.css";
+import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://erpnext-coagent.vercel.app"),
-  title: "ERPNext CoAgent",
-  description: "Enterprise-grade ERPNext co-agent experience with v0-style developer tooling.",
+	metadataBase: new URL('https://erpnext-coagent.vercel.app'),
+	title: 'ERPNext CoAgent',
+	description: 'Enterprise-grade ERPNext co-agent experience with v0-style developer tooling.',
 };
 
 export const viewport = {
-  maximumScale: 1, // Disable auto-zoom on mobile Safari
+	maximumScale: 1, // Disable auto-zoom on mobile Safari
 };
 
 const geist = Geist({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-geist",
+	subsets: ['latin'],
+	display: 'swap',
+	variable: '--font-geist',
 });
 
 const geistMono = Geist_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-geist-mono",
+	subsets: ['latin'],
+	display: 'swap',
+	variable: '--font-geist-mono',
 });
 
-const LIGHT_THEME_COLOR = "hsl(0 0% 100%)";
-const DARK_THEME_COLOR = "hsl(240deg 10% 3.92%)";
+const LIGHT_THEME_COLOR = 'hsl(0 0% 100%)';
+const DARK_THEME_COLOR = 'hsl(240deg 10% 3.92%)';
 const THEME_COLOR_SCRIPT = `\
 (function() {
   var html = document.documentElement;
@@ -49,34 +49,30 @@ const THEME_COLOR_SCRIPT = `\
 })();`;
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html
-      className={`${geist.variable} ${geistMono.variable}`}
-      lang="en"
-      suppressHydrationWarning
-    >
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: THEME_COLOR_SCRIPT,
-          }}
-        />
-      </head>
-      <body className="antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          disableTransitionOnChange
-          enableSystem
-        >
-          <Toaster position="top-center" />
-          <SessionProvider>{children}</SessionProvider>
-        </ThemeProvider>
-      </body>
-    </html>
-  );
+	return (
+		<html className={`${geist.variable} ${geistMono.variable}`} lang="en" suppressHydrationWarning>
+			<head>
+				<script
+					dangerouslySetInnerHTML={{
+						__html: THEME_COLOR_SCRIPT,
+					}}
+				/>
+			</head>
+			<body className="antialiased">
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="system"
+					disableTransitionOnChange
+					enableSystem
+				>
+					<Toaster position="top-center" />
+					<SessionProvider>{children}</SessionProvider>
+				</ThemeProvider>
+			</body>
+		</html>
+	);
 }

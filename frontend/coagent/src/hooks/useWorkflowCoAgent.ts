@@ -14,43 +14,43 @@ import { useCoAgent } from '@copilotkit/react-core';
  * Workflow state shared with LangGraph agent
  */
 export interface WorkflowAgentState {
-  // Current workflow step
-  current_step?: string;
+	// Current workflow step
+	current_step?: string;
 
-  // Completed steps
-  steps_completed?: string[];
+	// Completed steps
+	steps_completed?: string[];
 
-  // Pending approval
-  pending_approval?: boolean;
+	// Pending approval
+	pending_approval?: boolean;
 
-  // Approval operation details
-  approval_operation?: string;
+	// Approval operation details
+	approval_operation?: string;
 
-  // Workflow-specific state (varies by industry)
-  [key: string]: any;
+	// Workflow-specific state (varies by industry)
+	[key: string]: any;
 }
 
 /**
  * Workflow progress indicator props
  */
 export interface WorkflowProgressProps {
-  state: WorkflowAgentState;
-  currentNode?: string;
-  status?: string;
+	state: WorkflowAgentState;
+	currentNode?: string;
+	status?: string;
 }
 
 /**
  * useWorkflowCoAgent configuration
  */
 export interface UseWorkflowCoAgentConfig {
-  // Workflow name (e.g., "hotel_o2c", "hospital_admissions")
-  workflowName: string;
+	// Workflow name (e.g., "hotel_o2c", "hospital_admissions")
+	workflowName: string;
 
-  // Initial workflow state
-  initialState: WorkflowAgentState;
+	// Initial workflow state
+	initialState: WorkflowAgentState;
 
-  // Optional custom progress renderer
-  renderProgress?: (props: WorkflowProgressProps) => React.ReactNode;
+	// Optional custom progress renderer
+	renderProgress?: (props: WorkflowProgressProps) => React.ReactNode;
 }
 
 // ============================================================================
@@ -69,15 +69,15 @@ export interface UseWorkflowCoAgentConfig {
  * @returns Agent state
  */
 export function useWorkflowCoAgent(config: UseWorkflowCoAgentConfig) {
-  // Share state with LangGraph agent
-  const { state: agentState } = useCoAgent<WorkflowAgentState>({
-    name: config.workflowName,
-    initialState: config.initialState,
-  });
+	// Share state with LangGraph agent
+	const { state: agentState } = useCoAgent<WorkflowAgentState>({
+		name: config.workflowName,
+		initialState: config.initialState,
+	});
 
-  // Note: Commented out rendering for now to avoid TypeScript conflicts
-  // Will implement proper rendering in a future update
-  /*
+	// Note: Commented out rendering for now to avoid TypeScript conflicts
+	// Will implement proper rendering in a future update
+	/*
   // Render workflow state (if custom renderer provided)
   if (config.renderProgress) {
     useCoAgentStateRender({
@@ -126,7 +126,7 @@ export function useWorkflowCoAgent(config: UseWorkflowCoAgentConfig) {
   }
   */
 
-  return { agentState };
+	return { agentState };
 }
 
 // ============================================================================
@@ -137,73 +137,73 @@ export function useWorkflowCoAgent(config: UseWorkflowCoAgentConfig) {
  * Hotel Order-to-Cash workflow CoAgent
  */
 export function useHotelO2CAgent(initialState: Partial<WorkflowAgentState>) {
-  return useWorkflowCoAgent({
-    workflowName: 'hotel_o2c',
-    initialState: {
-      current_step: 'start',
-      steps_completed: [],
-      pending_approval: false,
-      ...initialState,
-    },
-  });
+	return useWorkflowCoAgent({
+		workflowName: 'hotel_o2c',
+		initialState: {
+			current_step: 'start',
+			steps_completed: [],
+			pending_approval: false,
+			...initialState,
+		},
+	});
 }
 
 /**
  * Hospital Admissions workflow CoAgent
  */
 export function useHospitalAdmissionsAgent(initialState: Partial<WorkflowAgentState>) {
-  return useWorkflowCoAgent({
-    workflowName: 'hospital_admissions',
-    initialState: {
-      current_step: 'start',
-      steps_completed: [],
-      pending_approval: false,
-      ...initialState,
-    },
-  });
+	return useWorkflowCoAgent({
+		workflowName: 'hospital_admissions',
+		initialState: {
+			current_step: 'start',
+			steps_completed: [],
+			pending_approval: false,
+			...initialState,
+		},
+	});
 }
 
 /**
  * Manufacturing Production workflow CoAgent
  */
 export function useManufacturingProductionAgent(initialState: Partial<WorkflowAgentState>) {
-  return useWorkflowCoAgent({
-    workflowName: 'manufacturing_production',
-    initialState: {
-      current_step: 'start',
-      steps_completed: [],
-      pending_approval: false,
-      ...initialState,
-    },
-  });
+	return useWorkflowCoAgent({
+		workflowName: 'manufacturing_production',
+		initialState: {
+			current_step: 'start',
+			steps_completed: [],
+			pending_approval: false,
+			...initialState,
+		},
+	});
 }
 
 /**
  * Retail Fulfillment workflow CoAgent
  */
 export function useRetailFulfillmentAgent(initialState: Partial<WorkflowAgentState>) {
-  return useWorkflowCoAgent({
-    workflowName: 'retail_fulfillment',
-    initialState: {
-      current_step: 'start',
-      steps_completed: [],
-      pending_approval: false,
-      ...initialState,
-    },
-  });
+	return useWorkflowCoAgent({
+		workflowName: 'retail_fulfillment',
+		initialState: {
+			current_step: 'start',
+			steps_completed: [],
+			pending_approval: false,
+			...initialState,
+		},
+	});
 }
 
 /**
  * Education Admissions workflow CoAgent
  */
 export function useEducationAdmissionsAgent(initialState: Partial<WorkflowAgentState>) {
-  return useWorkflowCoAgent({
-    workflowName: 'education_admissions',
-    initialState: {
-      current_step: 'start',
-      steps_completed: [],
-      pending_approval: false,
-      ...initialState,
-    },
-  });
+	return useWorkflowCoAgent({
+		workflowName: 'education_admissions',
+		initialState: {
+			current_step: 'start',
+			steps_completed: [],
+			pending_approval: false,
+			...initialState,
+		},
+	});
 }

@@ -1,2 +1,2 @@
-throw "OpenNext shim";
+throw 'OpenNext shim';
 export default {};

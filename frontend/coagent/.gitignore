@@ -1,1 +1,9 @@
 .vercel
+.next
+.open-next
+node_modules
+dist
+build
+coverage
+.turbo
+out

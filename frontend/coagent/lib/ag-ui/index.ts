@@ -3,11 +3,10 @@
  * Complete implementation of Agent-User Interaction Protocol
  */
 
-// Core types
-export * from './types';
+// HTTP client
+export * from './client';
 
 // Event handling
 export * from './events';
-
-// HTTP client
-export * from './client';
+// Core types
+export * from './types';

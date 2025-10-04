@@ -1,10 +1,10 @@
 'use client';
 
 import { useCopilotAction, useCopilotReadable } from '@copilotkit/react-core';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EventSourceParserStream } from 'eventsource-parser/stream';
-import { normalizeIndustry } from '@/lib/types/industry';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDataStream } from '@/components/data-stream-provider';
+import { normalizeIndustry } from '@/lib/types/industry';
 
 export interface WorkflowStreamEvent {
   id: string;
@@ -143,64 +143,86 @@ export function useErpNextCopilot(context: ErpNextCopilotContext): UseErpNextCop
       };
 
       const run = async () => {
-        try {
-          pushEvent('workflow_initialized', {
-            workflowId,
-            graph: resolvedGraph,
-            prompt,
-          });
+        let retries = 0;
+        const maxRetries = 3;
 
-          const response = await fetch(aguiEndpoint, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'text/event-stream',
-            },
-            body: JSON.stringify(body),
-            signal: controller.signal,
-          });
+        while (retries < maxRetries) {
+          try {
+            if (retries > 0) {
+              pushEvent('workflow_reconnecting', { attempt: retries, maxRetries });
+              await new Promise(r => setTimeout(r, 1000 * retries)); // exponential backoff
+            }
 
-          if (!response.ok || !response.body) {
-            const text = await response.text().catch(() => '');
-            throw new Error(
-              `Workflow stream error (${response.status}): ${text || response.statusText}`
-            );
-          }
+            pushEvent('workflow_initialized', {
+              workflowId,
+              graph: resolvedGraph,
+              prompt,
+            });
+
+            const response = await fetch(aguiEndpoint, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Accept: 'text/event-stream',
+              },
+              body: JSON.stringify(body),
+              signal: controller.signal,
+            });
+
+            if (!response.ok || !response.body) {
+              const text = await response.text().catch(() => '');
+              throw new Error(
+                `Workflow stream error (${response.status}): ${text || response.statusText}`
+              );
+            }
 
           const stream = response.body
             .pipeThrough(new TextDecoderStream())
             .pipeThrough(new EventSourceParserStream());
 
-          for await (const evt of stream) {
-            if (evt.type !== 'event') continue;
-            const eventName = evt.event || 'message';
-            let payload: unknown = evt.data;
-            if (evt.data) {
-              try {
-                payload = JSON.parse(evt.data);
-              } catch {
-                payload = evt.data;
+            for await (const evt of stream) {
+              if (evt.type !== 'event') continue;
+              const eventName = evt.event || 'message';
+              let payload: unknown = evt.data;
+              if (evt.data) {
+                try {
+                  payload = JSON.parse(evt.data);
+                } catch {
+                  payload = evt.data;
+                }
+              }
+
+              pushEvent(eventName, payload);
+
+              if (eventName === 'workflow_complete' || eventName === 'workflow_error') {
+                break;
               }
             }
 
-            pushEvent(eventName, payload);
+            // Success - break out of retry loop
+            break;
+          } catch (error) {
+            if ((error as Error).name === 'AbortError') {
+              pushEvent('workflow_aborted', { workflowId });
+              return;
+            }
 
-            if (eventName === 'workflow_complete' || eventName === 'workflow_error') {
+            retries++;
+
+            if (retries >= maxRetries) {
+              const err = error as Error;
+              setStreamError(err);
+              pushEvent('workflow_error', { message: err.message, retries });
               break;
             }
+
+            // Will retry on next iteration
+            console.warn(`[Copilot] Retry ${retries}/${maxRetries} after error:`, error);
           }
-        } catch (error) {
-          if ((error as Error).name === 'AbortError') {
-            pushEvent('workflow_aborted', { workflowId });
-            return;
-          }
-          const err = error as Error;
-          setStreamError(err);
-          pushEvent('workflow_error', { message: err.message });
-        } finally {
-          setIsStreaming(false);
-          abortControllerRef.current = null;
         }
+
+        setIsStreaming(false);
+        abortControllerRef.current = null;
       };
 
       run().catch((err) => {
@@ -266,7 +288,21 @@ export function useErpNextCopilot(context: ErpNextCopilotContext): UseErpNextCop
     ],
     handler: async ({ workflowId, stepId, notes }) => {
       console.info('[Copilot] approve_step called', { workflowId, stepId, notes });
-      return { ok: true };
+
+      try {
+        const response = await fetch(`${aguiEndpoint.replace('/agui', '/approve')}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workflowId, stepId, approved: true, notes }),
+        });
+
+        const result = await response.json();
+        pushEvent('step_approved', { workflowId, stepId, notes });
+        return result;
+      } catch (error) {
+        console.error('[Copilot] approve_step failed', error);
+        throw error;
+      }
     },
   });
 
@@ -280,7 +316,21 @@ export function useErpNextCopilot(context: ErpNextCopilotContext): UseErpNextCop
     ],
     handler: async ({ workflowId, stepId, reason }) => {
       console.info('[Copilot] reject_step called', { workflowId, stepId, reason });
-      return { ok: true };
+
+      try {
+        const response = await fetch(`${aguiEndpoint.replace('/agui', '/reject')}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workflowId, stepId, reason }),
+        });
+
+        const result = await response.json();
+        pushEvent('step_rejected', { workflowId, stepId, reason });
+        return result;
+      } catch (error) {
+        console.error('[Copilot] reject_step failed', error);
+        throw error;
+      }
     },
   });
 
@@ -293,18 +343,29 @@ export function useErpNextCopilot(context: ErpNextCopilotContext): UseErpNextCop
       { name: 'patch', type: 'object', description: 'Partial changes' },
     ],
     handler: async ({ workflowId, stepId, patch }) => {
-      console.info(EOF
-        '[Copilot] provide_edit called',
-        { workflowId, stepId, patch }
-      );
-      return { ok: true };
+      console.info('[Copilot] provide_edit called', { workflowId, stepId, patch });
+
+      try {
+        const response = await fetch(`${aguiEndpoint.replace('/agui', '/edit')}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workflowId, stepId, patch }),
+        });
+
+        const result = await response.json();
+        pushEvent('edit_provided', { workflowId, stepId, patch });
+        return result;
+      } catch (error) {
+        console.error('[Copilot] provide_edit failed', error);
+        throw error;
+      }
     },
   });
 
   useEffect(() => {
     console.debug('[Copilot] ERPNext hook initialized', context);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [context]);
 
   useEffect(() => () => stopWorkflow(), [stopWorkflow]);
 

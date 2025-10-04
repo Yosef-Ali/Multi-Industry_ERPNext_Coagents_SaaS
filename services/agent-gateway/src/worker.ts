@@ -77,9 +77,108 @@ export default {
         );
       }
 
+      // HITL Approval endpoint
+      if (path === '/approve' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({} as any)) as { workflowId?: string; stepId?: string; approved?: boolean; notes?: string };
+        const { workflowId, stepId, approved, notes } = body;
+
+        if (!workflowId || !stepId) {
+          return new Response(
+            JSON.stringify({ error: 'workflowId and stepId are required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (!env.WORKFLOW_SERVICE_URL) {
+          return new Response(
+            JSON.stringify({ error: 'WORKFLOW_SERVICE_URL not configured' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Forward approval to workflow service
+        const response = await fetch(new URL('/approve', env.WORKFLOW_SERVICE_URL).toString(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workflowId, stepId, approved, notes }),
+        });
+
+        const result = await response.json().catch(() => ({ ok: false }));
+        return new Response(JSON.stringify(result), {
+          status: response.ok ? 200 : response.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // HITL Rejection endpoint
+      if (path === '/reject' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({} as any)) as { workflowId?: string; stepId?: string; reason?: string };
+        const { workflowId, stepId, reason } = body;
+
+        if (!workflowId || !stepId) {
+          return new Response(
+            JSON.stringify({ error: 'workflowId and stepId are required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (!env.WORKFLOW_SERVICE_URL) {
+          return new Response(
+            JSON.stringify({ error: 'WORKFLOW_SERVICE_URL not configured' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Forward rejection to workflow service
+        const response = await fetch(new URL('/reject', env.WORKFLOW_SERVICE_URL).toString(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workflowId, stepId, rejected: true, reason }),
+        });
+
+        const result = await response.json().catch(() => ({ ok: false }));
+        return new Response(JSON.stringify(result), {
+          status: response.ok ? 200 : response.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // HITL Edit endpoint
+      if (path === '/edit' && request.method === 'POST') {
+        const body = await request.json().catch(() => ({} as any)) as { workflowId?: string; stepId?: string; patch?: Record<string, unknown> };
+        const { workflowId, stepId, patch } = body;
+
+        if (!workflowId || !stepId || !patch) {
+          return new Response(
+            JSON.stringify({ error: 'workflowId, stepId, and patch are required' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        if (!env.WORKFLOW_SERVICE_URL) {
+          return new Response(
+            JSON.stringify({ error: 'WORKFLOW_SERVICE_URL not configured' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+
+        // Forward edit to workflow service
+        const response = await fetch(new URL('/edit', env.WORKFLOW_SERVICE_URL).toString(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workflowId, stepId, patch }),
+        });
+
+        const result = await response.json().catch(() => ({ ok: false }));
+        return new Response(JSON.stringify(result), {
+          status: response.ok ? 200 : response.status,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       // AG-UI endpoint (Workers streaming proxy to Workflow Service)
       if (path === '/agui' && request.method === 'POST') {
-        const body = await request.json().catch(() => ({} as any));
+        const body = await request.json().catch(() => ({} as any)) as { graph_name?: string; graphName?: string; initial_state?: Record<string, unknown>; initialState?: Record<string, unknown> };
         const graph_name = body?.graph_name || body?.graphName || 'hotel_o2c';
         const initial_state = body?.initial_state || body?.initialState || {};
 
@@ -117,7 +216,7 @@ export default {
         const downstreamWriter = writable.getWriter();
 
         // Optional: heartbeat to keep connection alive
-        let heartbeatTimer: number | undefined;
+        let heartbeatTimer: ReturnType<typeof setInterval> | undefined;
         const encoder = new TextEncoder();
 
         const pump = async () => {
@@ -131,7 +230,7 @@ export default {
             }
           } finally {
             try { await downstreamWriter.close(); } catch { }
-            if (heartbeatTimer) clearInterval(heartbeatTimer as any);
+            if (heartbeatTimer) clearInterval(heartbeatTimer);
           }
         };
         pump();
@@ -139,7 +238,7 @@ export default {
         // Send a heartbeat every 30s
         heartbeatTimer = setInterval(() => {
           downstreamWriter.write(encoder.encode(': ping\n\n'));
-        }, 30000) as any;
+        }, 30000);
 
         return new Response(readable, {
           status: 200,

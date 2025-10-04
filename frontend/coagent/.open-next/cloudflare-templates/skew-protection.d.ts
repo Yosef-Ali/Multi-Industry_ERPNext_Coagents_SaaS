@@ -1,7 +1,7 @@
 /** Name of the env var containing the mapping */
-export declare const DEPLOYMENT_MAPPING_ENV_NAME = "CF_DEPLOYMENT_MAPPING";
+export declare const DEPLOYMENT_MAPPING_ENV_NAME = 'CF_DEPLOYMENT_MAPPING';
 /** Version used for the latest worker */
-export declare const CURRENT_VERSION_ID = "current";
+export declare const CURRENT_VERSION_ID = 'current';
 /**
  * Routes the request to the requested deployment.
  *
@@ -22,7 +22,9 @@ export declare const CURRENT_VERSION_ID = "current";
  * @param request
  * @returns
  */
-export declare function maybeGetSkewProtectionResponse(request: Request): Promise<Response> | Response | undefined;
+export declare function maybeGetSkewProtectionResponse(
+	request: Request
+): Promise<Response> | Response | undefined;
 declare global {
-    var __SKEW_PROTECTION_ENABLED__: boolean;
+	var __SKEW_PROTECTION_ENABLED__: boolean;
 }
