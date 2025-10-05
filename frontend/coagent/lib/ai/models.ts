@@ -8,7 +8,7 @@ export type ChatModel = {
 };
 
 export const chatModels: ChatModel[] = [
-	// Google AI models
+	// Google AI Direct models
 	{
 		id: 'gemini-2.0-flash-exp',
 		name: 'Gemini 2.0 Flash',
