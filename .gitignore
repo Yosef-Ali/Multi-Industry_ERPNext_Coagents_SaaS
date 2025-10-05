@@ -41,3 +41,4 @@ htmlcov/
 
 # Frappe
 sites/
+node_modules
