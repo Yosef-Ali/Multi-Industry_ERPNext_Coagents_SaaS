@@ -93,58 +93,188 @@ export class ToolRegistry {
   /**
    * Load hotel-specific tools
    */
-  private loadHotelTools(): void {
-    // TODO: Import and register hotel tools
-    // this.registerTool(room_availability_tool);
-    // this.registerTool(occupancy_report_tool);
-    console.log('Hotel tools loaded (placeholder)');
+  private async loadHotelTools(): Promise<void> {
+    try {
+      const { room_availability, RoomAvailabilityInputSchema } = await import('./hotel/room_availability');
+      const { occupancy_report, OccupancyReportInputSchema } = await import('./hotel/occupancy_report');
+      
+      this.registerTool({
+        name: 'room_availability',
+        description: 'Check available rooms for date range in hotel',
+        inputSchema: RoomAvailabilityInputSchema,
+        handler: room_availability,
+        requires_approval: false,
+        operation_type: 'read',
+        industry: 'hotel'
+      });
+
+      this.registerTool({
+        name: 'occupancy_report',
+        description: 'Get occupancy metrics (ADR, RevPAR, occupancy rate)',
+        inputSchema: OccupancyReportInputSchema,
+        handler: occupancy_report,
+        requires_approval: false,
+        operation_type: 'read',
+        industry: 'hotel'
+      });
+
+      console.log('Hotel tools loaded: room_availability, occupancy_report');
+    } catch (error) {
+      console.warn('Failed to load hotel tools:', error);
+    }
   }
 
   /**
    * Load hospital-specific tools
    */
-  private loadHospitalTools(): void {
-    // TODO: Import and register hospital tools
-    // this.registerTool(create_order_set_tool);
-    // this.registerTool(census_report_tool);
-    // this.registerTool(ar_by_payer_tool);
-    console.log('Hospital tools loaded (placeholder)');
+  private async loadHospitalTools(): Promise<void> {
+    try {
+      const { create_order_set, CreateOrderSetInputSchema } = await import('./hospital/create_order_set');
+      const { census_report, CensusReportInputSchema } = await import('./hospital/census_report');
+      const { ar_by_payer, ARByPayerInputSchema } = await import('./hospital/ar_by_payer');
+      
+      this.registerTool({
+        name: 'create_order_set',
+        description: 'Create clinical order sets (e.g., sepsis protocol)',
+        inputSchema: CreateOrderSetInputSchema,
+        handler: create_order_set,
+        requires_approval: true, // Clinical orders need approval
+        operation_type: 'create',
+        industry: 'hospital'
+      });
+
+      this.registerTool({
+        name: 'census_report',
+        description: 'Get daily census by ward',
+        inputSchema: CensusReportInputSchema,
+        handler: census_report,
+        requires_approval: false,
+        operation_type: 'read',
+        industry: 'hospital'
+      });
+
+      this.registerTool({
+        name: 'ar_by_payer',
+        description: 'Get accounts receivable by insurance payer',
+        inputSchema: ARByPayerInputSchema,
+        handler: ar_by_payer,
+        requires_approval: false,
+        operation_type: 'read',
+        industry: 'hospital'
+      });
+
+      console.log('Hospital tools loaded: create_order_set, census_report, ar_by_payer');
+    } catch (error) {
+      console.warn('Failed to load hospital tools:', error);
+    }
   }
 
   /**
    * Load manufacturing-specific tools
    */
-  private loadManufacturingTools(): void {
-    // TODO: Import and register manufacturing tools
-    // this.registerTool(material_availability_tool);
-    // this.registerTool(bom_explosion_tool);
-    console.log('Manufacturing tools loaded (placeholder)');
+  private async loadManufacturingTools(): Promise<void> {
+    try {
+      const { material_availability, MaterialAvailabilityInputSchema } = await import('./manufacturing/material_availability');
+      const { bom_explosion, BOMExplosionInputSchema } = await import('./manufacturing/bom_explosion');
+      
+      this.registerTool({
+        name: 'material_availability',
+        description: 'Check stock availability across warehouses for manufacturing',
+        inputSchema: MaterialAvailabilityInputSchema,
+        handler: material_availability,
+        requires_approval: false,
+        operation_type: 'read',
+        industry: 'manufacturing'
+      });
+
+      this.registerTool({
+        name: 'bom_explosion',
+        description: 'Explode Bill of Materials to component requirements',
+        inputSchema: BOMExplosionInputSchema,
+        handler: bom_explosion,
+        requires_approval: false,
+        operation_type: 'read',
+        industry: 'manufacturing'
+      });
+
+      console.log('Manufacturing tools loaded: material_availability, bom_explosion');
+    } catch (error) {
+      console.warn('Failed to load manufacturing tools:', error);
+    }
   }
 
   /**
    * Load retail-specific tools
    */
-  private loadRetailTools(): void {
-    // TODO: Import and register retail tools
-    // this.registerTool(inventory_check_tool);
-    // this.registerTool(sales_analytics_tool);
-    console.log('Retail tools loaded (placeholder)');
+  private async loadRetailTools(): Promise<void> {
+    try {
+      const { inventory_check, InventoryCheckInputSchema } = await import('./retail/inventory_check');
+      const { sales_analytics, SalesAnalyticsInputSchema } = await import('./retail/sales_analytics');
+      
+      this.registerTool({
+        name: 'inventory_check',
+        description: 'Check stock levels across store locations for retail',
+        inputSchema: InventoryCheckInputSchema,
+        handler: inventory_check,
+        requires_approval: false,
+        operation_type: 'read',
+        industry: 'retail'
+      });
+
+      this.registerTool({
+        name: 'sales_analytics',
+        description: 'Analyze sales trends and top products',
+        inputSchema: SalesAnalyticsInputSchema,
+        handler: sales_analytics,
+        requires_approval: false,
+        operation_type: 'read',
+        industry: 'retail'
+      });
+
+      console.log('Retail tools loaded: inventory_check, sales_analytics');
+    } catch (error) {
+      console.warn('Failed to load retail tools:', error);
+    }
   }
 
   /**
    * Load education-specific tools
    */
-  private loadEducationTools(): void {
-    // TODO: Import and register education tools
-    // this.registerTool(applicant_workflow_tool);
-    // this.registerTool(interview_scheduling_tool);
-    console.log('Education tools loaded (placeholder)');
+  private async loadEducationTools(): Promise<void> {
+    try {
+      const { applicant_workflow, ApplicantWorkflowInputSchema } = await import('./education/applicant_workflow');
+      const { interview_scheduling, InterviewSchedulingInputSchema } = await import('./education/interview_scheduling');
+      
+      this.registerTool({
+        name: 'applicant_workflow',
+        description: 'Manage student application workflow with status updates',
+        inputSchema: ApplicantWorkflowInputSchema,
+        handler: applicant_workflow,
+        requires_approval: true, // Write operations need approval
+        operation_type: 'update',
+        industry: 'education'
+      });
+
+      this.registerTool({
+        name: 'interview_scheduling',
+        description: 'Schedule interviews with availability checking',
+        inputSchema: InterviewSchedulingInputSchema,
+        handler: interview_scheduling,
+        requires_approval: false, // Most operations are low risk
+        operation_type: 'create',
+        industry: 'education'
+      });
+
+      console.log('Education tools loaded: applicant_workflow, interview_scheduling');
+    } catch (error) {
+      console.warn('Failed to load education tools:', error);
+    }
   }
 
   /**
    * Load custom/generated tools from apps/custom_generated/
    */
-  private loadCustomTools(): void {
+  private async loadCustomTools(): Promise<void> {
     // TODO: Dynamic import from custom tools directory
     // Scan services/agent-gateway/src/tools/custom/ for generated tools
     // Auto-register all exported *_tool definitions
