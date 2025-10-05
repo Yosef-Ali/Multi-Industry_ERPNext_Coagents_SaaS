@@ -12,7 +12,12 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
 	 */
 	guest: {
 		maxMessagesPerDay: 20,
-		availableChatModelIds: ['chat-model', 'chat-model-reasoning'],
+		availableChatModelIds: [
+			'gemini-2.0-flash-exp',
+			'gemini-1.5-flash',
+			'google/gemini-2.0-flash-exp:free',
+			'google/gemini-flash-1.5:free',
+		],
 	},
 
 	/*
@@ -20,7 +25,17 @@ export const entitlementsByUserType: Record<UserType, Entitlements> = {
 	 */
 	regular: {
 		maxMessagesPerDay: 100,
-		availableChatModelIds: ['chat-model', 'chat-model-reasoning'],
+		availableChatModelIds: [
+			'gemini-2.0-flash-exp',
+			'gemini-1.5-flash',
+			'gemini-1.5-pro',
+			'google/gemini-2.0-flash-exp:free',
+			'google/gemini-flash-1.5:free',
+			'google/gemini-2.5-flash-lite-preview-09-2025',
+			'google/gemini-pro-1.5',
+			'anthropic/claude-3.5-sonnet',
+			'z-ai/glm-4.6',
+		],
 	},
 
 	/*
