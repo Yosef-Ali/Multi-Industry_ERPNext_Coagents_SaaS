@@ -81,7 +81,7 @@ router.post(
       }
 
       // Create Claude Agent with tools
-      const agent = await createCoagent({
+      const { agent, toolExecutor } = await createCoagent({
         session,
         stream,
         erpApiKey,
@@ -91,15 +91,14 @@ router.post(
 
       // If message provided, execute agent
       if (request.message && request.message.trim()) {
-        await executeAgent(agent, request.message, stream);
+        await executeAgent(agent, toolExecutor, request.message, stream);
       } else {
         // No message - just send welcome
         stream.emitMessage(
           'assistant',
           session.doctype
-            ? `I'm ready to assist with ${session.doctype}${
-                session.doc_name ? ` "${session.doc_name}"` : ''
-              }. What would you like to do?`
+            ? `I'm ready to assist with ${session.doctype}${session.doc_name ? ` "${session.doc_name}"` : ''
+            }. What would you like to do?`
             : "Hello! I'm your ERPNext coagent assistant. How can I help you today?"
         );
       }

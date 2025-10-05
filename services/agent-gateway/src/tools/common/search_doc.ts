@@ -62,5 +62,5 @@ export const search_doc_tool = {
   inputSchema: SearchDocInputSchema,
   handler: search_doc,
   requires_approval: false,
-  operation_type: 'read',
+  operation_type: 'read' as const,
 };

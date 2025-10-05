@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "resumable-stream": "^2.2.4"
+  }
+}

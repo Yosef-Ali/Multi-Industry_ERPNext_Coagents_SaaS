@@ -1,0 +1,22 @@
+# Wrangler configuration for OpenNext Cloudflare Worker
+name = "erpnext-coagent-ui"
+main = ".open-next/worker.js"
+compatibility_date = "2024-10-01"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[[services]]
+binding = "WORKER_SELF_REFERENCE"
+service = "erpnext-coagent-ui"
+
+# Environment variables
+[vars]
+VITE_GATEWAY_URL = "https://erpnext-agent-gateway.workers.dev"
+OPENROUTER_API_KEY = "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"
+OPENROUTER_MODEL = "mistralai/mistral-7b-instruct"
+OPENROUTER_HTTP_REFERER = "https://erpnext-coagent-ui.dev-yosefali.workers.dev"
+OPENROUTER_APP_TITLE = "ERPNext CoAgent Assistant"
+

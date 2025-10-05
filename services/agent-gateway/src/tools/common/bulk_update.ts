@@ -5,7 +5,7 @@
 
 import { z } from 'zod';
 import { FrappeAPIClient } from '../../api';
-import { RiskClassifier, DocumentState } from '../../../../../apps/common/risk_classifier';
+// import { RiskClassifier, DocumentState } from '../../../../../apps/common/risk_classifier';
 
 export const BulkUpdateInputSchema = z.object({
   doctype: z.string().min(1, 'DocType is required'),
@@ -46,20 +46,27 @@ export async function bulk_update(
 
   // Assess risk (bulk operations are always at least medium risk)
   const fields = Object.keys(validated.data);
-  const docState = validated.document_state === 'submitted'
-    ? DocumentState.SUBMITTED
-    : validated.document_state === 'cancelled'
-    ? DocumentState.CANCELLED
-    : DocumentState.DRAFT;
+  // const docState = validated.document_state === 'submitted'
+  //   ? DocumentState.SUBMITTED
+  //   : validated.document_state === 'cancelled'
+  //     ? DocumentState.CANCELLED
+  //     : DocumentState.DRAFT;
 
-  const riskAssessment = RiskClassifier.assess(
-    'bulk_update',
-    validated.doctype,
-    fields,
-    docState,
-    validated.names.length, // Bulk operation count
-    validated.data
-  );
+  // const riskAssessment = RiskClassifier.assess(
+  //   'bulk_update',
+  //   validated.doctype,
+  //   fields,
+  //   docState,
+  //   validated.names.length, // Bulk operation count
+  //   validated.data
+  // );
+
+  // Temporary implementation - bulk operations always require approval
+  const riskAssessment = {
+    requires_approval: true,
+    level: 'high',
+    reasoning: `Bulk update of ${validated.names.length} ${validated.doctype} documents`,
+  };
 
   // Bulk operations ALWAYS require approval
   return {

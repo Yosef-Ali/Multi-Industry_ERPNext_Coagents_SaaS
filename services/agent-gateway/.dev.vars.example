@@ -1,0 +1,29 @@
+# Local Development Environment Variables
+# Copy this file to .dev.vars and fill in your values
+# .dev.vars is gitignored and safe for local secrets
+
+# Workflow Service (REQUIRED for /agui streaming)
+WORKFLOW_SERVICE_URL=http://localhost:8000
+
+# OpenRouter Configuration (optional if using Cloudflare AI)
+OPENROUTER_API_KEY=your_openrouter_key_here
+OPENROUTER_MODEL=anthropic/claude-3.5-sonnet
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+
+# ERPNext Configuration
+ERPNEXT_API_KEY=your_erpnext_api_key
+ERPNEXT_API_SECRET=your_erpnext_api_secret
+ERPNEXT_BASE_URL=https://your-erpnext-instance.com
+
+# AI Provider Selection
+# Options: 'openrouter' | 'cloudflare' | 'auto'
+AI_PROVIDER=auto
+
+# Cloudflare AI Model (when using Cloudflare AI)
+CLOUDFLARE_MODEL=@cf/meta/llama-3.1-8b-instruct
+
+# Free Tier Preference
+PREFER_FREE_TIER=false
+
+# Mock Mode (for testing without ERPNext)
+USE_MOCK_ERPNEXT=true

@@ -1,14 +1,16 @@
 /**
  * T095: useCopilot Hook
  * Manages agent interaction state, message history, and streaming
+ * Integrated with CopilotKit CoAgents for state sharing and generative UI
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useCoAgent } from '@copilotkit/react-core';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  AGUIEventType,
-  ChatMessageEvent,
-  createSSEStream,
-  EventHandler,
+	type AGUIEventType,
+	type ChatMessageEvent,
+	createSSEStream,
+	type EventHandler,
 } from '../utils/streaming';
 
 // ============================================================================
@@ -19,10 +21,10 @@ import {
  * Message in the chat history
  */
 export interface Message {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  timestamp: Date;
+	id: string;
+	role: 'user' | 'assistant' | 'system';
+	content: string;
+	timestamp: Date;
 }
 
 /**
@@ -34,35 +36,35 @@ export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'err
  * useCopilot hook state
  */
 export interface UseCopilotState {
-  // Connection state
-  connectionState: ConnectionState;
+	// Connection state
+	connectionState: ConnectionState;
 
-  // Message history
-  messages: Message[];
+	// Message history
+	messages: Message[];
 
-  // Streaming state
-  isStreaming: boolean;
-  isLoading: boolean;
+	// Streaming state
+	isStreaming: boolean;
+	isLoading: boolean;
 
-  // Current session
-  sessionId: string | null;
+	// Current session
+	sessionId: string | null;
 
-  // Error state
-  error: string | null;
+	// Error state
+	error: string | null;
 
-  // Event stream
-  events: AGUIEventType[];
+	// Event stream
+	events: AGUIEventType[];
 }
 
 /**
  * useCopilot hook actions
  */
 export interface UseCopilotActions {
-  sendMessage: (content: string) => Promise<void>;
-  clearMessages: () => void;
-  clearError: () => void;
-  disconnect: () => void;
-  reconnect: () => void;
+	sendMessage: (content: string) => Promise<void>;
+	clearMessages: () => void;
+	clearError: () => void;
+	disconnect: () => void;
+	reconnect: () => void;
 }
 
 /**
@@ -74,28 +76,32 @@ export type UseCopilotReturn = UseCopilotState & UseCopilotActions;
  * useCopilot hook configuration
  */
 export interface UseCopilotConfig {
-  // Agent gateway URL
-  gatewayUrl: string;
+	// Agent gateway URL
+	gatewayUrl: string;
 
-  // Authentication token
-  authToken: string;
+	// Authentication token
+	authToken: string;
 
-  // User ID
-  userId: string;
+	// User ID
+	userId: string;
 
-  // Optional document context
-  doctype?: string;
-  docName?: string;
+	// Optional document context
+	doctype?: string;
+	docName?: string;
 
-  // Enabled industries
-  enabledIndustries?: string[];
+	// Enabled industries
+	enabledIndustries?: string[];
 
-  // Auto-connect on mount
-  autoConnect?: boolean;
+	// Auto-connect on mount
+	autoConnect?: boolean;
 
-  // Event handlers
-  onEvent?: EventHandler;
-  onError?: (error: Error) => void;
+	// Event handlers
+	onEvent?: EventHandler;
+	onError?: (error: Error) => void;
+
+	// CoAgent configuration
+	agentName?: string;
+	initialAgentState?: Record<string, any>;
 }
 
 // ============================================================================
@@ -116,285 +122,292 @@ export interface UseCopilotConfig {
  * @returns Hook state and actions
  */
 export function useCopilot(config: UseCopilotConfig): UseCopilotReturn {
-  // State
-  const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [events, setEvents] = useState<AGUIEventType[]>([]);
+	// CoAgent state sharing (if agent name is provided)
+	const { state: agentState } = config.agentName
+		? useCoAgent({
+				name: config.agentName,
+				initialState: config.initialAgentState || {},
+			})
+		: { state: null };
 
-  // Refs
-  const abortControllerRef = useRef<AbortController | null>(null);
-  const messageQueueRef = useRef<string[]>([]);
+	// State
+	const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected');
+	const [messages, setMessages] = useState<Message[]>([]);
+	const [isStreaming, setIsStreaming] = useState(false);
+	const [isLoading, setIsLoading] = useState(false);
+	const [sessionId] = useState<string | null>(null);
+	const [error, setError] = useState<string | null>(null);
+	const [events, setEvents] = useState<AGUIEventType[]>([]);
 
-  // ============================================================================
-  // Event Handlers
-  // ============================================================================
+	// Refs
+	const abortControllerRef = useRef<AbortController | null>(null);
 
-  /**
-   * Handle incoming SSE event
-   */
-  const handleEvent = useCallback<EventHandler>(
-    (event) => {
-      // Add to events list
-      setEvents((prev) => [...prev, event]);
+	// ============================================================================
+	// Event Handlers
+	// ============================================================================
 
-      // Handle specific event types
-      switch (event.type) {
-        case 'chat_message':
-          handleChatMessage(event);
-          break;
+	/**
+	 * Handle incoming SSE event
+	 */
+	const handleEvent = useCallback<EventHandler>(
+		(event) => {
+			// Add to events list
+			setEvents((prev) => [...prev, event]);
 
-        case 'status':
-          if (event.status === 'connected') {
-            setConnectionState('connected');
-            setIsStreaming(false);
-            setIsLoading(false);
-          } else if (event.status === 'processing') {
-            setIsStreaming(true);
-          } else if (event.status === 'completed') {
-            setIsStreaming(false);
-            setIsLoading(false);
-          }
-          break;
+			// Handle specific event types
+			switch (event.type) {
+				case 'chat_message':
+					handleChatMessage(event);
+					break;
 
-        case 'error':
-          setError(event.message);
-          setConnectionState('error');
-          setIsStreaming(false);
-          setIsLoading(false);
-          break;
+				case 'status':
+					if (event.status === 'connected') {
+						setConnectionState('connected');
+						setIsStreaming(false);
+						setIsLoading(false);
+					} else if (event.status === 'processing') {
+						setIsStreaming(true);
+					} else if (event.status === 'completed') {
+						setIsStreaming(false);
+						setIsLoading(false);
+					}
+					break;
 
-        default:
-          break;
-      }
+				case 'error':
+					setError(event.message);
+					setConnectionState('error');
+					setIsStreaming(false);
+					setIsLoading(false);
+					break;
 
-      // Call user-provided event handler
-      config.onEvent?.(event);
-    },
-    [config]
-  );
+				default:
+					break;
+			}
 
-  /**
-   * Handle chat message event
-   */
-  const handleChatMessage = useCallback((event: ChatMessageEvent) => {
-    const message: Message = {
-      id: `msg-${Date.now()}-${Math.random()}`,
-      role: event.role,
-      content: event.content,
-      timestamp: event.timestamp ? new Date(event.timestamp) : new Date(),
-    };
+			// Call user-provided event handler
+			config.onEvent?.(event);
+		},
+		[config, handleChatMessage]
+	);
 
-    setMessages((prev) => [...prev, message]);
-  }, []);
+	/**
+	 * Handle chat message event
+	 */
+	const handleChatMessage = useCallback((event: ChatMessageEvent) => {
+		const message: Message = {
+			id: `msg-${Date.now()}-${Math.random()}`,
+			role: event.role,
+			content: event.content,
+			timestamp: event.timestamp ? new Date(event.timestamp) : new Date(),
+		};
 
-  /**
-   * Handle connection error
-   */
-  const handleError = useCallback(
-    (err: Error) => {
-      console.error('Copilot connection error:', err);
-      setError(err.message);
-      setConnectionState('error');
-      setIsStreaming(false);
-      setIsLoading(false);
-      config.onError?.(err);
-    },
-    [config]
-  );
+		setMessages((prev) => [...prev, message]);
+	}, []);
 
-  // ============================================================================
-  // Actions
-  // ============================================================================
+	/**
+	 * Handle connection error
+	 */
+	const handleError = useCallback(
+		(err: Error) => {
+			console.error('Copilot connection error:', err);
+			setError(err.message);
+			setConnectionState('error');
+			setIsStreaming(false);
+			setIsLoading(false);
+			config.onError?.(err);
+		},
+		[config]
+	);
 
-  /**
-   * Send a message to the agent
-   */
-  const sendMessage = useCallback(
-    async (content: string) => {
-      if (!content.trim()) {
-        return;
-      }
+	// ============================================================================
+	// Actions
+	// ============================================================================
 
-      // Add user message immediately
-      const userMessage: Message = {
-        id: `msg-${Date.now()}-${Math.random()}`,
-        role: 'user',
-        content: content.trim(),
-        timestamp: new Date(),
-      };
+	/**
+	 * Send a message to the agent
+	 */
+	const sendMessage = useCallback(
+		async (content: string) => {
+			if (!content.trim()) {
+				return;
+			}
 
-      setMessages((prev) => [...prev, userMessage]);
-      setIsLoading(true);
-      setError(null);
+			// Add user message immediately
+			const userMessage: Message = {
+				id: `msg-${Date.now()}-${Math.random()}`,
+				role: 'user',
+				content: content.trim(),
+				timestamp: new Date(),
+			};
 
-      try {
-        // Disconnect existing stream
-        if (abortControllerRef.current) {
-          abortControllerRef.current.abort();
-        }
+			setMessages((prev) => [...prev, userMessage]);
+			setIsLoading(true);
+			setError(null);
 
-        setConnectionState('connecting');
+			try {
+				// Disconnect existing stream
+				if (abortControllerRef.current) {
+					abortControllerRef.current.abort();
+				}
 
-        // Create new SSE stream
-        const controller = await createSSEStream(
-          `${config.gatewayUrl}/agui`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${config.authToken}`,
-            },
-            body: JSON.stringify({
-              session_id: sessionId,
-              user_id: config.userId,
-              message: content.trim(),
-              doctype: config.doctype,
-              doc_name: config.docName,
-              enabled_industries: config.enabledIndustries,
-            }),
-          },
-          handleEvent,
-          handleError
-        );
+				setConnectionState('connecting');
 
-        abortControllerRef.current = controller;
-      } catch (err: any) {
-        handleError(err);
-      }
-    },
-    [
-      config.gatewayUrl,
-      config.authToken,
-      config.userId,
-      config.doctype,
-      config.docName,
-      config.enabledIndustries,
-      sessionId,
-      handleEvent,
-      handleError,
-    ]
-  );
+				// Create new SSE stream
+				const controller = await createSSEStream(
+					`${config.gatewayUrl}/agui`,
+					{
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/json',
+							Authorization: `Bearer ${config.authToken}`,
+						},
+						body: JSON.stringify({
+							session_id: sessionId,
+							user_id: config.userId,
+							message: content.trim(),
+							doctype: config.doctype,
+							doc_name: config.docName,
+							enabled_industries: config.enabledIndustries,
+						}),
+					},
+					handleEvent,
+					handleError
+				);
 
-  /**
-   * Clear message history
-   */
-  const clearMessages = useCallback(() => {
-    setMessages([]);
-    setEvents([]);
-    setError(null);
-  }, []);
+				abortControllerRef.current = controller;
+			} catch (err: any) {
+				handleError(err);
+			}
+		},
+		[
+			config.gatewayUrl,
+			config.authToken,
+			config.userId,
+			config.doctype,
+			config.docName,
+			config.enabledIndustries,
+			sessionId,
+			handleEvent,
+			handleError,
+		]
+	);
 
-  /**
-   * Clear error state
-   */
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
+	/**
+	 * Clear message history
+	 */
+	const clearMessages = useCallback(() => {
+		setMessages([]);
+		setEvents([]);
+		setError(null);
+	}, []);
 
-  /**
-   * Disconnect from agent
-   */
-  const disconnect = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-    setConnectionState('disconnected');
-    setIsStreaming(false);
-    setIsLoading(false);
-  }, []);
+	/**
+	 * Clear error state
+	 */
+	const clearError = useCallback(() => {
+		setError(null);
+	}, []);
 
-  /**
-   * Reconnect to agent
-   */
-  const reconnect = useCallback(async () => {
-    disconnect();
-    setError(null);
+	/**
+	 * Disconnect from agent
+	 */
+	const disconnect = useCallback(() => {
+		if (abortControllerRef.current) {
+			abortControllerRef.current.abort();
+			abortControllerRef.current = null;
+		}
+		setConnectionState('disconnected');
+		setIsStreaming(false);
+		setIsLoading(false);
+	}, []);
 
-    try {
-      setConnectionState('connecting');
+	/**
+	 * Reconnect to agent
+	 */
+	const reconnect = useCallback(async () => {
+		disconnect();
+		setError(null);
 
-      // Create initial connection without message
-      const controller = await createSSEStream(
-        `${config.gatewayUrl}/agui`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${config.authToken}`,
-          },
-          body: JSON.stringify({
-            session_id: sessionId,
-            user_id: config.userId,
-            doctype: config.doctype,
-            doc_name: config.docName,
-            enabled_industries: config.enabledIndustries,
-          }),
-        },
-        handleEvent,
-        handleError
-      );
+		try {
+			setConnectionState('connecting');
 
-      abortControllerRef.current = controller;
-    } catch (err: any) {
-      handleError(err);
-    }
-  }, [
-    config.gatewayUrl,
-    config.authToken,
-    config.userId,
-    config.doctype,
-    config.docName,
-    config.enabledIndustries,
-    sessionId,
-    disconnect,
-    handleEvent,
-    handleError,
-  ]);
+			// Create initial connection without message
+			const controller = await createSSEStream(
+				`${config.gatewayUrl}/agui`,
+				{
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${config.authToken}`,
+					},
+					body: JSON.stringify({
+						session_id: sessionId,
+						user_id: config.userId,
+						doctype: config.doctype,
+						doc_name: config.docName,
+						enabled_industries: config.enabledIndustries,
+					}),
+				},
+				handleEvent,
+				handleError
+			);
 
-  // ============================================================================
-  // Effects
-  // ============================================================================
+			abortControllerRef.current = controller;
+		} catch (err: any) {
+			handleError(err);
+		}
+	}, [
+		config.gatewayUrl,
+		config.authToken,
+		config.userId,
+		config.doctype,
+		config.docName,
+		config.enabledIndustries,
+		sessionId,
+		disconnect,
+		handleEvent,
+		handleError,
+	]);
 
-  /**
-   * Auto-connect on mount if configured
-   */
-  useEffect(() => {
-    if (config.autoConnect) {
-      reconnect();
-    }
+	// ============================================================================
+	// Effects
+	// ============================================================================
 
-    // Cleanup on unmount
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, [config.autoConnect]); // Only run on mount
+	/**
+	 * Auto-connect on mount if configured
+	 */
+	useEffect(() => {
+		if (config.autoConnect) {
+			reconnect();
+		}
 
-  // ============================================================================
-  // Return
-  // ============================================================================
+		// Cleanup on unmount
+		return () => {
+			if (abortControllerRef.current) {
+				abortControllerRef.current.abort();
+			}
+		};
+	}, [config.autoConnect, reconnect]); // Only run on mount
 
-  return {
-    // State
-    connectionState,
-    messages,
-    isStreaming,
-    isLoading,
-    sessionId,
-    error,
-    events,
+	// ============================================================================
+	// Return
+	// ============================================================================
 
-    // Actions
-    sendMessage,
-    clearMessages,
-    clearError,
-    disconnect,
-    reconnect,
-  };
+	return {
+		// State
+		connectionState,
+		messages,
+		isStreaming,
+		isLoading,
+		sessionId,
+		error,
+		events,
+
+		// Actions
+		sendMessage,
+		clearMessages,
+		clearError,
+		disconnect,
+		reconnect,
+	};
 }

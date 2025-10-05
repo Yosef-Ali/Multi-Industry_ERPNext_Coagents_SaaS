@@ -1,0 +1,58 @@
+[
+  {
+    "doctype": "Medical Department",
+    "department": "Cardiology",
+    "department_name": "Cardiology",
+    "is_active": 1,
+    "description": "Heart and cardiovascular system care"
+  },
+  {
+    "doctype": "Medical Department",
+    "department": "Emergency Medicine",
+    "department_name": "Emergency Medicine",
+    "is_active": 1,
+    "description": "24/7 emergency and trauma care"
+  },
+  {
+    "doctype": "Medical Department",
+    "department": "Internal Medicine",
+    "department_name": "Internal Medicine",
+    "is_active": 1,
+    "description": "General adult medical care"
+  },
+  {
+    "doctype": "Medical Department",
+    "department": "Orthopedics",
+    "department_name": "Orthopedics",
+    "is_active": 1,
+    "description": "Bone, joint, and musculoskeletal care"
+  },
+  {
+    "doctype": "Medical Department",
+    "department": "Pediatrics",
+    "department_name": "Pediatrics",
+    "is_active": 1,
+    "description": "Children's healthcare"
+  },
+  {
+    "doctype": "Medical Department",
+    "department": "Radiology",
+    "department_name": "Radiology",
+    "is_active": 1,
+    "description": "Medical imaging and diagnostics"
+  },
+  {
+    "doctype": "Medical Department",
+    "department": "Surgery",
+    "department_name": "Surgery",
+    "is_active": 1,
+    "description": "Surgical procedures and care"
+  },
+  {
+    "doctype": "Medical Department",
+    "department": "Obstetrics & Gynecology",
+    "department_name": "Obstetrics & Gynecology",
+    "is_active": 1,
+    "description": "Women's health and maternity care"
+  }
+]

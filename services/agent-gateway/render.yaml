@@ -1,0 +1,30 @@
+# Render deployment configuration for Agent Gateway
+# Free tier: 750 hours/month (enough for testing/MVP)
+
+services:
+  - type: web
+    name: erpnext-agent-gateway
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GATEWAY_PORT
+        value: "10000"
+      - key: GATEWAY_HOST
+        value: "0.0.0.0"
+      - key: OPENROUTER_API_KEY
+        sync: false  # You'll set this in Render dashboard
+      - key: OPENROUTER_MODEL
+        value: zhipu/glm-4-9b-chat
+      - key: OPENROUTER_BASE_URL
+        value: https://openrouter.ai/api/v1
+      - key: WORKFLOW_SERVICE_URL
+        value: https://erpnext-workflows.onrender.com
+      - key: USE_MOCK_ERPNEXT
+        value: "true"
+      - key: ALLOWED_ORIGINS
+        value: https://9e368f40.erpnext-coagent-ui.pages.dev,http://localhost:5173

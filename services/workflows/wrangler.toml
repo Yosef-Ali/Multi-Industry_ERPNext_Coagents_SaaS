@@ -1,0 +1,30 @@
+# Wrangler configuration for Workflows Service
+name = "multi-industry-coagents-workflows"
+account_id = "5a34e22d045e4ff3538a636317a631e8"
+main = "src/server.py"
+compatibility_date = "2024-10-01"
+
+# Python-specific configuration
+[build]
+command = "pip install -r requirements.txt"
+
+# Environment variables
+[vars]
+ENVIRONMENT = "production"
+WORKFLOW_SERVICE_PORT = "8001"
+
+# KV namespace for workflow state storage
+[[kv_namespaces]]
+binding = "WORKFLOW_STATE"
+id = "your-kv-namespace-id"  # Run: pnpm dlx wrangler kv:namespace create WORKFLOW_STATE
+
+# Secrets (set via: pnpm dlx wrangler secret put <NAME>)
+# - ANTHROPIC_API_KEY
+# - ERPNEXT_API_KEY (optional)
+# - ERPNEXT_API_SECRET (optional)
+# - ERPNEXT_BASE_URL (optional)
+
+# Development (local testing with wrangler dev)
+[dev]
+port = 8001
+local_protocol = "http"

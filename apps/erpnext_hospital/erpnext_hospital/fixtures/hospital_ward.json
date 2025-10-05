@@ -1,0 +1,90 @@
+[
+  {
+    "doctype": "Healthcare Service Unit",
+    "healthcare_service_unit_name": "ICU - Intensive Care Unit",
+    "service_unit_type": "Inpatient",
+    "parent_healthcare_service_unit": "",
+    "total_service_unit_capacity": 10,
+    "occupancy_status": "Vacant",
+    "is_group": 0,
+    "allow_appointments": 0,
+    "overlap_appointments": 0
+  },
+  {
+    "doctype": "Healthcare Service Unit",
+    "healthcare_service_unit_name": "General Ward A",
+    "service_unit_type": "Inpatient",
+    "parent_healthcare_service_unit": "",
+    "total_service_unit_capacity": 20,
+    "occupancy_status": "Vacant",
+    "is_group": 0,
+    "allow_appointments": 0,
+    "overlap_appointments": 0
+  },
+  {
+    "doctype": "Healthcare Service Unit",
+    "healthcare_service_unit_name": "General Ward B",
+    "service_unit_type": "Inpatient",
+    "parent_healthcare_service_unit": "",
+    "total_service_unit_capacity": 20,
+    "occupancy_status": "Vacant",
+    "is_group": 0,
+    "allow_appointments": 0,
+    "overlap_appointments": 0
+  },
+  {
+    "doctype": "Healthcare Service Unit",
+    "healthcare_service_unit_name": "Private Room 1",
+    "service_unit_type": "Inpatient",
+    "parent_healthcare_service_unit": "",
+    "total_service_unit_capacity": 1,
+    "occupancy_status": "Vacant",
+    "is_group": 0,
+    "allow_appointments": 0,
+    "overlap_appointments": 0
+  },
+  {
+    "doctype": "Healthcare Service Unit",
+    "healthcare_service_unit_name": "Private Room 2",
+    "service_unit_type": "Inpatient",
+    "parent_healthcare_service_unit": "",
+    "total_service_unit_capacity": 1,
+    "occupancy_status": "Vacant",
+    "is_group": 0,
+    "allow_appointments": 0,
+    "overlap_appointments": 0
+  },
+  {
+    "doctype": "Healthcare Service Unit",
+    "healthcare_service_unit_name": "Pediatric Ward",
+    "service_unit_type": "Inpatient",
+    "parent_healthcare_service_unit": "",
+    "total_service_unit_capacity": 15,
+    "occupancy_status": "Vacant",
+    "is_group": 0,
+    "allow_appointments": 0,
+    "overlap_appointments": 0
+  },
+  {
+    "doctype": "Healthcare Service Unit",
+    "healthcare_service_unit_name": "Maternity Ward",
+    "service_unit_type": "Inpatient",
+    "parent_healthcare_service_unit": "",
+    "total_service_unit_capacity": 12,
+    "occupancy_status": "Vacant",
+    "is_group": 0,
+    "allow_appointments": 0,
+    "overlap_appointments": 0
+  },
+  {
+    "doctype": "Healthcare Service Unit",
+    "healthcare_service_unit_name": "Surgical Recovery",
+    "service_unit_type": "Inpatient",
+    "parent_healthcare_service_unit": "",
+    "total_service_unit_capacity": 8,
+    "occupancy_status": "Vacant",
+    "is_group": 0,
+    "allow_appointments": 0,
+    "overlap_appointments": 0
+  }
+]

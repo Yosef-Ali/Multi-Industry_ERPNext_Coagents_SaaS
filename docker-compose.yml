@@ -1,102 +1,96 @@
 version: '3.8'
 
 services:
-  redis:
-    image: redis:7-alpine
-    container_name: erpnext-coagent-redis
+  # Python Workflow Service
+  workflow-service:
+    build:
+      context: ./services/workflows
+      dockerfile: Dockerfile
+    container_name: erpnext-workflows
     ports:
-      - "6379:6379"
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - DATABASE_URL=${DATABASE_URL:-}
+      - REDIS_URL=${REDIS_URL:-}
     volumes:
-      - redis_data:/data
+      - ./services/workflows/src:/app/src
+    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      test: ["CMD", "curl", "-f", "http://localhost:8001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - erpnext-network
 
+  # TypeScript Agent Gateway
   agent-gateway:
     build:
       context: ./services/agent-gateway
       dockerfile: Dockerfile
-    container_name: erpnext-coagent-gateway
+    container_name: erpnext-agent-gateway
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=development
-      - REDIS_URL=redis://redis:6379
-      - ERPNEXT_API_URL=${ERPNEXT_API_URL}
+      - NODE_ENV=production
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - WORKFLOW_SERVICE_URL=http://workflow-service:8001
     volumes:
-      - ./services/agent-gateway:/app
-      - /app/node_modules
-      - ./logs:/app/logs
+      - ./services/agent-gateway/src:/app/src
     depends_on:
-      redis:
+      workflow-service:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    restart: unless-stopped
+    networks:
+      - erpnext-network
 
-  workflows:
-    build:
-      context: ./services/workflows
-      dockerfile: Dockerfile
-    container_name: erpnext-coagent-workflows
-    ports:
-      - "8000:8000"
-    environment:
-      - REDIS_URL=redis://redis:6379
-      - ERPNEXT_API_URL=${ERPNEXT_API_URL}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-    volumes:
-      - ./services/workflows:/app
-      - ./logs:/app/logs
-    depends_on:
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # Frontend (optional)
+  # frontend:
+  #   build:
+  #     context: ./frontend/coagent
+  #     dockerfile: Dockerfile
+  #   container_name: erpnext-frontend
+  #   ports:
+  #     - "5173:5173"
+  #   environment:
+  #     - VITE_API_URL=http://localhost:3000
+  #   depends_on:
+  #     - agent-gateway
+  #   restart: unless-stopped
+  #   networks:
+  #     - erpnext-network
 
-  generator:
-    build:
-      context: ./services/generator
-      dockerfile: Dockerfile
-    container_name: erpnext-coagent-generator
-    ports:
-      - "8001:8001"
-    environment:
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - ERPNEXT_API_URL=${ERPNEXT_API_URL}
-    volumes:
-      - ./services/generator:/app
-      - ./apps:/output/apps
-      - ./logs:/app/logs
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # PostgreSQL (optional - for production persistence)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: erpnext-postgres
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     - POSTGRES_USER=erpnext
+  #     - POSTGRES_PASSWORD=erpnext
+  #     - POSTGRES_DB=erpnext_workflows
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+  #   networks:
+  #     - erpnext-network
 
-  frontend:
-    build:
-      context: ./frontend/coagent
-      dockerfile: Dockerfile
-    container_name: erpnext-coagent-frontend
-    ports:
-      - "5173:80"
-    environment:
-      - VITE_GATEWAY_URL=http://localhost:3000
-    volumes:
-      - ./frontend/coagent:/app
-      - /app/node_modules
-    depends_on:
-      - agent-gateway
+  # Redis (optional - for session management)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: erpnext-redis
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+  #   networks:
+  #     - erpnext-network
 
-volumes:
-  redis_data:
-    driver: local
+networks:
+  erpnext-network:
+    driver: bridge
+
+# volumes:
+#   postgres_data:

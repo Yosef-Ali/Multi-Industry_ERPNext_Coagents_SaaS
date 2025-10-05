@@ -20,25 +20,36 @@ interface IdempotencyCache {
   };
 }
 
+export interface FrappeAuthConfig {
+  // Option 1: Session token (for user sessions)
+  sessionToken?: string;
+  // Option 2: API key + secret (for server-to-server, recommended for v15+)
+  apiKey?: string;
+  apiSecret?: string;
+}
+
 export class FrappeAPIClient {
   private client: AxiosInstance;
   private rateLimiter: RateLimiter;
   private idempotencyCache: IdempotencyCache = {};
-  private sessionToken: string;
+  private authConfig: FrappeAuthConfig;
 
   constructor(
     baseURL: string,
-    sessionToken: string,
+    authConfig: FrappeAuthConfig,
     rateLimit: number = 10 // requests per second
   ) {
-    this.sessionToken = sessionToken;
+    this.authConfig = authConfig;
+
+    // Determine authorization header based on auth method
+    const authHeader = this.getAuthorizationHeader();
 
     // Initialize Axios client
     this.client = axios.create({
       baseURL,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `token ${sessionToken}`, // Frappe session token
+        Authorization: authHeader,
       },
       timeout: 30000, // 30 second timeout
     });
@@ -56,6 +67,24 @@ export class FrappeAPIClient {
       await this.acquireToken();
       return config;
     });
+  }
+
+  /**
+   * Get authorization header based on auth method
+   * Frappe v15+ supports two methods:
+   * 1. Session token: `token <session_token>`
+   * 2. API key:secret: `token <api_key>:<api_secret>`
+   */
+  private getAuthorizationHeader(): string {
+    if (this.authConfig.apiKey && this.authConfig.apiSecret) {
+      // Method 2: API key:secret (recommended for server-to-server)
+      return `token ${this.authConfig.apiKey}:${this.authConfig.apiSecret}`;
+    } else if (this.authConfig.sessionToken) {
+      // Method 1: Session token (for user sessions)
+      return `token ${this.authConfig.sessionToken}`;
+    } else {
+      throw new Error('Either sessionToken or apiKey+apiSecret must be provided');
+    }
   }
 
   /**
@@ -352,12 +381,25 @@ export class FrappeAPIClient {
 }
 
 /**
- * Factory function to create authenticated client
+ * Factory function to create authenticated client with session token
  */
 export function createFrappeClient(
   baseURL: string,
   sessionToken: string,
   rateLimit?: number
 ): FrappeAPIClient {
-  return new FrappeAPIClient(baseURL, sessionToken, rateLimit);
+  return new FrappeAPIClient(baseURL, { sessionToken }, rateLimit);
+}
+
+/**
+ * Factory function to create authenticated client with API key:secret
+ * Recommended for server-to-server integration (Frappe v15+)
+ */
+export function createFrappeClientWithAPIKey(
+  baseURL: string,
+  apiKey: string,
+  apiSecret: string,
+  rateLimit?: number
+): FrappeAPIClient {
+  return new FrappeAPIClient(baseURL, { apiKey, apiSecret }, rateLimit);
 }

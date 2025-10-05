@@ -1,0 +1,110 @@
+[
+  {
+    "doctype": "Hotel Room",
+    "name": "101",
+    "room_number": "101",
+    "room_type": "Standard Room",
+    "floor": 1,
+    "status": "Available",
+    "description": "First floor standard room facing garden"
+  },
+  {
+    "doctype": "Hotel Room",
+    "name": "102",
+    "room_number": "102",
+    "room_type": "Standard Room",
+    "floor": 1,
+    "status": "Available",
+    "description": "First floor standard room facing garden"
+  },
+  {
+    "doctype": "Hotel Room",
+    "name": "103",
+    "room_number": "103",
+    "room_type": "Deluxe Room",
+    "floor": 1,
+    "status": "Available",
+    "description": "First floor deluxe room with balcony"
+  },
+  {
+    "doctype": "Hotel Room",
+    "name": "104",
+    "room_number": "104",
+    "room_type": "Family Room",
+    "floor": 1,
+    "status": "Available",
+    "description": "First floor family room near elevator"
+  },
+  {
+    "doctype": "Hotel Room",
+    "name": "201",
+    "room_number": "201",
+    "room_type": "Standard Room",
+    "floor": 2,
+    "status": "Available",
+    "description": "Second floor standard room"
+  },
+  {
+    "doctype": "Hotel Room",
+    "name": "202",
+    "room_number": "202",
+    "room_type": "Deluxe Room",
+    "floor": 2,
+    "status": "Available",
+    "description": "Second floor deluxe room with city view"
+  },
+  {
+    "doctype": "Hotel Room",
+    "name": "203",
+    "room_number": "203",
+    "room_type": "Suite",
+    "floor": 2,
+    "status": "Available",
+    "description": "Second floor suite with panoramic view"
+  },
+  {
+    "doctype": "Hotel Room",
+    "name": "204",
+    "room_number": "204",
+    "room_type": "Deluxe Room",
+    "floor": 2,
+    "status": "Available",
+    "description": "Second floor deluxe room"
+  },
+  {
+    "doctype": "Hotel Room",
+    "name": "301",
+    "room_number": "301",
+    "room_type": "Standard Room",
+    "floor": 3,
+    "status": "Available",
+    "description": "Third floor standard room"
+  },
+  {
+    "doctype": "Hotel Room",
+    "name": "302",
+    "room_number": "302",
+    "room_type": "Standard Room",
+    "floor": 3,
+    "status": "Available",
+    "description": "Third floor standard room"
+  },
+  {
+    "doctype": "Hotel Room",
+    "name": "303",
+    "room_number": "303",
+    "room_type": "Suite",
+    "floor": 3,
+    "status": "Available",
+    "description": "Third floor executive suite"
+  },
+  {
+    "doctype": "Hotel Room",
+    "name": "304",
+    "room_number": "304",
+    "room_type": "Family Room",
+    "floor": 3,
+    "status": "Available",
+    "description": "Third floor family room"
+  }
+]

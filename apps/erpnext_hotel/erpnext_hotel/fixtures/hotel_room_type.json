@@ -1,0 +1,73 @@
+[
+  {
+    "doctype": "Hotel Room Type",
+    "name": "Standard Room",
+    "room_type": "Standard Room",
+    "description": "Comfortable standard room with essential amenities",
+    "max_occupancy": 2,
+    "bed_type": "Double",
+    "base_rate": 100.00,
+    "extra_bed_rate": 25.00,
+    "amenities": [
+      {"amenity": "WiFi"},
+      {"amenity": "TV"},
+      {"amenity": "Air Conditioning"},
+      {"amenity": "Mini Fridge"}
+    ]
+  },
+  {
+    "doctype": "Hotel Room Type",
+    "name": "Deluxe Room",
+    "room_type": "Deluxe Room",
+    "description": "Spacious deluxe room with premium amenities",
+    "max_occupancy": 3,
+    "bed_type": "King",
+    "base_rate": 150.00,
+    "extra_bed_rate": 30.00,
+    "amenities": [
+      {"amenity": "WiFi"},
+      {"amenity": "Smart TV"},
+      {"amenity": "Air Conditioning"},
+      {"amenity": "Mini Bar"},
+      {"amenity": "Coffee Maker"},
+      {"amenity": "Balcony"}
+    ]
+  },
+  {
+    "doctype": "Hotel Room Type",
+    "name": "Suite",
+    "room_type": "Suite",
+    "description": "Luxury suite with separate living area",
+    "max_occupancy": 4,
+    "bed_type": "King + Sofa Bed",
+    "base_rate": 250.00,
+    "extra_bed_rate": 40.00,
+    "amenities": [
+      {"amenity": "WiFi"},
+      {"amenity": "Smart TV"},
+      {"amenity": "Air Conditioning"},
+      {"amenity": "Mini Bar"},
+      {"amenity": "Coffee Maker"},
+      {"amenity": "Balcony"},
+      {"amenity": "Living Room"},
+      {"amenity": "Kitchenette"}
+    ]
+  },
+  {
+    "doctype": "Hotel Room Type",
+    "name": "Family Room",
+    "room_type": "Family Room",
+    "description": "Large room suitable for families",
+    "max_occupancy": 4,
+    "bed_type": "2 Double Beds",
+    "base_rate": 180.00,
+    "extra_bed_rate": 35.00,
+    "amenities": [
+      {"amenity": "WiFi"},
+      {"amenity": "TV"},
+      {"amenity": "Air Conditioning"},
+      {"amenity": "Mini Fridge"},
+      {"amenity": "Kids Corner"}
+    ]
+  }
+]

@@ -1,0 +1,90 @@
+[
+  {
+    "doctype": "Item",
+    "item_code": "HOTEL-LAUNDRY",
+    "item_name": "Laundry Service",
+    "item_group": "Hotel Services",
+    "stock_uom": "Unit",
+    "is_stock_item": 0,
+    "is_sales_item": 1,
+    "standard_rate": 15.00,
+    "description": "Professional laundry and dry cleaning service"
+  },
+  {
+    "doctype": "Item",
+    "item_code": "HOTEL-BREAKFAST",
+    "item_name": "Continental Breakfast",
+    "item_group": "Hotel Services",
+    "stock_uom": "Unit",
+    "is_stock_item": 0,
+    "is_sales_item": 1,
+    "standard_rate": 20.00,
+    "description": "Full continental breakfast buffet"
+  },
+  {
+    "doctype": "Item",
+    "item_code": "HOTEL-PARKING",
+    "item_name": "Parking (Per Day)",
+    "item_group": "Hotel Services",
+    "stock_uom": "Day",
+    "is_stock_item": 0,
+    "is_sales_item": 1,
+    "standard_rate": 10.00,
+    "description": "Secure parking facility"
+  },
+  {
+    "doctype": "Item",
+    "item_code": "HOTEL-MINIBAR",
+    "item_name": "Minibar Restocking",
+    "item_group": "Hotel Services",
+    "stock_uom": "Unit",
+    "is_stock_item": 0,
+    "is_sales_item": 1,
+    "standard_rate": 25.00,
+    "description": "Minibar items and beverages"
+  },
+  {
+    "doctype": "Item",
+    "item_code": "HOTEL-SPA",
+    "item_name": "Spa Treatment (1 Hour)",
+    "item_group": "Hotel Services",
+    "stock_uom": "Hour",
+    "is_stock_item": 0,
+    "is_sales_item": 1,
+    "standard_rate": 80.00,
+    "description": "Relaxing spa and massage treatment"
+  },
+  {
+    "doctype": "Item",
+    "item_code": "HOTEL-TRANSFER",
+    "item_name": "Airport Transfer",
+    "item_group": "Hotel Services",
+    "stock_uom": "Unit",
+    "is_stock_item": 0,
+    "is_sales_item": 1,
+    "standard_rate": 35.00,
+    "description": "One-way airport shuttle service"
+  },
+  {
+    "doctype": "Item",
+    "item_code": "HOTEL-LATE-CHECKOUT",
+    "item_name": "Late Checkout Fee",
+    "item_group": "Hotel Services",
+    "stock_uom": "Unit",
+    "is_stock_item": 0,
+    "is_sales_item": 1,
+    "standard_rate": 50.00,
+    "description": "Late checkout extension (after 12 PM)"
+  },
+  {
+    "doctype": "Item",
+    "item_code": "HOTEL-ROOM-SERVICE",
+    "item_name": "Room Service Delivery",
+    "item_group": "Hotel Services",
+    "stock_uom": "Unit",
+    "is_stock_item": 0,
+    "is_sales_item": 1,
+    "standard_rate": 5.00,
+    "description": "Room service delivery fee"
+  }
+]

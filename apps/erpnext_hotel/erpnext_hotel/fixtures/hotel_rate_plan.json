@@ -1,0 +1,113 @@
+[
+  {
+    "doctype": "Hotel Rate Plan",
+    "name": "Standard Rate",
+    "rate_plan_name": "Standard Rate",
+    "description": "Standard pricing for all room types",
+    "is_active": 1,
+    "valid_from": "2024-01-01",
+    "valid_to": "2024-12-31",
+    "room_rates": [
+      {
+        "room_type": "Standard Room",
+        "rate": 100.00
+      },
+      {
+        "room_type": "Deluxe Room",
+        "rate": 150.00
+      },
+      {
+        "room_type": "Suite",
+        "rate": 250.00
+      },
+      {
+        "room_type": "Family Room",
+        "rate": 180.00
+      }
+    ]
+  },
+  {
+    "doctype": "Hotel Rate Plan",
+    "name": "Weekend Special",
+    "rate_plan_name": "Weekend Special",
+    "description": "Discounted rates for weekend stays (Friday-Sunday)",
+    "is_active": 1,
+    "valid_from": "2024-01-01",
+    "valid_to": "2024-12-31",
+    "applies_on": "Weekend",
+    "room_rates": [
+      {
+        "room_type": "Standard Room",
+        "rate": 90.00
+      },
+      {
+        "room_type": "Deluxe Room",
+        "rate": 135.00
+      },
+      {
+        "room_type": "Suite",
+        "rate": 225.00
+      },
+      {
+        "room_type": "Family Room",
+        "rate": 160.00
+      }
+    ]
+  },
+  {
+    "doctype": "Hotel Rate Plan",
+    "name": "Corporate Rate",
+    "rate_plan_name": "Corporate Rate",
+    "description": "Special rates for corporate bookings",
+    "is_active": 1,
+    "valid_from": "2024-01-01",
+    "valid_to": "2024-12-31",
+    "min_nights": 2,
+    "room_rates": [
+      {
+        "room_type": "Standard Room",
+        "rate": 85.00
+      },
+      {
+        "room_type": "Deluxe Room",
+        "rate": 125.00
+      },
+      {
+        "room_type": "Suite",
+        "rate": 210.00
+      },
+      {
+        "room_type": "Family Room",
+        "rate": 155.00
+      }
+    ]
+  },
+  {
+    "doctype": "Hotel Rate Plan",
+    "name": "Early Bird",
+    "rate_plan_name": "Early Bird",
+    "description": "Advance booking discount (30+ days)",
+    "is_active": 1,
+    "valid_from": "2024-01-01",
+    "valid_to": "2024-12-31",
+    "min_advance_days": 30,
+    "room_rates": [
+      {
+        "room_type": "Standard Room",
+        "rate": 80.00
+      },
+      {
+        "room_type": "Deluxe Room",
+        "rate": 120.00
+      },
+      {
+        "room_type": "Suite",
+        "rate": 200.00
+      },
+      {
+        "room_type": "Family Room",
+        "rate": 145.00
+      }
+    ]
+  }
+]

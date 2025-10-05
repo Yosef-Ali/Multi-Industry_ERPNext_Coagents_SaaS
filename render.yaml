@@ -1,0 +1,45 @@
+services:
+  # Unified ERPNext CoAgent Service
+  # Frontend (Next.js) + Agent Gateway (TypeScript) + Workflow Service (Python)
+  - type: web
+    name: erpnext-coagent
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+
+    # Environment variables
+    envVars:
+      # Port for Render
+      - key: PORT
+        value: 8080
+
+      # OpenRouter API (for AI)
+      - key: OPENROUTER_API_KEY
+        sync: false  # Set in Render dashboard
+      - key: OPENROUTER_MODEL
+        value: mistralai/mistral-7b-instruct
+      - key: OPENROUTER_APP_TITLE
+        value: ERPNext CoAgent Assistant
+
+      # Internal service URLs (within container)
+      - key: WORKFLOW_SERVICE_URL
+        value: http://localhost:8001
+      - key: AGENT_GATEWAY_URL
+        value: http://localhost:3000
+
+      # Next.js config
+      - key: NODE_ENV
+        value: production
+
+      # Python config
+      - key: PYTHONUNBUFFERED
+        value: "1"
+
+    # Health check endpoint
+    healthCheckPath: /
+
+    # Build command (Docker handles this)
+    # Auto-deploy from main branch
+    autoDeploy: true

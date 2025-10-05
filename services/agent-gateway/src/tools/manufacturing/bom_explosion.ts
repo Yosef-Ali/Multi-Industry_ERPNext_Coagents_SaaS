@@ -1,170 +1,160 @@
 /**
- * T088: bom_explosion tool - Explode BOM to component requirements
- * Manufacturing vertical - Bill of Materials explosion for production planning
+ * T066: bom_explosion tool - Manufacturing industry
+ * Explode Bill of Materials to show all component requirements
  */
 
 import { z } from 'zod';
 import { FrappeAPIClient } from '../../api';
 
 export const BOMExplosionInputSchema = z.object({
-  bom: z.string().min(1, 'BOM ID is required').describe('Bill of Materials ID'),
-  qty: z.number().positive().default(1).describe('Quantity to produce'),
-  include_stock: z.boolean().default(true).describe('Include current stock levels in result'),
-  warehouse: z.string().optional().describe('Default warehouse for stock check'),
+  item_code: z.string().min(1, 'Item code is required'),
+  quantity: z.number().positive('Quantity must be positive').default(1),
+  with_stock_levels: z.boolean().optional().default(false),
 });
 
 export type BOMExplosionInput = z.infer<typeof BOMExplosionInputSchema>;
 
-export interface BOMItem {
+export interface BOMComponent {
   item_code: string;
   item_name: string;
-  qty_per_unit: number;
-  total_qty_required: number;
+  qty: number;
   stock_uom: string;
   available_qty?: number;
-  shortage?: number;
-  rate?: number;
-  amount?: number;
-  description?: string;
+  is_sub_assembly: boolean;
+  sub_components?: BOMComponent[];
 }
 
 export interface BOMExplosionResult {
-  bom: string;
-  item: string;
-  item_name: string;
-  qty_to_produce: number;
-  uom: string;
-  items: BOMItem[];
-  total_items: number;
-  items_in_stock: number;
-  items_short: number;
-  total_cost?: number;
-  execution_time_ms: number;
+  components: BOMComponent[];
+  item_code: string;
+  quantity: number;
+  bom_name: string;
+  total_components: number;
+  requires_approval: false;
 }
 
 /**
- * Explode BOM to show all component requirements
- * Read-only operation - no approval required
+ * Explode BOM recursively to show all component requirements
+ * ✅ No approval required (read-only operation)
  */
 export async function bom_explosion(
   input: BOMExplosionInput,
-  client: FrappeAPIClient,
-  userId: string,
-  sessionId: string
+  client: FrappeAPIClient
 ): Promise<BOMExplosionResult> {
-  const startTime = Date.now();
-
   // Validate input
   const validated = BOMExplosionInputSchema.parse(input);
 
-  try {
-    // Get BOM details
-    const bomResponse = await client.call<any>({
-      method: 'frappe.client.get',
-      params: {
-        doctype: 'BOM',
-        name: validated.bom,
-        fields: ['name', 'item', 'item_name', 'quantity', 'uom']
-      }
-    });
+  // Get the BOM for the item
+  const bomResult = await client.searchDoc({
+    doctype: 'BOM',
+    filters: {
+      item: validated.item_code,
+      is_active: 1,
+      is_default: 1,
+    },
+    fields: ['name', 'item', 'quantity'],
+  });
 
-    const bom = bomResponse;
+  if (bomResult.documents.length === 0) {
+    throw new Error(`No active BOM found for item ${validated.item_code}`);
+  }
 
-    // Get BOM items (components)
-    const bomItemsResponse = await client.call<any[]>({
-      method: 'frappe.client.get_list',
-      params: {
-        doctype: 'BOM Item',
-        filters: {
-          parent: validated.bom,
-        },
-        fields: [
-          'item_code',
-          'item_name',
-          'qty',
-          'stock_uom',
-          'rate',
-          'amount',
-          'description'
-        ],
-        limit_page_length: 500
-      }
-    });
+  const bom = bomResult.documents[0];
+  const bomName = bom.name;
 
-    // Calculate requirements for requested quantity
-    const qtyMultiplier = validated.qty / bom.quantity;
-    
-    // Process each BOM item
-    const items: BOMItem[] = [];
-    let itemsInStock = 0;
-    let itemsShort = 0;
-    let totalCost = 0;
+  // Get BOM items (components)
+  const bomItemsResult = await client.searchDoc({
+    doctype: 'BOM Item',
+    filters: {
+      parent: bomName,
+    },
+    fields: ['item_code', 'item_name', 'qty', 'stock_uom', 'bom_no'],
+  });
 
-    for (const bomItem of bomItemsResponse) {
-      const totalQtyRequired = bomItem.qty * qtyMultiplier;
-      
-      let availableQty: number | undefined;
-      let shortage: number | undefined;
+  // Recursively explode sub-assemblies
+  const components: BOMComponent[] = await Promise.all(
+    bomItemsResult.documents.map(async (item: any) => {
+      const itemQty = parseFloat(item.qty) * validated.quantity;
+      const isSubAssembly = !!item.bom_no;
 
-      // Get stock if requested
-      if (validated.include_stock) {
+      let subComponents: BOMComponent[] | undefined;
+
+      // If item has a BOM (sub-assembly), recursively explode it
+      if (isSubAssembly && item.bom_no) {
         try {
-          const stockResponse = await client.call<any>({
-            method: 'erpnext.stock.utils.get_stock_balance',
-            params: {
-              item_code: bomItem.item_code,
-              warehouse: validated.warehouse,
-            }
+          const subBomResult = await bom_explosion(
+            {
+              item_code: item.item_code,
+              quantity: itemQty,
+              with_stock_levels: validated.with_stock_levels,
+            },
+            client
+          );
+          subComponents = subBomResult.components;
+        } catch (error) {
+          // If sub-BOM explosion fails, treat as regular component
+          subComponents = undefined;
+        }
+      }
+
+      // Get stock levels if requested
+      let availableQty: number | undefined;
+      if (validated.with_stock_levels) {
+        try {
+          const stockResult = await client.searchDoc({
+            doctype: 'Bin',
+            filters: {
+              item_code: item.item_code,
+            },
+            fields: ['actual_qty', 'reserved_qty'],
           });
 
-          availableQty = stockResponse || 0;
-          
-          // Calculate shortage
-          if (availableQty < totalQtyRequired) {
-            shortage = totalQtyRequired - availableQty;
-            itemsShort++;
-          } else {
-            itemsInStock++;
-          }
-        } catch (error) {
-          // If stock check fails, mark as unknown
+          availableQty = stockResult.documents.reduce(
+            (sum: number, bin: any) =>
+              sum + Math.max(0, parseFloat(bin.actual_qty) - parseFloat(bin.reserved_qty)),
+            0
+          );
+        } catch {
           availableQty = undefined;
         }
       }
 
-      const itemCost = (bomItem.rate || 0) * totalQtyRequired;
-      totalCost += itemCost;
+      return {
+        item_code: item.item_code,
+        item_name: item.item_name,
+        qty: itemQty,
+        stock_uom: item.stock_uom,
+        is_sub_assembly: isSubAssembly,
+        ...(availableQty !== undefined && { available_qty: availableQty }),
+        ...(subComponents && { sub_components: subComponents }),
+      };
+    })
+  );
 
-      items.push({
-        item_code: bomItem.item_code,
-        item_name: bomItem.item_name,
-        qty_per_unit: bomItem.qty,
-        total_qty_required: totalQtyRequired,
-        stock_uom: bomItem.stock_uom,
-        available_qty: availableQty,
-        shortage: shortage,
-        rate: bomItem.rate,
-        amount: itemCost,
-        description: bomItem.description,
-      });
-    }
+  // Count total components (including nested)
+  const countComponents = (comps: BOMComponent[]): number => {
+    return comps.reduce((count, comp) => {
+      return count + 1 + (comp.sub_components ? countComponents(comp.sub_components) : 0);
+    }, 0);
+  };
 
-    const result: BOMExplosionResult = {
-      bom: validated.bom,
-      item: bom.item,
-      item_name: bom.item_name,
-      qty_to_produce: validated.qty,
-      uom: bom.uom,
-      items,
-      total_items: items.length,
-      items_in_stock: itemsInStock,
-      items_short: itemsShort,
-      total_cost: totalCost > 0 ? totalCost : undefined,
-      execution_time_ms: Date.now() - startTime,
-    };
-
-    return result;
-  } catch (error: any) {
-    throw new Error(`Failed to explode BOM: ${error.message}`);
-  }
+  return {
+    components,
+    item_code: validated.item_code,
+    quantity: validated.quantity,
+    bom_name: bomName,
+    total_components: countComponents(components),
+    requires_approval: false,
+  };
 }
+
+// Tool metadata for registry
+export const bom_explosion_tool = {
+  name: 'bom_explosion',
+  description: 'Explode Bill of Materials to show all component requirements for production',
+  inputSchema: BOMExplosionInputSchema,
+  handler: bom_explosion,
+  requires_approval: false,
+  operation_type: 'read' as const,
+  industry: 'manufacturing',
+};

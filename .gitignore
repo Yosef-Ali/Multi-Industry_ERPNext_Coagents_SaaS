@@ -1,44 +1,212 @@
-# Node
+# Dependencies
 node_modules/
+*/node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
+# Lock files (include package-lock.json for consistency)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# Virtualenvs
-.env
-.venv
-ENV/
-venv/
-
-# Logs
-*.log
-
-# Editor / OS
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
-
-# Build output
-build/
+# Build outputs
 dist/
-*.egg-info/
+build/
+out/
+*/dist/
+*/build/
+*/out/
+**/dist/
+**/build/
+**/out/
 
-# Coverage
-.coverage
-htmlcov/
+# TypeScript
+*.tsbuildinfo
 
-# Misc
-*.sqlite3
+# Environment variables
+.env
+# Environment files (NEVER commit these)
+.env
 .env.local
 .env.*.local
-.cache/
+.env.development
+.env.production
+.env.test
+*.env
+*.env
+**/.env
+**/.env.*
+
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettiercache
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
 .next/
 
-# Frappe
+# Nuxt.js build / generate output
+.nuxt/
+
+# Gatsby files
+.cache/
+public/
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Redis dump
+dump.rdb
+
+# Python (if any Python scripts are added)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# ERPNext/Frappe specific
 sites/
-node_modules
+apps/frappe/
+apps/erpnext/
+*.db
+*.sqlite3
+
+# Custom generated files
+apps/custom_generated/generated_*
+!apps/custom_generated/README.md
+!apps/custom_generated/registry.json
+
+# Test artifacts
+test-results/
+test-reports/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Local configuration files
+config/local.json
+config/development.json
+config/production.json
+!config/default.json
+
+# Certificate files
+*.pem
+*.key
+*.crt
+*.cert
+
+# Miscellaneous
+*.tar.gz
+*.zip
+*.rar

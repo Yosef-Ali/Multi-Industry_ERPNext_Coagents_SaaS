@@ -5,7 +5,7 @@
 
 import { z } from 'zod';
 import { FrappeAPIClient } from '../../api';
-import { RiskClassifier, DocumentState } from '../../../../../apps/common/risk_classifier';
+// import { RiskClassifier, DocumentState } from '../../../../../apps/common/risk_classifier';
 
 export const CreateDocInputSchema = z.object({
   doctype: z.string().min(1, 'DocType is required'),
@@ -42,16 +42,23 @@ export async function create_doc(
   // Validate input
   const validated = CreateDocInputSchema.parse(input);
 
-  // Assess risk (FR-010)
+  // Assess risk (FR-010) - TODO: Restore when RiskClassifier is available
   const fields = Object.keys(validated.data);
-  const riskAssessment = RiskClassifier.assess(
-    'create',
-    validated.doctype,
-    fields,
-    DocumentState.DRAFT, // New documents are draft
-    1, // Single document
-    validated.data
-  );
+  // const riskAssessment = RiskClassifier.assess(
+  //   'create',
+  //   validated.doctype,
+  //   fields,
+  //   DocumentState.DRAFT, // New documents are draft
+  //   1, // Single document
+  //   validated.data
+  // );
+
+  // Temporary implementation
+  const riskAssessment = {
+    requires_approval: true, // Default to requiring approval for creates
+    level: 'medium',
+    reasoning: 'Create operation on ' + validated.doctype,
+  };
 
   // If low risk, execute immediately
   if (!riskAssessment.requires_approval) {
@@ -100,5 +107,5 @@ export const create_doc_tool = {
   inputSchema: CreateDocInputSchema,
   handler: create_doc,
   requires_approval: true, // Conditional based on risk
-  operation_type: 'create',
+  operation_type: 'create' as const,
 };

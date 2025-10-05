@@ -6,12 +6,62 @@
 
 import { z } from 'zod';
 import { FrappeAPIClient } from '../api';
-import { RiskClassifier } from '../../../../apps/common/risk_classifier';
+// import { RiskClassifier } from '../../../../apps/common/risk_classifier';
 
 // Import common tools
 import { search_doc_tool } from './common/search_doc';
 import { get_doc_tool } from './common/get_doc';
 import { create_doc_tool } from './common/create_doc';
+import { mcp_context7_docs_search_tool } from './common/mcp_context7_docs';
+import { mcp_erpnext_introspect_doctype_tool } from './common/mcp_erpnext_metadata';
+import { mcp_erpnext_run_report_tool } from './common/mcp_erpnext_run_report';
+import { mcp_erpnext_search_records_tool } from './common/mcp_erpnext_search_records';
+import { mcp_erpnext_list_doctypes_tool } from './common/mcp_erpnext_list_doctypes';
+import { mcp_erpnext_list_fields_tool } from './common/mcp_erpnext_list_fields';
+import { mcp_erpnext_list_reports_tool } from './common/mcp_erpnext_list_reports';
+import { mcp_erpnext_get_report_info_tool } from './common/mcp_erpnext_get_report_info';
+import { mcp_erpnext_list_print_formats_tool } from './common/mcp_erpnext_list_print_formats';
+import { mcp_erpnext_list_roles_tool } from './common/mcp_erpnext_list_roles';
+import { mcp_erpnext_count_docs_tool } from './common/mcp_erpnext_count_docs';
+import { mcp_erpnext_list_link_fields_tool } from './common/mcp_erpnext_list_link_fields';
+import { mcp_erpnext_list_child_tables_tool } from './common/mcp_erpnext_list_child_tables';
+import { mcp_erpnext_get_doctype_permissions_tool } from './common/mcp_erpnext_get_doctype_permissions';
+import { mcp_erpnext_list_workflows_tool } from './common/mcp_erpnext_list_workflows';
+import { mcp_erpnext_get_workflow_tool } from './common/mcp_erpnext_get_workflow';
+import { mcp_erpnext_list_comments_tool } from './common/mcp_erpnext_list_comments';
+import { mcp_erpnext_list_files_tool } from './common/mcp_erpnext_list_files';
+import { mcp_erpnext_list_versions_tool } from './common/mcp_erpnext_list_versions';
+import { mcp_erpnext_list_users_tool } from './common/mcp_erpnext_list_users';
+import { mcp_erpnext_get_user_tool } from './common/mcp_erpnext_get_user';
+import { mcp_erpnext_list_user_roles_tool } from './common/mcp_erpnext_list_user_roles';
+import { mcp_erpnext_list_custom_fields_tool } from './common/mcp_erpnext_list_custom_fields';
+import { mcp_erpnext_list_property_setters_tool } from './common/mcp_erpnext_list_property_setters';
+import { mcp_erpnext_list_modules_tool } from './common/mcp_erpnext_list_modules';
+import { mcp_erpnext_get_installed_apps_tool } from './common/mcp_erpnext_get_installed_apps';
+import { mcp_erpnext_list_dashboard_charts_tool } from './common/mcp_erpnext_list_dashboard_charts';
+import { mcp_erpnext_get_dashboard_chart_tool } from './common/mcp_erpnext_get_dashboard_chart';
+import { mcp_erpnext_list_companies_tool } from './common/mcp_erpnext_list_companies';
+import { mcp_erpnext_list_currencies_tool } from './common/mcp_erpnext_list_currencies';
+import { mcp_erpnext_list_currency_exchanges_tool } from './common/mcp_erpnext_list_currency_exchanges';
+import { mcp_erpnext_list_uoms_tool } from './common/mcp_erpnext_list_uoms';
+import { mcp_erpnext_list_countries_tool } from './common/mcp_erpnext_list_countries';
+import { mcp_erpnext_list_workspaces_tool } from './common/mcp_erpnext_list_workspaces';
+import { mcp_erpnext_get_workspace_tool } from './common/mcp_erpnext_get_workspace';
+import { mcp_erpnext_list_server_scripts_tool } from './common/mcp_erpnext_list_server_scripts';
+import { mcp_erpnext_list_auto_email_reports_tool } from './common/mcp_erpnext_list_auto_email_reports';
+import { mcp_erpnext_list_notifications_tool } from './common/mcp_erpnext_list_notifications';
+import { mcp_erpnext_list_email_accounts_tool } from './common/mcp_erpnext_list_email_accounts';
+import { mcp_erpnext_list_scheduled_jobs_tool } from './common/mcp_erpnext_list_scheduled_jobs';
+import { mcp_erpnext_get_system_settings_tool } from './common/mcp_erpnext_get_system_settings';
+import { mcp_erpnext_list_web_pages_tool } from './common/mcp_erpnext_list_web_pages';
+import { mcp_erpnext_get_web_page_tool } from './common/mcp_erpnext_get_web_page';
+import { mcp_erpnext_list_website_routes_tool } from './common/mcp_erpnext_list_website_routes';
+import { mcp_erpnext_list_custom_scripts_tool } from './common/mcp_erpnext_list_custom_scripts';
+import { mcp_erpnext_list_user_permissions_tool } from './common/mcp_erpnext_list_user_permissions';
+import { mcp_erpnext_list_assignment_rules_tool } from './common/mcp_erpnext_list_assignment_rules';
+import { mcp_erpnext_list_auto_repeat_tool } from './common/mcp_erpnext_list_auto_repeat';
+import { mcp_erpnext_list_documents_tool } from './common/mcp_erpnext_list_documents';
+import { mcp_erpnext_get_document_tool } from './common/mcp_erpnext_get_document';
 
 // Import industry-specific tools (will be loaded dynamically)
 // Hotel tools
@@ -50,6 +100,56 @@ export class ToolRegistry {
     this.registerTool(search_doc_tool);
     this.registerTool(get_doc_tool);
     this.registerTool(create_doc_tool);
+    this.registerTool(mcp_context7_docs_search_tool);
+    this.registerTool(mcp_erpnext_introspect_doctype_tool);
+    this.registerTool(mcp_erpnext_search_records_tool);
+    this.registerTool(mcp_erpnext_run_report_tool);
+    this.registerTool(mcp_erpnext_list_doctypes_tool);
+    this.registerTool(mcp_erpnext_list_fields_tool);
+    this.registerTool(mcp_erpnext_list_reports_tool);
+    this.registerTool(mcp_erpnext_get_report_info_tool);
+    this.registerTool(mcp_erpnext_list_print_formats_tool);
+    this.registerTool(mcp_erpnext_list_roles_tool);
+    this.registerTool(mcp_erpnext_count_docs_tool);
+    this.registerTool(mcp_erpnext_list_link_fields_tool);
+    this.registerTool(mcp_erpnext_list_child_tables_tool);
+    this.registerTool(mcp_erpnext_get_doctype_permissions_tool);
+    this.registerTool(mcp_erpnext_list_workflows_tool);
+    this.registerTool(mcp_erpnext_get_workflow_tool);
+    this.registerTool(mcp_erpnext_list_comments_tool);
+    this.registerTool(mcp_erpnext_list_files_tool);
+    this.registerTool(mcp_erpnext_list_versions_tool);
+    this.registerTool(mcp_erpnext_list_users_tool);
+    this.registerTool(mcp_erpnext_get_user_tool);
+    this.registerTool(mcp_erpnext_list_user_roles_tool);
+    this.registerTool(mcp_erpnext_list_custom_fields_tool);
+    this.registerTool(mcp_erpnext_list_property_setters_tool);
+    this.registerTool(mcp_erpnext_list_modules_tool);
+    this.registerTool(mcp_erpnext_get_installed_apps_tool);
+    this.registerTool(mcp_erpnext_list_dashboard_charts_tool);
+    this.registerTool(mcp_erpnext_get_dashboard_chart_tool);
+    this.registerTool(mcp_erpnext_list_companies_tool);
+    this.registerTool(mcp_erpnext_list_currencies_tool);
+    this.registerTool(mcp_erpnext_list_currency_exchanges_tool);
+    this.registerTool(mcp_erpnext_list_uoms_tool);
+    this.registerTool(mcp_erpnext_list_countries_tool);
+    this.registerTool(mcp_erpnext_list_workspaces_tool);
+    this.registerTool(mcp_erpnext_get_workspace_tool);
+    this.registerTool(mcp_erpnext_list_server_scripts_tool);
+    this.registerTool(mcp_erpnext_list_auto_email_reports_tool);
+    this.registerTool(mcp_erpnext_list_notifications_tool);
+    this.registerTool(mcp_erpnext_list_email_accounts_tool);
+    this.registerTool(mcp_erpnext_list_scheduled_jobs_tool);
+    this.registerTool(mcp_erpnext_get_system_settings_tool);
+    this.registerTool(mcp_erpnext_list_web_pages_tool);
+    this.registerTool(mcp_erpnext_get_web_page_tool);
+    this.registerTool(mcp_erpnext_list_website_routes_tool);
+    this.registerTool(mcp_erpnext_list_custom_scripts_tool);
+    this.registerTool(mcp_erpnext_list_user_permissions_tool);
+    this.registerTool(mcp_erpnext_list_assignment_rules_tool);
+    this.registerTool(mcp_erpnext_list_auto_repeat_tool);
+    this.registerTool(mcp_erpnext_list_documents_tool);
+    this.registerTool(mcp_erpnext_get_document_tool);
 
     // TODO: Load remaining common tools
     // this.registerTool(update_doc_tool);
@@ -353,14 +453,22 @@ export class ToolRegistry {
       ? Object.keys(input.data || input)
       : [];
 
-    return RiskClassifier.assess(
-      tool.operation_type,
-      input.doctype || 'Unknown',
-      fields,
-      input.document_state || 'draft',
-      input.operation_count || 1,
-      input.data || input
-    );
+    // TODO: Restore RiskClassifier when common module is available
+    // return RiskClassifier.assess(
+    //   tool.operation_type,
+    //   input.doctype || 'Unknown',
+    //   fields,
+    //   input.document_state || 'draft',
+    //   input.operation_count || 1,
+    //   input.data || input
+    // );
+
+    // Temporary implementation
+    return {
+      level: tool.requires_approval ? 'high' : 'low',
+      requires_approval: tool.requires_approval,
+      reasoning: `${tool.operation_type} operation on ${input.doctype || 'Unknown'}`,
+    };
   }
 
   /**

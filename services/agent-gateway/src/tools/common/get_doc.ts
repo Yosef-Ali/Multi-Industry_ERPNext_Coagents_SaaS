@@ -54,5 +54,5 @@ export const get_doc_tool = {
   inputSchema: GetDocInputSchema,
   handler: get_doc,
   requires_approval: false,
-  operation_type: 'read',
+  operation_type: 'read' as const,
 };

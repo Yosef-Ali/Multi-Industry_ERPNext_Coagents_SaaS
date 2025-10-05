@@ -9,12 +9,19 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
-// Load environment variables
+// Load environment variables FIRST
 dotenv.config();
+
+// Import and validate environment
+import { validateEnvironment, logConfiguration } from './config/environment';
+
+// Validate environment before proceeding
+validateEnvironment();
 
 // Import routes
 import healthRouter from './routes/health';
 import aguiRouter from './routes/agui';
+import monitoringRouter from './routes/monitoring';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -38,7 +45,7 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || [
 ];
 
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
 
@@ -58,19 +65,20 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Rate limiting: 10 requests per second per IP (comment-1.md requirement)
+// Rate limiting configuration
 const limiter = rateLimit({
-  windowMs: 1000, // 1 second window
-  max: 10, // 10 requests per window
-  message: 'Too many requests from this IP, please try again later',
-  standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
-  legacyHeaders: false, // Disable `X-RateLimit-*` headers
+  windowMs: 60000, // 1 minute
+  max: 60, // Max 60 requests per minute (1 req/sec)
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
-      error: 'rate_limit_exceeded',
-      message: 'Too many requests. Maximum 10 requests per second.',
-      retry_after: 1,
+      error: 'Too many requests',
+      message: 'Rate limit exceeded. Please try again later.',
+      retryAfter: Math.ceil(60000 / 1000)
     });
-  },
+  }
 });
 
 app.use(limiter);
@@ -88,6 +96,7 @@ app.use(correlationMiddleware);
 
 app.use('/health', healthRouter);
 app.use('/agui', aguiRouter);
+app.use('/monitoring', monitoringRouter);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -98,6 +107,9 @@ app.get('/', (req, res) => {
     endpoints: {
       health: 'GET /health',
       agui_stream: 'POST /agui',
+      monitoring: 'GET /monitoring',
+      monitoring_costs: 'GET /monitoring/costs',
+      monitoring_circuit_breaker: 'GET /monitoring/circuit-breaker'
     },
   });
 });
@@ -113,10 +125,14 @@ app.use(errorHandler);
 // ============================================================================
 
 if (require.main === module) {
-  app.listen(PORT, HOST, () => {
-    console.log(`🚀 Agent Gateway running on http://${HOST}:${PORT}`);
-    console.log(`📊 Health check: http://${HOST}:${PORT}/health`);
-    console.log(`🤖 AG-UI endpoint: http://${HOST}:${PORT}/agui`);
+  // Log configuration (with secrets masked)
+  logConfiguration();
+
+  const port = parseInt(PORT.toString(), 10);
+  app.listen(port, HOST, () => {
+    console.log(`🚀 Agent Gateway running on http://${HOST}:${port}`);
+    console.log(`📊 Health check: http://${HOST}:${port}/health`);
+    console.log(`🤖 AG-UI endpoint: http://${HOST}:${port}/agui`);
     console.log(`🔒 CORS allowed origins: ${allowedOrigins.join(', ')}`);
     console.log(`⏱️  Rate limit: 10 req/sec per IP`);
   });
