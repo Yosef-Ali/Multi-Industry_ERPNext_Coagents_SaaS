@@ -18,13 +18,17 @@ export async function POST(request: Request) {
 	}
 
 	try {
-		const { message } = requestBody;
+		const { message, selectedChatModel } = requestBody;
 
 		// Get the user's message text
 		const userMessage = message.parts
 			.filter((part) => part.type === 'text')
 			.map((part) => part.text)
 			.join('\n');
+
+		// Determine model provider
+		const isOpenRouter = selectedChatModel.includes('/');
+		const isGoogleDirect = selectedChatModel.startsWith('gemini-');
 
 		// Create readable stream for SSE
 		const encoder = new TextEncoder();
@@ -40,18 +44,6 @@ export async function POST(request: Request) {
 				controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'start-step' })}\n\n`));
 
 				try {
-					// Initialize Gemini model
-					const model = genAI.getGenerativeModel({
-						model: 'gemini-2.5-flash',
-						generationConfig: {
-							temperature: 0.7,
-							maxOutputTokens: 1000,
-						},
-					});
-
-					// Stream the response
-					const result = await model.generateContentStream(userMessage);
-
 					controller.enqueue(
 						encoder.encode(
 							`data: ${JSON.stringify({
@@ -61,46 +53,132 @@ export async function POST(request: Request) {
 						)
 					);
 
-					let _fullText = '';
+					let fullText = '';
 					let emittedText = false;
 
-					for await (const chunk of result.stream) {
-						const chunkText = chunk.text();
+					// Handle Google AI direct API
+					if (isGoogleDirect) {
+						const model = genAI.getGenerativeModel({
+							model: selectedChatModel,
+							generationConfig: {
+								temperature: 0.7,
+								maxOutputTokens: 2000,
+							},
+						});
 
-						if (!chunkText) {
-							continue;
-						}
+						const result = await model.generateContentStream(userMessage);
 
-						_fullText += chunkText;
-						emittedText = true;
+						for await (const chunk of result.stream) {
+							const chunkText = chunk.text();
 
-						controller.enqueue(
-							encoder.encode(
-								`data: ${JSON.stringify({
-									type: 'text-delta',
-									id: messageId,
-									delta: chunkText,
-								})}\n\n`
-							)
-						);
-					}
+							if (!chunkText) {
+								continue;
+							}
 
-					if (!emittedText) {
-						const aggregated = await result.response;
-						const aggregatedText = aggregated.text();
+							fullText += chunkText;
+							emittedText = true;
 
-						if (aggregatedText) {
-							_fullText = aggregatedText;
 							controller.enqueue(
 								encoder.encode(
 									`data: ${JSON.stringify({
 										type: 'text-delta',
 										id: messageId,
-										delta: aggregatedText,
+										delta: chunkText,
 									})}\n\n`
 								)
 							);
 						}
+
+						if (!emittedText) {
+							const aggregated = await result.response;
+							const aggregatedText = aggregated.text();
+
+							if (aggregatedText) {
+								fullText = aggregatedText;
+								controller.enqueue(
+									encoder.encode(
+										`data: ${JSON.stringify({
+											type: 'text-delta',
+											id: messageId,
+											delta: aggregatedText,
+										})}\n\n`
+									)
+								);
+							}
+						}
+					}
+					// Handle OpenRouter API
+					else if (isOpenRouter) {
+						const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+							method: 'POST',
+							headers: {
+								Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+								'HTTP-Referer': process.env.OPENROUTER_HTTP_REFERER || 'http://localhost:3000',
+								'X-Title': process.env.OPENROUTER_APP_TITLE || 'ERPNext CoAgent',
+								'Content-Type': 'application/json',
+							},
+							body: JSON.stringify({
+								model: selectedChatModel,
+								messages: [
+									{
+										role: 'user',
+										content: userMessage,
+									},
+								],
+								stream: true,
+							}),
+						});
+
+						if (!response.ok) {
+							throw new Error(`OpenRouter API error: ${response.statusText}`);
+						}
+
+						const reader = response.body?.getReader();
+						const decoder = new TextDecoder();
+
+						if (!reader) {
+							throw new Error('No response body');
+						}
+
+						while (true) {
+							const { done, value } = await reader.read();
+							if (done) break;
+
+							const chunk = decoder.decode(value);
+							const lines = chunk.split('\n').filter((line) => line.trim() !== '');
+
+							for (const line of lines) {
+								if (line.startsWith('data: ')) {
+									const data = line.slice(6);
+									if (data === '[DONE]') continue;
+
+									try {
+										const json = JSON.parse(data);
+										const content = json.choices?.[0]?.delta?.content;
+
+										if (content) {
+											fullText += content;
+											emittedText = true;
+
+											controller.enqueue(
+												encoder.encode(
+													`data: ${JSON.stringify({
+														type: 'text-delta',
+														id: messageId,
+														delta: content,
+													})}\n\n`
+												)
+											);
+										}
+									} catch (e) {
+										// Skip invalid JSON
+										console.error('Failed to parse OpenRouter chunk:', e);
+									}
+								}
+							}
+						}
+					} else {
+						throw new Error(`Unsupported model: ${selectedChatModel}`);
 					}
 
 					controller.enqueue(
@@ -133,13 +211,13 @@ export async function POST(request: Request) {
 								data: {
 									context: {},
 									costUSD: {},
-									modelId: 'gemini-2.5-flash',
+									modelId: selectedChatModel,
 								},
 							})}\n\n`
 						)
 					);
 				} catch (error) {
-					console.error('Error streaming from Gemini:', error);
+					console.error('Error streaming:', error);
 					controller.enqueue(
 						encoder.encode(
 							`data: ${JSON.stringify({
