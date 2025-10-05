@@ -8,14 +8,10 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const chatId = searchParams.get('chatId');
 
-    // For now, return a simple response
-    // In production, this would interact with a database
+    // For now, return an empty array
+    // In production, this would return Vote[] from database
     return new Response(
-        JSON.stringify({
-            chatId,
-            votes: { up: 0, down: 0 },
-            userVote: null,
-        }),
+        JSON.stringify([]),
         {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
