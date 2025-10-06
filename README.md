@@ -20,9 +20,11 @@ Multi-industry ERPNext coagent platform with **embedded AI assistance**:
 - ✅ **5 Built-in Industries** - Hotel, Hospital, Manufacturing, Retail, Education
 - ✅ **Custom App Generation** - Natural language → Complete Next.js app
 - ✅ **Intelligent Input Handling** - HybridCoAgent (PRD, simple prompt, templates)
-- ✅ **Human-in-the-Loop** - Approval gates for all high-risk operations
-- ✅ **Deterministic Workflows** - LangGraph state machines
+- 🚧 **Human-in-the-Loop** - Architecture documented, implementation in progress
+- 🚧 **Deterministic Workflows** - LangGraph patterns documented, integration pending
 - ✅ **Multi-tenant SaaS** - Configurable per deployment
+
+**Note:** See [DEVELOPER_CHAT_BEST_PRACTICES_GAP.md](./DEVELOPER_CHAT_BEST_PRACTICES_GAP.md) for current implementation status
 
 ---
 
@@ -262,6 +264,59 @@ context7.searchDocs({
 - `services/agent-gateway/src/tools/common/mcp_context7_docs.ts` - Tool definition
 - `services/agent-gateway/src/mcp/context7.ts` - Backend MCP client
 - `frontend/coagent/lib/mcp/context7-client.ts` - Frontend client
+
+---
+
+## 🚧 **Implementation Roadmap: Best Practices Integration**
+
+### **Current Status**
+The developer chat (`/developer`) currently uses simple forwarding to gateway endpoints. Framework best practices (LangGraph, Claude Agent SDK, HITL) are **documented but not yet integrated**.
+
+**See:** [DEVELOPER_CHAT_BEST_PRACTICES_GAP.md](./DEVELOPER_CHAT_BEST_PRACTICES_GAP.md) for detailed gap analysis.
+
+### **Week 1: LangGraph HITL** 🎯
+**Goal:** Integrate LangGraph with interrupt() for human-in-the-loop approval gates
+
+**Tasks:**
+- [ ] Create LangGraph StateGraph for developer chat workflow
+- [ ] Add interrupt() nodes for high-risk operation approval
+- [ ] Implement PostgresSaver for conversation state checkpointing
+- [ ] Update frontend to handle interrupt events and resume
+- [ ] Test approval flow end-to-end
+
+**Files to Create/Update:**
+- `services/agent-gateway/src/coagents/developer.ts` (NEW)
+- `frontend/coagent/app/developer/api/chat/route.ts` (UPDATE)
+
+### **Week 2: Claude Agent SDK Patterns**
+**Goal:** Implement orchestrator + specialist subagents pattern
+
+**Tasks:**
+- [ ] Create orchestrator agent (Claude Opus 4)
+- [ ] Implement industry specialist subagents (Claude Sonnet 4)
+- [ ] Add PreToolUse hooks for approval gates
+- [ ] Implement smart routing and delegation
+- [ ] Add parallel subagent processing
+
+**Files to Create:**
+- `services/agent-gateway/src/coagents/orchestrator.ts`
+- `services/agent-gateway/src/coagents/hooks.ts`
+- `services/agent-gateway/src/coagents/subagents/`
+
+### **Week 3: Full Integration**
+**Goal:** Complete framework integration with CopilotKit and Context7
+
+**Tasks:**
+- [ ] Integrate CopilotKit DataStreamProvider for state sharing
+- [ ] Use Context7 MCP to fetch framework docs for agent
+- [ ] Implement artifact state synchronization
+- [ ] Add comprehensive error handling
+- [ ] End-to-end testing
+
+**References:**
+- **Architecture:** [AGENT_ARCHITECTURE_BEST_PRACTICES.md](./AGENT_ARCHITECTURE_BEST_PRACTICES.md)
+- **LangGraph:** [LANGGRAPH_BEST_PRACTICES.md](./LANGGRAPH_BEST_PRACTICES.md)
+- **Agent SDK:** [CLAUDE_AGENT_SDK_ANALYSIS.md](./CLAUDE_AGENT_SDK_ANALYSIS.md)
 
 ---
 
