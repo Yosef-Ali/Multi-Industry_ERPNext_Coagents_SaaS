@@ -12,7 +12,11 @@ import { FrappeAPIClient } from '../api';
 import { search_doc_tool } from './common/search_doc';
 import { get_doc_tool } from './common/get_doc';
 import { create_doc_tool } from './common/create_doc';
+
+// Generic documentation tool (fetches docs for any library: CopilotKit, LangGraph, React, ERPNext/Frappe, etc.)
 import { mcp_context7_docs_search_tool } from './common/mcp_context7_docs';
+
+// ERPNext/Frappe-specific MCP tools
 import { mcp_erpnext_introspect_doctype_tool } from './common/mcp_erpnext_metadata';
 import { mcp_erpnext_run_report_tool } from './common/mcp_erpnext_run_report';
 import { mcp_erpnext_search_records_tool } from './common/mcp_erpnext_search_records';

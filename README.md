@@ -55,6 +55,7 @@ Multi-Industry_ERPNext_Coagents_SaaS/
 - **Agent Runtime**: Anthropic Claude Agent SDK (TypeScript/Python)
 - **Workflows**: LangGraph 0.2+ (deterministic state machines)
 - **UI**: CopilotKit + AG-UI (streaming agent interactions)
+- **Documentation Tool**: Context7 MCP (fetches latest library docs: CopilotKit, LangGraph, React, ERPNext/Frappe, etc.)
 - **Storage**: ERPNext DB + Redis (workflow state) + File logs (audit)
 
 ---
@@ -224,6 +225,43 @@ Result: New industry vertical immediately available for coagent use
 - JSON Lines format (tools.jsonl, approvals.jsonl, workflows.jsonl)
 - Automatic rotation (100MB file size, 30-day retention)
 - Query API for compliance reporting
+
+### **7. Context7 MCP Integration**
+
+**Generic Documentation Tool** for fetching latest library documentation:
+
+**Supported Libraries:**
+- CopilotKit (AG-UI protocol, streaming events)
+- LangGraph (workflow patterns, human-in-the-loop)
+- React/Next.js (hooks, components, APIs)
+- ERPNext/Frappe (DocTypes, workflows, permissions)
+- Any library via libraryId parameter
+
+**Usage:**
+```typescript
+// Fetch CopilotKit AG-UI protocol docs
+context7.searchDocs({
+  query: "AG-UI streaming events",
+  libraryId: "/copilotkit/copilotkit"
+})
+
+// Fetch LangGraph patterns
+context7.searchDocs({
+  query: "human-in-the-loop interrupts",
+  libraryId: "/langchain-ai/langgraph"
+})
+
+// Fetch ERPNext documentation
+context7.searchDocs({
+  query: "DocType field validation",
+  libraryId: "/frappe/erpnext"
+})
+```
+
+**Files:**
+- `services/agent-gateway/src/tools/common/mcp_context7_docs.ts` - Tool definition
+- `services/agent-gateway/src/mcp/context7.ts` - Backend MCP client
+- `frontend/coagent/lib/mcp/context7-client.ts` - Frontend client
 
 ---
 

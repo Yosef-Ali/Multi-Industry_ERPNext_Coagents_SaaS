@@ -5,7 +5,7 @@ import type { FrappeAPIClient } from '../../api';
 
 export const mcp_context7_docs_search_tool: ToolDefinition = {
   name: 'mcp_context7_docs_search',
-  description: 'Search Context7 for ERPNext/Frappe docs/snippets/examples to ground planning/code.',
+  description: 'Search Context7 for library documentation (CopilotKit, LangGraph, React, ERPNext/Frappe, etc.) to ground planning/code with latest APIs and best practices. Use libraryId to target specific libraries (e.g., "/copilotkit/copilotkit" for AG-UI protocol docs).',
   inputSchema: Context7SearchInput,
   requires_approval: false,
   operation_type: 'read',

@@ -1,13 +1,15 @@
 /*
  * Context7 MCP client
- * Fetches documentation snippets to enrich Claude prompts.
+ * Fetches library documentation snippets (CopilotKit, LangGraph, React, ERPNext/Frappe, etc.) to enrich prompts.
  */
 
 export type Context7Source =
-	| 'erpnext-docs'
-	| 'frappe-docs'
 	| 'copilotkit-docs'
 	| 'langgraph-docs'
+	| 'react-docs'
+	| 'nextjs-docs'
+	| 'erpnext-docs'
+	| 'frappe-docs'
 	| 'claude-sdk-docs'
 	| (string & {});
 
@@ -24,9 +26,8 @@ interface CacheEntry {
 }
 
 function normaliseSources(sources?: Context7Source[]): Context7Source[] {
-	return sources && sources.length > 0
-		? Array.from(new Set(sources))
-		: ['erpnext-docs', 'frappe-docs', 'copilotkit-docs', 'langgraph-docs', 'claude-sdk-docs'];
+	// Return provided sources or empty array (let Context7 API auto-detect from query/libraryId)
+	return sources && sources.length > 0 ? Array.from(new Set(sources)) : [];
 }
 
 function buildCacheKey(query: string, sources: Context7Source[], maxResults: number) {
@@ -142,7 +143,7 @@ export class Context7Client {
 
 		if (Array.isArray(payload.content)) {
 			return payload.content
-				.map((entry) => {
+				.map((entry: any) => {
 					if (typeof entry === 'string') return entry;
 					if (entry && typeof entry === 'object') {
 						return entry.content || entry.text || '';
@@ -155,7 +156,7 @@ export class Context7Client {
 
 		if (Array.isArray(payload.results)) {
 			return payload.results
-				.map((item) => {
+				.map((item: any) => {
 					if (typeof item === 'string') return item;
 					if (item && typeof item === 'object') {
 						return item.content || item.text || '';

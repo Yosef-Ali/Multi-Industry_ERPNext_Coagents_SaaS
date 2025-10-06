@@ -91,8 +91,8 @@ export class ClaudeAgent {
 		apiKey?: string;
 		model?: string;
 		settingSources?: string[];
-		systemPrompt?: string;
-		tools?: any[];
+		systemPrompt?: string; // Agent can be domain-specific (e.g., ERPNext)
+		tools?: any[]; // Agent can use generic tools (Context7 fetches any library docs)
 	} = {}) {
 		this.apiKey = apiKey;
 		this.model = model;
@@ -115,6 +115,8 @@ export class ClaudeAgent {
 			tools,
 		} = options;
 
+		// Fetch library docs via Context7 (generic: CopilotKit, LangGraph, React, ERPNext/Frappe, etc.)
+		// Pass sources in fetchDocs options to target specific libraries
 		const docs =
 			contextQueries.length > 0 ? await context7Client.fetchDocs(contextQueries) : new Map();
 		const contextSection = buildContextSection(docs);
@@ -252,7 +254,7 @@ export class ClaudeAgent {
 
 		if (Array.isArray(message.content)) {
 			return message.content
-				.map((part) => {
+				.map((part: any) => {
 					if (part?.type === 'text') {
 						return part.text;
 					}

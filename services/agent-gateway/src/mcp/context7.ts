@@ -3,7 +3,8 @@ import { z } from 'zod';
 /**
  * Context7 MCP Client (stub)
  *
- * Provides a typed wrapper to fetch documentation/snippets/examples for grounding.
+ * Provides a typed wrapper to fetch library documentation/snippets/examples for grounding.
+ * Supports any library: CopilotKit, LangGraph, React, ERPNext/Frappe, etc.
  * Real network calls should be implemented behind the `fetcher` function; for now,
  * this returns a safe mock if env/config is missing.
  */
@@ -46,7 +47,7 @@ export class Context7Client {
   }
 
   /**
-   * Search ERPNext/Frappe related documentation snippets.
+   * Search library documentation snippets (CopilotKit, LangGraph, React, ERPNext/Frappe, etc.).
    * Returns mock data if not configured to avoid hard-failing dev.
    */
   async searchDocs(input: Context7SearchInput): Promise<Context7SearchOutput> {
@@ -58,7 +59,7 @@ export class Context7Client {
           {
             title: 'Context7 not configured — returning mock result',
             snippet:
-              `Query: ${validated.query}. Configure CONTEXT7_API_KEY and CONTEXT7_BASE_URL to enable live results.`,
+              `Query: ${validated.query}${validated.libraryId ? ` (library: ${validated.libraryId})` : ''}. Configure CONTEXT7_API_KEY and CONTEXT7_BASE_URL to enable live documentation search.`,
           },
         ],
       };
