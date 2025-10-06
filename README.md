@@ -2,8 +2,9 @@
 
 **AI-powered coagent assistance for ERPNext with multi-industry support and SaaS app generation**
 
-[![Implementation Status](https://img.shields.io/badge/Implementation-65%25%20Complete-yellow)]()
+[![Implementation Status](https://img.shields.io/badge/Implementation-75%25%20Complete-yellow)]()
 [![Critical Path](https://img.shields.io/badge/Critical%20Path-100%25%20Complete-brightgreen)]()
+[![LangGraph HITL](https://img.shields.io/badge/LangGraph%20HITL-95%25%20Complete-success)]()
 [![CopilotKit](https://img.shields.io/badge/CopilotKit-Integrated-success)]()
 [![Tests](https://img.shields.io/badge/Tests-Ready-blue)]()
 [![Production](https://img.shields.io/badge/Production-Ready-brightgreen)]()
@@ -20,11 +21,11 @@ Multi-industry ERPNext coagent platform with **embedded AI assistance**:
 - ✅ **5 Built-in Industries** - Hotel, Hospital, Manufacturing, Retail, Education
 - ✅ **Custom App Generation** - Natural language → Complete Next.js app
 - ✅ **Intelligent Input Handling** - HybridCoAgent (PRD, simple prompt, templates)
-- 🚧 **Human-in-the-Loop** - Architecture documented, implementation in progress
-- 🚧 **Deterministic Workflows** - LangGraph patterns documented, integration pending
+- ✅ **Human-in-the-Loop** - LangGraph HITL with approval gates (95% complete, testing ready)
+- ✅ **Deterministic Workflows** - LangGraph StateGraph with interrupt() pattern implemented
 - ✅ **Multi-tenant SaaS** - Configurable per deployment
 
-**Note:** See [DEVELOPER_CHAT_BEST_PRACTICES_GAP.md](./DEVELOPER_CHAT_BEST_PRACTICES_GAP.md) for current implementation status
+**Note:** See [WEEK1_LANGGRAPH_HITL_IMPLEMENTATION.md](./WEEK1_LANGGRAPH_HITL_IMPLEMENTATION.md) for Week 1 implementation details and [LANGGRAPH_HITL_TESTING_GUIDE.md](./LANGGRAPH_HITL_TESTING_GUIDE.md) for testing instructions
 
 ---
 

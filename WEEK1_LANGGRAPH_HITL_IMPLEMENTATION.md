@@ -194,8 +194,8 @@ POST /developer-chat/resume
 | ✅ API routes | Complete | `developer-chat.ts` |
 | ✅ Risk assessment | Complete | `developer-workflow.ts` |
 | ✅ State persistence | Complete | `checkpointer.ts` |
-| ⏳ Frontend integration | Pending | Week 1 continuation |
-| ⏳ End-to-end testing | Pending | Week 1 continuation |
+| ✅ Frontend integration | Complete | Components + API routing |
+| ⏳ End-to-end testing | Ready | See LANGGRAPH_HITL_TESTING_GUIDE.md |
 
 ---
 
@@ -322,17 +322,77 @@ CREATE TABLE IF NOT EXISTS langgraph_checkpoints (
 
 ## ✅ Success Criteria
 
+### Backend (Complete ✅)
 - [x] ✅ LangGraph StateGraph with interrupt() implemented
 - [x] ✅ PostgresSaver for state checkpointing
 - [x] ✅ API routes for workflow execution
 - [x] ✅ Risk assessment logic
 - [x] ✅ Approval node with pause capability
-- [ ] ⏳ Frontend handles interrupt events
-- [ ] ⏳ Approval UI component
-- [ ] ⏳ End-to-end testing complete
 
-**Week 1 Progress:** 70% complete (core backend done, frontend integration pending)
+### Frontend (Complete ✅)
+- [x] ✅ Approval dialog UI component created
+- [x] ✅ useLangGraphChat hook for SSE handling
+- [x] ✅ LangGraph routing added to chat API
+- [x] ✅ USE_LANGGRAPH_HITL feature flag implemented
+- [x] ✅ Frontend handles interrupt events
+- [x] ✅ Approval/rejection flow wired up
+
+### Testing (Ready ⏳)
+- [ ] ⏳ Test low/medium/high risk scenarios
+- [ ] ⏳ Test approval and rejection flows
+- [ ] ⏳ Test state persistence
+- [ ] ⏳ End-to-end validation
+
+**Week 1 Progress:** 95% complete (implementation done, testing ready)
 
 ---
 
-**Next Session:** Complete frontend integration and testing, then move to Week 2 (Claude Agent SDK patterns)
+## 📁 Files Created/Modified
+
+### Backend
+- ✅ `services/agent-gateway/src/coagents/developer-workflow.ts` (NEW)
+- ✅ `services/agent-gateway/src/coagents/checkpointer.ts` (NEW)
+- ✅ `services/agent-gateway/src/routes/developer-chat.ts` (NEW)
+- ✅ `services/agent-gateway/package.json` (MODIFIED - added dependencies)
+
+### Frontend
+- ✅ `frontend/coagent/components/approval-dialog.tsx` (NEW)
+- ✅ `frontend/coagent/hooks/use-langgraph-chat.ts` (NEW)
+- ✅ `frontend/coagent/components/developer/developer-chat-with-artifacts.tsx` (MODIFIED)
+- ✅ `frontend/coagent/app/developer/api/chat/route.ts` (MODIFIED - added LangGraph routing)
+
+### Documentation
+- ✅ `WEEK1_LANGGRAPH_HITL_IMPLEMENTATION.md` (THIS FILE)
+- ✅ `LANGGRAPH_HITL_TESTING_GUIDE.md` (NEW)
+
+---
+
+## 🧪 Testing
+
+**See:** [LANGGRAPH_HITL_TESTING_GUIDE.md](./LANGGRAPH_HITL_TESTING_GUIDE.md)
+
+To test the implementation:
+
+1. **Enable the feature:**
+   ```bash
+   # frontend/coagent/.env.local
+   USE_LANGGRAPH_HITL=1
+   ```
+
+2. **Start services:**
+   ```bash
+   # Terminal 1: Backend
+   cd services/agent-gateway && npm run dev
+
+   # Terminal 2: Frontend
+   cd frontend/coagent && npm run dev
+   ```
+
+3. **Test scenarios:**
+   - Low-risk: "Show me customer list" → No approval
+   - Medium-risk: "Create new sales order" → Approval dialog
+   - High-risk: "Delete all draft orders" → Red warning + approval
+
+---
+
+**Next Session:** Run end-to-end tests, validate all scenarios, then move to Week 2 (Claude Agent SDK patterns)
