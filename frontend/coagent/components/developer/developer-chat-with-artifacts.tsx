@@ -60,13 +60,12 @@ export function DeveloperChatWithArtifacts({
               </div>
               <div className="flex items-center justify-between">
                 <span
-                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase ${
-                    request.riskLevel === 'high'
+                  className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase ${request.riskLevel === 'high'
                       ? 'bg-red-100 text-red-700'
                       : request.riskLevel === 'medium'
                         ? 'bg-amber-100 text-amber-700'
                         : 'bg-blue-100 text-blue-700'
-                  }`}
+                    }`}
                 >
                   Risk: {request.riskLevel}
                 </span>
@@ -154,7 +153,7 @@ export function DeveloperChatWithArtifacts({
   return (
     <div className="flex h-dvh w-full overflow-hidden">
       {/* CopilotKit LangGraph HITL Interrupt UI */}
-      {interruptUI}
+      {interruptUI ?? null}
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Chat
@@ -190,15 +189,15 @@ export function DeveloperChatWithArtifacts({
               <div className="flex items-center justify-between">
                 <span
                   className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold uppercase ${approvalRequest.riskLevel === 'high'
-                      ? 'bg-red-100 text-red-700'
-                      : approvalRequest.riskLevel === 'medium'
-                        ? 'bg-amber-100 text-amber-700'
-                        : 'bg-blue-100 text-blue-700'
+                    ? 'bg-red-100 text-red-700'
+                    : approvalRequest.riskLevel === 'medium'
+                      ? 'bg-amber-100 text-amber-700'
+                      : 'bg-blue-100 text-blue-700'
                     }`}
                 >
                   Risk: {approvalRequest.riskLevel}
                 </span>
-                <Button size="sm" onClick={() => void handleApproval(true)}>
+                <Button size="sm" onClick={() => void handleApprove()}>
                   Fix
                 </Button>
               </div>
