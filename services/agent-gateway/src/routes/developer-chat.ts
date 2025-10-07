@@ -81,10 +81,17 @@ router.post('/', async (req: Request, res: Response) => {
           chatId,
         };
 
+        // Send a proper text response first so Vercel AI SDK gets a complete message
+        const approvalMessage = `I've analyzed your request. This operation requires approval before proceeding.`;
+        res.write(`data: ${JSON.stringify({ type: 'text-delta', content: approvalMessage })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'finish', finishReason: 'stop' })}\n\n`);
+
+        // Now send the interrupt event for the HITL UI
         res.write(`data: ${JSON.stringify(event)}\n\n`);
 
-        // End stream - client must resume with approval decision
-        res.write(`data: ${JSON.stringify({ type: 'end', chatId })}\n\n`);
+        // End the stream properly
+        res.write(`data: [DONE]\n\n`);
+        console.log(`[Developer Chat] 💤 Stream ended - waiting for user approval via SSE handler`);
         return res.end();
       }
 

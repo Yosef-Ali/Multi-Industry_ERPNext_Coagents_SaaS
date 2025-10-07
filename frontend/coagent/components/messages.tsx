@@ -73,7 +73,8 @@ function PureMessages({
 							chatId={chatId}
 							isLoading={status === 'streaming' && messages.length - 1 === index}
 							isReadonly={isReadonly}
-							key={message.id}
+							// Combine id with index to guard against duplicate ids emitted during workflow resets
+							key={`${message.id}-${index}`}
 							message={message}
 							regenerate={regenerate}
 							requiresScrollPadding={hasSentMessage && index === messages.length - 1}

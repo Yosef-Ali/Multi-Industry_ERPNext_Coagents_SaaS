@@ -252,7 +252,7 @@ export async function POST(request: Request) {
 				});
 			} catch (error) {
 				console.error('[Chat] LangGraph workflow error:', error);
-				return new ChatSDKError('offline:chat').toResponse();
+				console.log('[Chat] Falling back to local provider');
 			}
 		}
 

@@ -48,7 +48,8 @@ function PureArtifactMessages({
 					chatId={chatId}
 					isLoading={status === 'streaming' && index === messages.length - 1}
 					isReadonly={isReadonly}
-					key={message.id}
+					// Guard against duplicate ids when artifacts replay previous steps
+					key={`${message.id}-${index}`}
 					message={message}
 					regenerate={regenerate}
 					requiresScrollPadding={hasSentMessage && index === messages.length - 1}

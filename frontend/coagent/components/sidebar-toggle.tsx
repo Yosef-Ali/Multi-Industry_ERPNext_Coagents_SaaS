@@ -16,14 +16,7 @@ export function SidebarToggle({ className }: ComponentProps<typeof SidebarTrigge
                     className={cn('h-8 px-2 md:h-fit md:px-2', className)}
                     data-testid="sidebar-toggle-button"
                     onClick={() => {
-                        try {
-                            toggleSidebar();
-                        } finally {
-                            // Notify listeners (e.g., AppSidebar) to refresh
-                            if (typeof window !== 'undefined') {
-                                window.dispatchEvent(new CustomEvent('sidebar:toggle'));
-                            }
-                        }
+                        toggleSidebar();
                     }}
                     variant="outline"
                 >

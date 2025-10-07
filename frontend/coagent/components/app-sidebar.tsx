@@ -6,32 +6,19 @@ import { useRouter } from 'next/navigation';
 import type { AppUser } from '@/lib/session';
 import { Button } from '@/components/ui/button';
 import {
-    Sidebar,
-    SidebarContent,
-    SidebarFooter,
-    SidebarHeader,
-    SidebarMenu,
-    useSidebar,
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarHeader,
+	SidebarMenu,
+	useSidebar,
 } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { useEffect } from 'react';
 import { SidebarHistory } from '@/components/sidebar-history';
 
 export function AppSidebar({ user }: { user: AppUser | null }) {
-    const router = useRouter();
-    const { setOpenMobile } = useSidebar();
-    const refresh = () => {
-        // SidebarHistory uses SWR under the hood; trigger a soft refresh by navigating
-        router.refresh();
-    };
-
-    useEffect(() => {
-        const handler = () => {
-            refresh();
-        };
-        window.addEventListener('sidebar:toggle', handler);
-        return () => window.removeEventListener('sidebar:toggle', handler);
-    }, [refresh]);
+	const router = useRouter();
+	const { setOpenMobile } = useSidebar();
 
 	return (
 		<Sidebar className="group-data-[side=left]:border-r-0">
@@ -71,9 +58,9 @@ export function AppSidebar({ user }: { user: AppUser | null }) {
 					</div>
 				</SidebarMenu>
 			</SidebarHeader>
-            <SidebarContent>
-                <SidebarHistory />
-            </SidebarContent>
+			<SidebarContent>
+				<SidebarHistory />
+			</SidebarContent>
 			<SidebarFooter>
 				<div className="px-2 py-2 text-xs text-muted-foreground">
 					{user?.email ? `Signed in as ${user.email}` : 'Guest user'}
