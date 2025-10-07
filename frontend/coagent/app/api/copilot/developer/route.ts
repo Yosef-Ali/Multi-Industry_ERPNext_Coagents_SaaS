@@ -7,6 +7,7 @@ import {
 	CopilotRuntime,
 	copilotRuntimeNextJSAppRouterEndpoint,
 	OpenAIAdapter,
+	LangGraphAgent,
 } from '@copilotkit/runtime';
 import type { NextRequest } from 'next/server';
 import OpenAI from 'openai';
@@ -46,8 +47,17 @@ export async function POST(req: NextRequest) {
 			fetch: globalThis.fetch,
 		});
 
-		// Create CopilotRuntime with developer actions
+		// Gateway URL for LangGraph HITL
+		const AGENT_GATEWAY_URL = process.env.AGENT_GATEWAY_URL || 'http://localhost:3001';
+
+		// Create CopilotRuntime with LangGraph agent and developer actions
 		const runtime = new CopilotRuntime({
+			agents: {
+				developer_agent: new LangGraphAgent({
+					deploymentUrl: `${AGENT_GATEWAY_URL}/developer-chat`,
+					name: 'developer_agent',
+				}),
+			},
 			actions: [
 				// Action 1: Analyze Requirements
 				{

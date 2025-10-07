@@ -1,7 +1,6 @@
 'use client';
 
-import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
+import { useCopilotChatHeadless_c } from '@copilotkit/react-core';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
@@ -71,51 +70,40 @@ export function Chat({
 		currentModelIdRef.current = currentModelId;
 	}, [currentModelId]);
 
-	const { messages, setMessages, sendMessage, status, stop, regenerate, resumeStream } =
-		useChat<ChatMessage>({
-			id,
-			messages: initialMessages,
-			experimental_throttle: 100,
-			generateId: generateUUID,
-			transport: new DefaultChatTransport({
-				api: '/developer/api/chat',
-				fetch: fetchWithErrorHandlers,
-				prepareSendMessagesRequest(request) {
-					return {
-						body: {
-							id: request.id,
-							message: request.messages.at(-1),
-							selectedChatModel: currentModelIdRef.current,
-							selectedVisibilityType: visibilityType,
-							...request.body,
-						},
-					};
-				},
-			}),
-			onData: (dataPart) => {
-				console.log('onData received:', dataPart);
-				setDataStream((ds) => (ds ? [...ds, dataPart] : []));
-				if (dataPart.type === 'data-usage') {
-					setUsage(dataPart.data);
-				}
-			},
-			onFinish: () => {
-				mutate(unstable_serialize(getChatHistoryPaginationKey));
-			},
-			onError: (error) => {
-				if (error instanceof ChatSDKError) {
-					// Check if it's a credit card error
-					if (error.message?.includes('AI Gateway requires a valid credit card')) {
-						setShowCreditCardAlert(true);
-					} else {
-						toast({
-							type: 'error',
-							description: error.message,
-						});
-					}
-				}
-			},
-		});
+	// Use CopilotKit's headless hook instead of Vercel's useChat
+	const { messages, sendMessage, isLoading, stopGeneration } = useCopilotChatHeadless_c();
+
+	// Map CopilotKit's status to Vercel's format for UI compatibility
+	const status = isLoading ? 'streaming' : 'idle';
+	const stop = stopGeneration;
+
+	// Map messages to match existing ChatMessage type
+	const setMessages = (msgs: any) => {
+		// CopilotKit manages messages internally
+		console.log('[Chat] setMessages called (using CopilotKit):', msgs);
+	};
+
+	const regenerate = () => {
+		console.log('[Chat] regenerate called (not yet implemented for CopilotKit)');
+	};
+
+	const resumeStream = () => {
+		console.log('[Chat] resumeStream called (not yet implemented for CopilotKit)');
+	};
+
+	// Handle data stream events (compatibility layer)
+	useEffect(() => {
+		if (isLoading) {
+			setDataStream((ds) => (ds ? [...ds, { type: 'loading' }] : [{ type: 'loading' }]));
+		}
+	}, [isLoading, setDataStream]);
+
+	// Handle completion - refresh sidebar
+	useEffect(() => {
+		if (!isLoading && messages.length > 0) {
+			mutate(unstable_serialize(getChatHistoryPaginationKey));
+		}
+	}, [isLoading, messages.length, mutate]);
 
 	const searchParams = useSearchParams();
 	const query = searchParams.get('query');
@@ -124,9 +112,11 @@ export function Chat({
 
 	useEffect(() => {
 		if (query && !hasAppendedQuery) {
+			// Convert to CopilotKit message format
 			sendMessage({
-				role: 'user' as const,
-				parts: [{ type: 'text', text: query }],
+				id: generateUUID(),
+				role: 'user',
+				content: query,
 			});
 
 			setHasAppendedQuery(true);
