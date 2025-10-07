@@ -1,16 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, CheckCircle, Info } from 'lucide-react';
 
 export interface ApprovalRequest {
@@ -52,32 +43,40 @@ const RISK_CONFIG = {
 };
 
 export function ApprovalDialog({ open, request, onApprove, onReject }: ApprovalDialogProps) {
-	if (!request) return null;
+	if (!open || !request) return null;
 
 	const riskConfig = RISK_CONFIG[request.riskLevel];
 	const RiskIcon = riskConfig.icon;
 
 	return (
-		<Dialog open={open} onOpenChange={(isOpen) => !isOpen && onReject()}>
-			<DialogContent className="sm:max-w-[600px]">
-				<DialogHeader>
-					<DialogTitle className="flex items-center gap-2">
+		<div className="fixed inset-0 z-50 flex items-center justify-center">
+			{/* Backdrop */}
+			<div
+				className="fixed inset-0 bg-black/50"
+				onClick={onReject}
+			/>
+
+			{/* Dialog */}
+			<div className="relative z-50 w-full max-w-2xl bg-background border rounded-lg shadow-lg p-6 m-4">
+				{/* Header */}
+				<div className="mb-4">
+					<h2 className="text-xl font-semibold flex items-center gap-2 mb-2">
 						<RiskIcon className={`h-5 w-5 ${riskConfig.color}`} />
 						Approval Required
-					</DialogTitle>
-					<DialogDescription>{request.question}</DialogDescription>
-				</DialogHeader>
+					</h2>
+					<p className="text-muted-foreground">{request.question}</p>
+				</div>
 
 				<div className="space-y-4">
-					{/* Risk Level Alert */}
-					<Alert className={`${riskConfig.bgColor} ${riskConfig.borderColor}`}>
-						<AlertDescription className="flex items-center gap-2">
+					{/* Risk Level */}
+					<div className={`rounded-md p-3 ${riskConfig.bgColor} border ${riskConfig.borderColor}`}>
+						<div className="flex items-center gap-2">
 							<span className="font-semibold">Risk Level:</span>
 							<span className={`uppercase font-bold ${riskConfig.color}`}>
 								{request.riskLevel}
 							</span>
-						</AlertDescription>
-					</Alert>
+						</div>
+					</div>
 
 					{/* Operation Details */}
 					<div className="space-y-2">
@@ -113,33 +112,36 @@ export function ApprovalDialog({ open, request, onApprove, onReject }: ApprovalD
 
 					{/* Warning for high-risk operations */}
 					{request.riskLevel === 'high' && (
-						<Alert className="bg-red-50 border-red-200">
-							<AlertTriangle className="h-4 w-4 text-red-600" />
-							<AlertDescription className="text-red-800">
-								<strong>Warning:</strong> This is a high-risk operation that may modify
-								critical data or system state. Please review carefully before approving.
-							</AlertDescription>
-						</Alert>
+						<div className="rounded-md p-3 bg-red-50 border border-red-200">
+							<div className="flex gap-2">
+								<AlertTriangle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
+								<div className="text-red-800 text-sm">
+									<strong>Warning:</strong> This is a high-risk operation that may modify
+									critical data or system state. Please review carefully before approving.
+								</div>
+							</div>
+						</div>
 					)}
 				</div>
 
-				<DialogFooter className="gap-2 sm:gap-0">
-					<Button variant="outline" onClick={onReject} className="w-full sm:w-auto">
+				{/* Footer */}
+				<div className="flex gap-2 mt-6 justify-end">
+					<Button variant="outline" onClick={onReject}>
 						Cancel
 					</Button>
 					<Button
 						onClick={onApprove}
-						className={`w-full sm:w-auto ${
+						className={
 							request.riskLevel === 'high'
-								? 'bg-red-600 hover:bg-red-700'
-								: 'bg-primary hover:bg-primary/90'
-						}`}
+								? 'bg-red-600 hover:bg-red-700 text-white'
+								: ''
+						}
 					>
 						<CheckCircle className="mr-2 h-4 w-4" />
 						Approve & Execute
 					</Button>
-				</DialogFooter>
-			</DialogContent>
-		</Dialog>
+				</div>
+			</div>
+		</div>
 	);
 }

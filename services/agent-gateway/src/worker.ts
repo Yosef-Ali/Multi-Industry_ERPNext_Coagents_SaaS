@@ -14,7 +14,7 @@ export interface Env {
   USE_MOCK_ERPNEXT: string;
   ERPNEXT_API_KEY?: string;
   ERPNEXT_API_SECRET?: string;
-  ERPNEXT_BASE_URL?: string;
+  ERPNEXT_API_URL?: string;
 }
 
 export default {

@@ -106,10 +106,9 @@ function PureMessages({
 }
 
 export const Messages = memo(PureMessages, (prevProps, nextProps) => {
-	if (prevProps.isArtifactVisible && nextProps.isArtifactVisible) {
-		return true;
+	if (prevProps.isArtifactVisible !== nextProps.isArtifactVisible) {
+		return false;
 	}
-
 	if (prevProps.status !== nextProps.status) {
 		return false;
 	}
@@ -126,5 +125,5 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
 		return false;
 	}
 
-	return false;
+	return true;
 });

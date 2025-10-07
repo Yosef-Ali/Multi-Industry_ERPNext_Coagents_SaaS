@@ -10,7 +10,8 @@ import { validateRequest } from '../middleware/validation';
 import { z } from 'zod';
 import { getSessionFromRequest } from '../session';
 import { createAGUIStream, KeepAliveManager } from '../streaming';
-import { createCoagent, executeAgent, handleApprovalResponse } from '../agent';
+import { createUniversalCoagent, executeUniversalAgent } from '../agent-universal';
+import { getGlobalProvider } from '../ai/universal-provider';
 
 const router = Router();
 
@@ -69,7 +70,7 @@ router.post(
       // Get ERPNext credentials from environment
       const erpApiKey = process.env.ERPNEXT_API_KEY || '';
       const erpApiSecret = process.env.ERPNEXT_API_SECRET || '';
-      const erpBaseUrl = process.env.ERPNEXT_BASE_URL || 'http://localhost:8080';
+      const erpBaseUrl = process.env.ERPNEXT_API_URL || 'http://localhost:8080';
 
       if (!erpApiKey || !erpApiSecret) {
         stream.emitError(
@@ -80,18 +81,20 @@ router.post(
         return;
       }
 
-      // Create Claude Agent with tools
-      const { agent, toolExecutor } = await createCoagent({
+      // Create universal AI provider and agent
+      const aiProvider = await getGlobalProvider();
+      const { agent, toolExecutor } = await createUniversalCoagent({
         session,
         stream,
         erpApiKey,
         erpApiSecret,
         erpBaseUrl,
+        aiProvider,
       });
 
       // If message provided, execute agent
       if (request.message && request.message.trim()) {
-        await executeAgent(agent, toolExecutor, request.message, stream);
+        await executeUniversalAgent(agent, toolExecutor, request.message, stream);
       } else {
         // No message - just send welcome
         stream.emitMessage(

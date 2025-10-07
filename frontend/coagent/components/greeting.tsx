@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { SuggestedPrompts } from '@/components/developer/suggested-prompts';
 
 export const Greeting = () => {
 	return (
@@ -13,7 +14,7 @@ export const Greeting = () => {
 				initial={{ opacity: 0, y: 10 }}
 				transition={{ delay: 0.5 }}
 			>
-				Hello there!
+				Welcome to the ERPNext Developer Copilot.
 			</motion.div>
 			<motion.div
 				animate={{ opacity: 1, y: 0 }}
@@ -22,8 +23,9 @@ export const Greeting = () => {
 				initial={{ opacity: 0, y: 10 }}
 				transition={{ delay: 0.6 }}
 			>
-				How can I help you today?
+				Ask for DocType scaffolds, workflow automations, or ERPNext customization help.
 			</motion.div>
+			<SuggestedPrompts />
 		</div>
 	);
 };

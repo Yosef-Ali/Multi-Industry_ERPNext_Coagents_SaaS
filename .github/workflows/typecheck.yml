@@ -1,0 +1,38 @@
+name: Type Check
+
+on:
+  pull_request:
+    branches: [main, 001-erpnext-coagents-mvp]
+  push:
+    branches: [main, 001-erpnext-coagents-mvp]
+
+jobs:
+  typecheck:
+    name: TypeScript Type Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      
+      - name: Install dependencies (Gateway)
+        run: cd services/agent-gateway && npm ci
+      
+      - name: Install dependencies (Frontend)
+        run: cd frontend/coagent && pnpm install --frozen-lockfile
+      
+      - name: Type check Gateway
+        run: cd services/agent-gateway && npm run check
+      
+      - name: Type check Frontend
+        run: cd frontend/coagent && tsc --noEmit

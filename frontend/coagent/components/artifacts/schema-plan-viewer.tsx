@@ -1,8 +1,8 @@
 'use client';
 
-import { Database, Plus, Minus, Edit3, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertCircle, CheckCircle2, Database, Edit3, Minus, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface FieldChange {
 	action: 'add' | 'modify' | 'remove';
@@ -71,8 +71,8 @@ export function SchemaPlanViewer({
 							impact.breakingChanges
 								? 'bg-red-50 border-red-200'
 								: impact.migrationRequired
-								? 'bg-amber-50 border-amber-200'
-								: 'bg-blue-50 border-blue-200'
+									? 'bg-amber-50 border-amber-200'
+									: 'bg-blue-50 border-blue-200'
 						}`}
 					>
 						<div className="flex items-center gap-2 text-sm font-semibold mb-2">
@@ -145,8 +145,8 @@ export function SchemaPlanViewer({
 														field.action === 'add'
 															? 'default'
 															: field.action === 'remove'
-															? 'destructive'
-															: 'outline'
+																? 'destructive'
+																: 'outline'
 													}
 													className="text-xs"
 												>
@@ -154,9 +154,7 @@ export function SchemaPlanViewer({
 												</Badge>
 											</div>
 
-											{field.reason && (
-												<p className="text-sm text-gray-600 mt-1">{field.reason}</p>
-											)}
+											{field.reason && <p className="text-sm text-gray-600 mt-1">{field.reason}</p>}
 
 											{field.properties && Object.keys(field.properties).length > 0 && (
 												<div className="mt-2 text-xs space-y-1">

@@ -20,6 +20,7 @@ import {
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
+import { DEFAULT_CHAT_MODEL, chatModels } from '@/lib/ai/models';
 import type { Vote } from '@/lib/db/schema';
 import { ChatSDKError } from '@/lib/errors';
 import type { Attachment, ChatMessage } from '@/lib/types';
@@ -61,7 +62,9 @@ export function Chat({
 	const [input, setInput] = useState<string>('');
 	const [usage, setUsage] = useState<AppUsage | undefined>(initialLastContext);
 	const [showCreditCardAlert, setShowCreditCardAlert] = useState(false);
-	const [currentModelId, setCurrentModelId] = useState(initialChatModel);
+	const [currentModelId, setCurrentModelId] = useState(() =>
+		chatModels.some((model) => model.id === initialChatModel) ? initialChatModel : DEFAULT_CHAT_MODEL
+	);
 	const currentModelIdRef = useRef(currentModelId);
 
 	useEffect(() => {
@@ -75,7 +78,7 @@ export function Chat({
 			experimental_throttle: 100,
 			generateId: generateUUID,
 			transport: new DefaultChatTransport({
-				api: '/api/chat',
+				api: '/developer/api/chat',
 				fetch: fetchWithErrorHandlers,
 				prepareSendMessagesRequest(request) {
 					return {
@@ -151,9 +154,14 @@ export function Chat({
 		setMessages,
 	});
 
-	useEffect(() => {
-		console.log('Messages updated:', messages);
-	}, [messages]);
+	// Removed debug log - messages update tracking
+	// useEffect(() => {
+	// 	console.log('Messages updated:', messages);
+	// }, [messages]);
+
+	const safeInitialModelId = chatModels.some((model) => model.id === initialChatModel)
+		? initialChatModel
+		: DEFAULT_CHAT_MODEL;
 
 	return (
 		<>
@@ -162,6 +170,7 @@ export function Chat({
 					chatId={id}
 					isReadonly={isReadonly}
 					selectedVisibilityType={initialVisibilityType}
+					status={status}
 				/>
 
 				<Messages
@@ -170,7 +179,7 @@ export function Chat({
 					isReadonly={isReadonly}
 					messages={messages}
 					regenerate={regenerate}
-					selectedModelId={initialChatModel}
+					selectedModelId={safeInitialModelId}
 					setMessages={setMessages}
 					status={status}
 					votes={votes}

@@ -305,7 +305,7 @@ export async function POST(request: Request) {
 			try {
 				// Generate development token (32+ chars for auth middleware)
 				const devToken = `dev_${session.user.id}_${Date.now().toString(36)}`;
-				
+
 				// Forward to /agui endpoint
 				const aguiResponse = await fetch(`${gatewayUrl}/agui`, {
 					method: 'POST',

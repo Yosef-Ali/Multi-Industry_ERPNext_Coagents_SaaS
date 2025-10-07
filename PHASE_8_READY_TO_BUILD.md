@@ -92,7 +92,7 @@ Instead of copying Vercel's AI Chatbot (which would violate copyright), I've cre
 - 🎯 **3-variant system** - Generate minimal, balanced, advanced options
 - 🔧 **Refinement UI** - Natural language code modifications
 - 🚀 **One-click deploy** - Push to ERPNext with approval gates
-- 📚 **Context7 docs** - Real-time ERPNext/Frappe documentation
+- 📚 **Context7 docs** - Real-time library documentation (CopilotKit, LangGraph, React, ERPNext/Frappe, etc.)
 
 ### Technical Quality
 - ⚡ **Performance** - First Contentful Paint < 1.5s

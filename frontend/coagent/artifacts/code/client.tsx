@@ -69,11 +69,8 @@ export const codeArtifact = new Artifact<'code', Metadata>({
 				...draftArtifact,
 				content: streamPart.data,
 				isVisible:
-					draftArtifact.status === 'streaming' &&
-					draftArtifact.content.length > 300 &&
-					draftArtifact.content.length < 310
-						? true
-						: draftArtifact.isVisible,
+					draftArtifact.isVisible ||
+					(streamPart.data.trim().length >= 60 && draftArtifact.documentId !== 'init'),
 				status: 'streaming',
 			}));
 		}

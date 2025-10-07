@@ -47,12 +47,12 @@ function createSSEStream(encoder: TextEncoder) {
  */
 export async function POST(req: NextRequest) {
 	// Get environment variables
-	let env: any = process.env;
+	let env: Record<string, string | undefined> = process.env;
 	try {
 		const { getCloudflareContext } = await import('@opennextjs/cloudflare');
 		const cfContext = getCloudflareContext();
 		if (cfContext?.env) {
-			env = cfContext.env;
+			env = cfContext.env as Record<string, string | undefined>;
 		}
 	} catch (_e) {
 		// Running in Node.js
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
 	try {
 		const body: AGUIRequest = await req.json();
-		const { messages, context, state, tools } = body;
+		const { messages, context, state } = body;
 
 		// Create SSE stream
 		const encoder = new TextEncoder();
@@ -181,14 +181,16 @@ Respond naturally and use tools when appropriate.`;
 					type: 'done',
 					timestamp: new Date().toISOString(),
 				});
-			} catch (error: any) {
+			} catch (error: unknown) {
 				console.error('AG-UI streaming error:', error);
 
 				// Send error event
+				const errorMessage = error instanceof Error ? error.message : 'An error occurred during streaming';
+				const errorCode = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' ? error.code : 'UNKNOWN_ERROR';
 				await send({
 					type: 'error',
-					message: error.message || 'An error occurred during streaming',
-					code: error.code || 'UNKNOWN_ERROR',
+					message: errorMessage,
+					code: errorCode,
 					timestamp: new Date().toISOString(),
 				});
 			} finally {
@@ -204,11 +206,12 @@ Respond naturally and use tools when appropriate.`;
 				Connection: 'keep-alive',
 			},
 		});
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error('AG-UI request error:', error);
+		const errorMessage = error instanceof Error ? error.message : 'Failed to process AG-UI request';
 		return new Response(
 			JSON.stringify({
-				error: error.message || 'Failed to process AG-UI request',
+				error: errorMessage,
 			}),
 			{
 				status: 500,

@@ -16,13 +16,12 @@ import OpenAI from 'openai';
  */
 export async function POST(req: NextRequest) {
 	// Get Cloudflare context (if running on Cloudflare Workers)
-	let env: any = process.env;
+	let env: Record<string, string | undefined> = process.env;
 	try {
-		// @ts-expect-error
 		const { getCloudflareContext } = await import('@opennextjs/cloudflare');
 		const cfContext = getCloudflareContext();
 		if (cfContext?.env) {
-			env = cfContext.env;
+			env = cfContext.env as Record<string, string | undefined>;
 		}
 	} catch (_e) {
 		// Running in Node.js, use process.env
@@ -63,7 +62,7 @@ export async function POST(req: NextRequest) {
 							required: true,
 						},
 					],
-					handler: async ({ description }) => {
+					handler: async ({ description }: { description: string }) => {
 						// This will be called by the AI to analyze requirements
 						// For now, return a structured analysis
 						const analysis = {
@@ -95,7 +94,7 @@ export async function POST(req: NextRequest) {
 							required: true,
 						},
 					],
-					handler: async ({ analysis }) => {
+					handler: async ({ analysis }: { analysis: string }) => {
 						// Parse the analysis
 						const _parsedAnalysis = JSON.parse(analysis);
 
@@ -150,7 +149,15 @@ export async function POST(req: NextRequest) {
 							required: true,
 						},
 					],
-					handler: async ({ variantId, refinementPrompt, currentCode }) => {
+					handler: async ({
+						variantId,
+						refinementPrompt,
+						currentCode,
+					}: {
+						variantId: string;
+						refinementPrompt: string;
+						currentCode: string;
+					}) => {
 						// Refine the variant based on user feedback
 						// The AI will modify the code according to the refinement prompt
 						return JSON.stringify({
@@ -185,7 +192,15 @@ export async function POST(req: NextRequest) {
 							required: true,
 						},
 					],
-					handler: async ({ artifactId, code, environment }) => {
+					handler: async ({
+						artifactId,
+						code: _code,
+						environment,
+					}: {
+						artifactId: string;
+						code: string;
+						environment: string;
+					}) => {
 						// This would call the ERPNext API to deploy
 						// For now, return a mock response
 						return JSON.stringify({
@@ -209,9 +224,10 @@ export async function POST(req: NextRequest) {
 		});
 
 		return handleRequest(req);
-	} catch (error: any) {
+	} catch (error) {
 		console.error('Developer CopilotKit runtime error:', error);
-		return new Response(JSON.stringify({ error: error.message || 'Failed to process request' }), {
+		const message = error instanceof Error ? error.message : 'Failed to process request';
+		return new Response(JSON.stringify({ error: message }), {
 			status: 500,
 			headers: { 'Content-Type': 'application/json' },
 		});

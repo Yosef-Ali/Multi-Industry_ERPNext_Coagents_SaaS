@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Configuration Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        h1 {
+            color: #4CAF50;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #2d5016;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .error {
+            background: #5d1010;
+            border-left: 4px solid #f44336;
+        }
+
+        .model-list {
+            background: #2a2a2a;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+
+        .model-item {
+            padding: 8px;
+            margin: 5px 0;
+            background: #333;
+            border-radius: 3px;
+        }
+
+        .model-item.free {
+            border-left: 3px solid #4CAF50;
+        }
+
+        .model-item.paid {
+            border-left: 3px solid #2196F3;
+        }
+
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+
+        button:hover {
+            background: #45a049;
+        }
+
+        #loading {
+            display: none;
+        }
+
+        .info {
+            background: #1a3a5a;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🔍 Model Configuration Test</h1>
+
+    <div class="info">
+        <strong>Expected Models (6 total):</strong>
+        <ul>
+            <li>✅ Gemini 2.5 Pro (Free)</li>
+            <li>✅ Llama 3.3 70B Instruct (Free)</li>
+            <li>💰 GLM-4.6 (Paid)</li>
+            <li>💰 Gemini 2.5 Flash Lite (Paid)</li>
+            <li>💰 Mistral Small 3.2 24B (Paid)</li>
+            <li>💰 Mixtral 8x7B Instruct (Paid)</li>
+        </ul>
+    </div>
+
+    <button onclick="testModels()">🧪 Test Models</button>
+    <button onclick="testSingleModel()">⚡ Quick Test (Gemini)</button>
+
+    <div id="loading" class="status">⏳ Loading...</div>
+    <div id="results"></div>
+
+    <script>
+        async function testModels() {
+            const results = document.getElementById('results');
+            const loading = document.getElementById('loading');
+            results.innerHTML = '';
+            loading.style.display = 'block';
+
+            try {
+                // Fetch with no-cache to avoid browser caching
+                const response = await fetch('http://localhost:3000/developer', {
+                    cache: 'no-store',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
+                    }
+                });
+
+                const html = await response.text();
+
+                loading.style.display = 'none';
+
+                // Check for model names in the HTML
+                const models = {
+                    'Gemini 2.5 Pro (Free)': html.includes('Gemini 2.5 Pro'),
+                    'Llama 3.3 70B': html.includes('Llama 3.3 70B'),
+                    'Mistral Small 3.2': html.includes('Mistral Small 3.2'),
+                    'Mixtral 8x7B': html.includes('Mixtral 8x7B'),
+                    'GLM-4.6': html.includes('GLM-4.6'),
+                    'Gemini 2.5 Flash Lite': html.includes('Gemini 2.5 Flash Lite')
+                };
+
+                // Check for old models (should NOT exist)
+                const oldModels = {
+                    'Gemini 2.0 Flash (Experimental)': html.includes('Gemini 2.0 Flash (Experimental)'),
+                    'Claude 3.5 Sonnet': html.includes('Claude 3.5 Sonnet'),
+                    'GPT-4 Turbo': html.includes('GPT-4 Turbo'),
+                    'DeepSeek Chat': html.includes('DeepSeek Chat')
+                };
+
+                let html_result = '<h2>✅ New Models Found:</h2><div class="model-list">';
+                let foundCount = 0;
+                for (const [name, found] of Object.entries(models)) {
+                    if (found) {
+                        html_result += `<div class="model-item free">✅ ${name}</div>`;
+                        foundCount++;
+                    } else {
+                        html_result += `<div class="model-item error">❌ ${name} - NOT FOUND</div>`;
+                    }
+                }
+                html_result += '</div>';
+
+                html_result += '<h2>🚫 Old Models (Should NOT be present):</h2><div class="model-list">';
+                let oldCount = 0;
+                for (const [name, found] of Object.entries(oldModels)) {
+                    if (found) {
+                        html_result += `<div class="model-item error">❌ FOUND (BAD): ${name}</div>`;
+                        oldCount++;
+                    } else {
+                        html_result += `<div class="model-item success">✅ Not found (Good): ${name}</div>`;
+                    }
+                }
+                html_result += '</div>';
+
+                // Summary
+                if (foundCount === 6 && oldCount === 0) {
+                    html_result += '<div class="status success"><h3>🎉 SUCCESS!</h3>All 6 new models are configured correctly and old models are removed!</div>';
+                } else if (oldCount > 0) {
+                    html_result += `<div class="status error"><h3>⚠️ CACHE ISSUE DETECTED</h3>Found ${oldCount} old model(s). Clear your browser cache with Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)</div>`;
+                } else {
+                    html_result += `<div class="status error"><h3>⚠️ CONFIGURATION ISSUE</h3>Only found ${foundCount}/6 new models</div>`;
+                }
+
+                results.innerHTML = html_result;
+
+            } catch (error) {
+                loading.style.display = 'none';
+                results.innerHTML = `<div class="status error">❌ Error: ${error.message}<br><br>Make sure the dev server is running on port 3000</div>`;
+            }
+        }
+
+        async function testSingleModel() {
+            const results = document.getElementById('results');
+            const loading = document.getElementById('loading');
+            results.innerHTML = '';
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('http://localhost:3000/developer/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    },
+                    body: JSON.stringify({
+                        messages: [{ role: 'user', content: 'Say OK' }],
+                        selectedChatModel: 'gemini-2.5-pro'
+                    })
+                });
+
+                loading.style.display = 'none';
+
+                if (response.ok) {
+                    results.innerHTML = '<div class="status success">✅ Gemini 2.5 Pro is working!</div>';
+                } else {
+                    const error = await response.text();
+                    results.innerHTML = `<div class="status error">❌ Error (HTTP ${response.status}): ${error.substring(0, 200)}</div>`;
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                results.innerHTML = `<div class="status error">❌ Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+
+</html>

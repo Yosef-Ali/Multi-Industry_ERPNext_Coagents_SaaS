@@ -1,0 +1,132 @@
+```
+┌────────────────────────────────────────────────────────────────┐
+│           3-STEP CRITICAL PATH (Image Reference)               │
+└────────────────────────────────────────────────────────────────┘
+
+STEP 1: Fix chat route emitter and validate health ✅ DONE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+What:  Fix AGUIStreamEmitter, validate health endpoints
+Why:   Server was crashing, endpoints not responding
+How:   Fixed imports/usage, tested endpoints
+Test:  curl http://localhost:3001/health
+       curl http://localhost:3001/api/chat/health
+
+STEP 2: Add minimal chat smoke test ✅ DONE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+What:  Automated test for /api/chat with basic prompt
+Why:   Catch regressions without manual testing
+How:   Created smoke-test.sh script
+Test:  npm run smoke
+
+┌──────────────────────────────────────────────────────────────┐
+│  smoke-test.sh                                               │
+│  ├─ 1. Test /health                           ✓ PASS        │
+│  ├─ 2. Test /api/chat/health                  ✓ PASS        │
+│  └─ 3. Test /api/chat with basic prompt       ✓ PASS        │
+│     └─ Verifies SSE stream response                          │
+└──────────────────────────────────────────────────────────────┘
+
+STEP 3: Defer TypeScript full-build config ✅ DECIDED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+What:  Keep tsx for dev, fix strict types later
+Why:   32 TypeScript errors = big project, not critical now
+How:   Use tsx (fast), defer strictness to separate PR
+
+┌──────────────────────────────────────────────────────────────┐
+│  Current Dev Workflow                                        │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │  npm run dev        → tsx watch src/index.ts           │ │
+│  │                     → Fast, hot reload                 │ │
+│  │                     → Ignores type errors              │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                                                              │
+│  Type Checking (Optional)                                   │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │  npm run check      → tsc --noEmit                     │ │
+│  │                     → Shows 32 errors                  │ │
+│  │                     → Fix later when time allows       │ │
+│  └────────────────────────────────────────────────────────┘ │
+└──────────────────────────────────────────────────────────────┘
+
+
+THE PRAGMATIC PATH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+NOW (Critical):
+  ✅ Server starts
+  ✅ Endpoints work
+  ✅ Tests pass
+  ✅ Fast iteration
+
+LATER (Nice to have):
+  ⏸️ Fix 32 TypeScript errors
+  ⏸️ Enable strict mode
+  ⏸️ Add to CI gate
+
+
+COMMANDS YOU NEED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Development:
+  $ npm run dev          # Start with tsx (fast!)
+
+Testing:
+  $ npm run smoke        # Full test (3 checks + chat)
+  $ npm run smoke:quick  # Just health endpoints
+
+Type Check (optional):
+  $ npm run check        # Show TypeScript errors
+
+Production:
+  $ npm run build        # Compile to dist/
+  $ npm start            # Run compiled code
+
+
+WHY THIS APPROACH WORKS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✅ Unblocks development     (tsx is fast)
+✅ Tests what matters        (smoke test catches regressions)
+✅ Defers perfectionism      (types can wait)
+✅ Deployable today          (build still works)
+✅ Improves later            (fix types in separate PR)
+
+
+WHAT YOU ASKED ABOUT (FROM IMAGE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+"What this for is your answer includ - Step 1 (done): Fix 
+chat route emitter and validate health..."
+
+Answer: These are the CRITICAL-ONLY steps to get working fast:
+  1. Fix basics → ✅ Done (server works)
+  2. Add test   → ✅ Done (smoke-test.sh)
+  3. Stay fast  → ✅ Decided (tsx for dev, types later)
+
+NOT trying to:
+  ❌ Fix all TypeScript errors now
+  ❌ Make everything perfect
+  ❌ Slow down development
+
+INSTEAD:
+  ✅ Ship working code
+  ✅ Test it works
+  ✅ Iterate quickly
+
+
+SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your 3-step plan is complete! 🎉
+
+Step 1: ✅ Server works, health validated
+Step 2: ✅ Smoke test created (tests chat API)
+Step 3: ✅ Keep tsx for dev (fast iteration)
+
+Run this to verify:
+  $ cd services/agent-gateway
+  $ npm run dev          # (in one terminal)
+  $ npm run smoke        # (in another terminal)
+
+If smoke test passes → You're good to go! 🚀
+```

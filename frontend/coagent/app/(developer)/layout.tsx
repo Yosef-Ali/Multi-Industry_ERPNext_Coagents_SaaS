@@ -10,6 +10,7 @@ import { DocTypePreview } from '@/components/preview/doctype-preview';
 import { WorkflowPreview } from '@/components/preview/workflow-preview';
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { useArtifactStore } from '@/lib/store/artifact-store';
+import type { DocTypeArtifact, WorkflowArtifact } from '@/lib/types/artifact';
 
 export default function DeveloperLayout({ children }: { children: React.ReactNode }) {
 	const [leftWidth, setLeftWidth] = useState(40); // 40% chat, 60% preview
@@ -72,6 +73,8 @@ export default function DeveloperLayout({ children }: { children: React.ReactNod
 				{/* Resize Handle */}
 				<div
 					role="separator"
+					aria-orientation="vertical"
+					tabIndex={0}
 					className="w-1 bg-border hover:bg-primary/50 cursor-col-resize transition-colors relative group"
 					onMouseDown={handleMouseDown}
 				>
@@ -88,10 +91,10 @@ export default function DeveloperLayout({ children }: { children: React.ReactNod
 						{previewArtifact ? (
 							<>
 								{previewArtifact.type === 'doctype' && (
-									<DocTypePreview artifact={previewArtifact as any} />
+									<DocTypePreview artifact={previewArtifact as DocTypeArtifact} />
 								)}
 								{previewArtifact.type === 'workflow' && (
-									<WorkflowPreview artifact={previewArtifact as any} />
+									<WorkflowPreview artifact={previewArtifact as WorkflowArtifact} />
 								)}
 								{(previewArtifact.type === 'code' ||
 									previewArtifact.type === 'page' ||

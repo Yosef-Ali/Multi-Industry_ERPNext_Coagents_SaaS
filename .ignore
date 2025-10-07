@@ -1,0 +1,33 @@
+# Ignore file for faster searches and operations
+# Prevents VSCode/tools from scanning unnecessary directories
+
+# Build outputs
+.next/
+.turbo/
+dist/
+build/
+out/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# Cache
+.cache/
+.eslintcache
+.prettiercache
+*.tsbuildinfo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

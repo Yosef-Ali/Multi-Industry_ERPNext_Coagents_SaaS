@@ -7,23 +7,32 @@ import { SidebarLeftIcon } from './icons';
 import { Button } from './ui/button';
 
 export function SidebarToggle({ className }: ComponentProps<typeof SidebarTrigger>) {
-	const { toggleSidebar } = useSidebar();
+    const { toggleSidebar } = useSidebar();
 
-	return (
-		<Tooltip>
-			<TooltipTrigger asChild>
-				<Button
-					className={cn('h-8 px-2 md:h-fit md:px-2', className)}
-					data-testid="sidebar-toggle-button"
-					onClick={toggleSidebar}
-					variant="outline"
-				>
-					<SidebarLeftIcon size={16} />
-				</Button>
-			</TooltipTrigger>
-			<TooltipContent align="start" className="hidden md:block">
-				Toggle Sidebar
-			</TooltipContent>
-		</Tooltip>
-	);
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <Button
+                    className={cn('h-8 px-2 md:h-fit md:px-2', className)}
+                    data-testid="sidebar-toggle-button"
+                    onClick={() => {
+                        try {
+                            toggleSidebar();
+                        } finally {
+                            // Notify listeners (e.g., AppSidebar) to refresh
+                            if (typeof window !== 'undefined') {
+                                window.dispatchEvent(new CustomEvent('sidebar:toggle'));
+                            }
+                        }
+                    }}
+                    variant="outline"
+                >
+                    <SidebarLeftIcon size={16} />
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent align="start" className="hidden md:block">
+                Toggle Sidebar
+            </TooltipContent>
+        </Tooltip>
+    );
 }

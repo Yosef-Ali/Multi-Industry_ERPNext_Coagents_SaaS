@@ -81,12 +81,19 @@ type StreamChunk =
 	| { id: string; type: 'text-start' }
 	| { id: string; type: 'text-delta'; delta: string }
 	| { id: string; type: 'text-end' }
-	| { type: 'finish'; finishReason: 'stop'; usage: { inputTokens: number; outputTokens: number; totalTokens: number } }
+	| {
+			type: 'finish';
+			finishReason: 'stop';
+			usage: { inputTokens: number; outputTokens: number; totalTokens: number };
+	  }
 	| { type: 'reasoning-start'; id: string }
 	| { type: 'reasoning-delta'; id: string; delta: string }
 	| { type: 'reasoning-end'; id: string };
 
-export const getResponseChunksByPrompt = (prompt: unknown, includeReasoning = false): StreamChunk[] => {
+export const getResponseChunksByPrompt = (
+	prompt: unknown,
+	includeReasoning = false
+): StreamChunk[] => {
 	const extracted = toStringSafe(prompt);
 	const chunksText = chunkText(extracted);
 	const baseId = 'mock-response';
@@ -94,7 +101,11 @@ export const getResponseChunksByPrompt = (prompt: unknown, includeReasoning = fa
 
 	if (includeReasoning) {
 		streamChunks.push({ type: 'reasoning-start', id: `${baseId}-reasoning` });
-		streamChunks.push({ type: 'reasoning-delta', id: `${baseId}-reasoning`, delta: 'Analyzing request...' });
+		streamChunks.push({
+			type: 'reasoning-delta',
+			id: `${baseId}-reasoning`,
+			delta: 'Analyzing request...',
+		});
 		streamChunks.push({ type: 'reasoning-end', id: `${baseId}-reasoning` });
 	}
 

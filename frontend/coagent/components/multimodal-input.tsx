@@ -118,6 +118,17 @@ function PureMultimodalInput({
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [uploadQueue, setUploadQueue] = useState<string[]>([]);
 
+	const handleSuggestionSelect = useCallback(
+		(suggestion: string) => {
+			setInput(suggestion);
+			setLocalStorageInput(suggestion);
+			requestAnimationFrame(() => {
+				textareaRef.current?.focus();
+			});
+		},
+		[setInput, setLocalStorageInput]
+	);
+
 	const submitForm = useCallback(() => {
 		persistChatIdInUrl(chatId);
 
@@ -226,8 +237,8 @@ function PureMultimodalInput({
 			{messages.length === 0 && attachments.length === 0 && uploadQueue.length === 0 && (
 				<SuggestedActions
 					chatId={chatId}
+					onSelect={handleSuggestionSelect}
 					selectedVisibilityType={selectedVisibilityType}
-					sendMessage={sendMessage}
 				/>
 			)}
 

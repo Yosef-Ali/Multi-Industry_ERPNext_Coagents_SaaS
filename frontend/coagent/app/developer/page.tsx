@@ -1,42 +1,49 @@
-'use client';
-
 import { CopilotKit } from '@copilotkit/react-core';
-import { useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { cookies } from 'next/headers';
 import { AppSidebar } from '@/components/app-sidebar';
-import { Chat } from '@/components/chat';
-import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DataStreamProvider } from '@/components/data-stream-provider';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
-import { generateUUID, persistChatIdInUrl } from '@/lib/utils';
+import { generateUUID } from '@/lib/utils';
+import { DeveloperChatWithArtifacts } from '@/components/developer/developer-chat-with-artifacts';
 
-export default function Page() {
-	const searchParams = useSearchParams();
-	const existingChatId = searchParams.get('chatId');
-	const [id] = useState(() => existingChatId ?? generateUUID());
+export default async function Page({
+	searchParams,
+}: {
+	searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+	const params = await searchParams;
+	const existingChatId = params.chatId as string | undefined;
+	const id = existingChatId ?? generateUUID();
 
-	useEffect(() => {
-		persistChatIdInUrl(id);
-	}, [id]);
+	// Get saved model from cookie
+	const cookieStore = await cookies();
+	const savedModel = cookieStore.get('chat-model')?.value || DEFAULT_CHAT_MODEL;
+
+	// Skip authentication for development - use guest mode
+	const guestUser = {
+		id: 'guest',
+		email: 'guest@erpnext.local',
+		name: 'Guest User',
+		type: 'guest' as const,
+	};
 
 	return (
 		<CopilotKit runtimeUrl="/api/copilot/developer">
 			<DataStreamProvider>
 				<SidebarProvider defaultOpen={true}>
-					<AppSidebar user={null} />
+					<AppSidebar user={guestUser} />
 					<SidebarInset>
-						<Chat
+						<DeveloperChatWithArtifacts
 							autoResume={false}
 							id={id}
-							initialChatModel={DEFAULT_CHAT_MODEL}
+							initialChatModel={savedModel}
 							initialMessages={[]}
 							initialVisibilityType="private"
 							isReadonly={false}
 						/>
 					</SidebarInset>
 				</SidebarProvider>
-				<DataStreamHandler />
 			</DataStreamProvider>
 		</CopilotKit>
 	);

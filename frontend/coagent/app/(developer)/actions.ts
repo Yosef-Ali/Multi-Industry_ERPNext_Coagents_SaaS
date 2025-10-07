@@ -1,9 +1,8 @@
 'use server';
 
-import { generateText, type UIMessage } from 'ai';
+import { type UIMessage } from 'ai';
 import { cookies } from 'next/headers';
 import type { VisibilityType } from '@/components/visibility-selector';
-import { myProvider } from '@/lib/ai/providers';
 import {
 	deleteMessagesByChatIdAfterTimestamp,
 	getMessageById,
@@ -15,18 +14,25 @@ export async function saveChatModelAsCookie(model: string) {
 	cookieStore.set('chat-model', model);
 }
 
-export async function generateTitleFromUserMessage({ message }: { message: UIMessage }) {
-	const { text: title } = await generateText({
-		model: myProvider.languageModel('title-model'),
-		system: `\n
-    - you will generate a short title based on the first message a user begins a conversation with
-    - ensure it is not more than 80 characters long
-    - the title should be a summary of the user's message
-    - do not use quotes or colons`,
-		prompt: JSON.stringify(message),
-	});
+export async function getChatModelFromCookie(): Promise<string | undefined> {
+	const cookieStore = await cookies();
+	return cookieStore.get('chat-model')?.value;
+}
 
-	return title;
+export async function generateTitleFromUserMessage({ message }: { message: UIMessage }) {
+	const textContent = message.parts
+		.filter((part) => part.type === 'text')
+		.map((part) => part.text.trim())
+		.join(' ')
+		.trim();
+
+	if (!textContent) {
+		return 'New chat';
+	}
+
+	const words = textContent.split(/\s+/);
+	const truncated = words.slice(0, 6).join(' ');
+	return words.length > 6 ? `${truncated}…` : truncated;
 }
 
 export async function deleteTrailingMessages({ id }: { id: string }) {

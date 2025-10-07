@@ -1,8 +1,8 @@
 'use client';
 
-import { Table2, BarChart3, CheckCircle2, Download } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { BarChart3, CheckCircle2, Download, Table2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface SampleData {
 	columns: string[];

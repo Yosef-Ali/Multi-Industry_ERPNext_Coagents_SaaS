@@ -1,8 +1,8 @@
 'use client';
 
-import { Code2, CheckCircle2, AlertTriangle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle, CheckCircle2, Code2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface DiffLine {
 	type: 'added' | 'removed' | 'unchanged';
@@ -23,7 +23,12 @@ interface FileDiff {
 interface DiffViewerProps {
 	files: FileDiff[];
 	approved?: boolean;
-	lintIssues?: Array<{ file: string; line: number; message: string; severity: 'error' | 'warning' }>;
+	lintIssues?: Array<{
+		file: string;
+		line: number;
+		message: string;
+		severity: 'error' | 'warning';
+	}>;
 	onApprove?: () => void;
 	onReject?: () => void;
 }
@@ -111,8 +116,8 @@ export function DiffViewer({ files, approved, lintIssues, onApprove, onReject }:
 										line.type === 'added'
 											? 'bg-green-50'
 											: line.type === 'removed'
-											? 'bg-red-50'
-											: 'bg-white'
+												? 'bg-red-50'
+												: 'bg-white'
 									}`}
 								>
 									<span
@@ -120,8 +125,8 @@ export function DiffViewer({ files, approved, lintIssues, onApprove, onReject }:
 											line.type === 'added'
 												? 'bg-green-100 text-green-700 border-green-200'
 												: line.type === 'removed'
-												? 'bg-red-100 text-red-700 border-red-200'
-												: 'bg-gray-50 text-gray-500 border-gray-200'
+													? 'bg-red-100 text-red-700 border-red-200'
+													: 'bg-gray-50 text-gray-500 border-gray-200'
 										}`}
 									>
 										{line.lineNumber}
@@ -131,8 +136,8 @@ export function DiffViewer({ files, approved, lintIssues, onApprove, onReject }:
 											line.type === 'added'
 												? 'text-green-800'
 												: line.type === 'removed'
-												? 'text-red-800'
-												: 'text-gray-700'
+													? 'text-red-800'
+													: 'text-gray-700'
 										}`}
 									>
 										{line.type === 'added' && '+ '}

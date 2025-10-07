@@ -10,14 +10,15 @@ import { useDataStream } from './data-stream-provider';
 import { DocumentToolResult } from './document';
 import { DocumentPreview } from './document-preview';
 import { MessageContent } from './elements/message';
-import { Response } from './elements/response';
+import { RichResponse } from './elements/rich-response';
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from './elements/tool';
 import { SparklesIcon } from './icons';
-import { MessageActions } from './message-actions';
+import { MessageActions } from '@/components/developer/message-actions';
 import { MessageEditor } from './message-editor';
 import { MessageReasoning } from './message-reasoning';
 import { PreviewAttachment } from './preview-attachment';
 import { Weather } from './weather';
+import { ToolCallCard, type ToolCallData } from './tool-call-card';
 
 const PurePreviewMessage = ({
 	chatId,
@@ -103,17 +104,17 @@ const PurePreviewMessage = ({
 							if (mode === 'view') {
 								return (
 									<div key={key}>
-										<MessageContent
-											className={cn({
-												'w-fit break-words rounded-2xl px-3 py-2 text-right text-white':
-													message.role === 'user',
-												'bg-transparent px-0 py-0 text-left': message.role === 'assistant',
-											})}
-											data-testid="message-content"
-											style={message.role === 'user' ? { backgroundColor: '#006cff' } : undefined}
-										>
-											<Response>{sanitizeText(part.text)}</Response>
-										</MessageContent>
+                            <MessageContent
+                                className={cn({
+                                    'w-fit break-words rounded-2xl px-3 py-2 text-right text-white':
+                                        message.role === 'user',
+                                    'bg-transparent px-0 py-0 text-left': message.role === 'assistant',
+                                })}
+                                data-testid="message-content"
+                                style={message.role === 'user' ? { backgroundColor: '#006cff' } : undefined}
+                            >
+                                <RichResponse text={sanitizeText(part.text)} />
+                            </MessageContent>
 									</div>
 								);
 							}
@@ -233,13 +234,46 @@ const PurePreviewMessage = ({
 						return null;
 					})}
 
+					{/* Generic Tool Call Handler for Agent SDK tools */}
+					{message.parts?.map((part, index) => {
+						const { type } = part;
+						const key = `generic-tool-${message.id}-part-${index}`;
+
+						// Only handle tool calls that weren't caught by specific handlers
+						if (type.startsWith('tool-') &&
+						    !['tool-getWeather', 'tool-createDocument', 'tool-updateDocument', 'tool-requestSuggestions'].includes(type)) {
+
+							// Extract tool name from type (e.g., 'tool-getInvoice' -> 'getInvoice')
+							const toolName = type.replace(/^tool-/, '');
+							const toolCallId = (part as any).toolCallId || `tool-${index}`;
+
+							// Prepare tool call data
+							const toolCallData: ToolCallData = {
+								id: toolCallId,
+								name: toolName,
+								input: (part as any).input,
+								output: (part as any).output,
+								error: (part as any).error,
+								status: (part as any).state === 'output-available'
+									? ((part as any).error ? 'error' : 'success')
+									: 'pending',
+							};
+
+							return <ToolCallCard key={key} toolCall={toolCallData} />;
+						}
+
+						return null;
+					})}
+
 					{!isReadonly && (
 						<MessageActions
 							chatId={chatId}
 							isLoading={isLoading}
 							key={`action-${message.id}`}
 							message={message}
+							regenerate={regenerate}
 							setMode={setMode}
+							setMessages={setMessages}
 							vote={vote}
 						/>
 					)}

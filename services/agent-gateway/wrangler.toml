@@ -45,7 +45,7 @@ binding = "AI"
 # - OPENROUTER_BASE_URL (optional)
 # - ERPNEXT_API_KEY
 # - ERPNEXT_API_SECRET
-# - ERPNEXT_BASE_URL
+# - ERPNEXT_API_URL
 # - AI_PROVIDER (optional: 'openrouter' | 'cloudflare' | 'auto', default: 'auto')
 # - CLOUDFLARE_MODEL (optional, default: '@cf/meta/llama-3.1-8b-instruct')
 # - PREFER_FREE_TIER (optional: 'true' | 'false', default: 'false')

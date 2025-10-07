@@ -3,7 +3,6 @@
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import { motion } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
-import type { User } from 'next-auth';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import useSWRInfinite from 'swr/infinite';
@@ -94,7 +93,7 @@ export function getChatHistoryPaginationKey(pageIndex: number, previousPageData:
 	return `/api/history?ending_before=${firstChatFromPage.id}&limit=${PAGE_SIZE}`;
 }
 
-export function SidebarHistory({ user }: { user: User | undefined }) {
+export function SidebarHistory() {
 	const { setOpenMobile } = useSidebar();
 	const { id } = useParams();
 
@@ -148,18 +147,6 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 			router.push('/');
 		}
 	};
-
-	if (!user) {
-		return (
-			<SidebarGroup>
-				<SidebarGroupContent>
-					<div className="flex w-full flex-row items-center justify-center gap-2 px-2 text-sm text-zinc-500">
-						Login to save and revisit previous chats!
-					</div>
-				</SidebarGroupContent>
-			</SidebarGroup>
-		);
-	}
 
 	if (isLoading) {
 		return (

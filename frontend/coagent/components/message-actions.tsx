@@ -3,10 +3,12 @@ import { memo } from 'react';
 import { toast } from 'sonner';
 import { useSWRConfig } from 'swr';
 import { useCopyToClipboard } from 'usehooks-ts';
+import type { UseChatHelpers } from '@ai-sdk/react';
 import type { Vote } from '@/lib/db/schema';
 import type { ChatMessage } from '@/lib/types';
 import { Action, Actions } from './elements/actions';
-import { CopyIcon, PencilEditIcon, ThumbDownIcon, ThumbUpIcon } from './icons';
+import { CopyIcon, PencilEditIcon, RedoIcon, ThumbDownIcon, ThumbUpIcon } from './icons';
+import { Trash } from 'lucide-react';
 
 export function PureMessageActions({
 	chatId,
@@ -14,12 +16,16 @@ export function PureMessageActions({
 	vote,
 	isLoading,
 	setMode,
+	regenerate,
+	setMessages,
 }: {
 	chatId: string;
 	message: ChatMessage;
 	vote: Vote | undefined;
 	isLoading: boolean;
 	setMode?: (mode: 'view' | 'edit') => void;
+	regenerate?: UseChatHelpers<ChatMessage>['regenerate'];
+	setMessages?: UseChatHelpers<ChatMessage>['setMessages'];
 }) {
 	const { mutate } = useSWRConfig();
 	const [_, copyToClipboard] = useCopyToClipboard();
@@ -44,22 +50,48 @@ export function PureMessageActions({
 		toast.success('Copied to clipboard!');
 	};
 
-	// User messages get edit (on hover) and copy actions
+	const handleDeleteFromHere = () => {
+		if (!setMessages) return;
+		setMessages((messages) => {
+			const index = messages.findIndex((m) => m.id === message.id);
+			if (index === -1) return messages;
+			// Remove this message and all that follow
+			return messages.slice(0, index);
+		});
+		toast.success('Deleted message and following messages');
+	};
+
+	// User messages get edit (on hover), re-run, and copy actions
 	if (message.role === 'user') {
 		return (
 			<Actions className="-mr-0.5 justify-end">
-				<div className="relative">
+				<div className="relative flex gap-0.5">
 					{setMode && (
 						<Action
-							className="-left-10 absolute top-0 opacity-0 transition-opacity group-hover/message:opacity-100"
+							className="-left-[4.5rem] absolute top-0 opacity-0 transition-opacity group-hover/message:opacity-100"
 							onClick={() => setMode('edit')}
 							tooltip="Edit"
 						>
 							<PencilEditIcon />
 						</Action>
 					)}
+					{regenerate && (
+						<Action
+							className="-left-9 absolute top-0 opacity-0 transition-opacity group-hover/message:opacity-100"
+							onClick={() => {
+								regenerate();
+								toast.success('Re-running prompt...');
+							}}
+							tooltip="Re-run prompt"
+						>
+							<RedoIcon />
+						</Action>
+					)}
 					<Action onClick={handleCopy} tooltip="Copy">
 						<CopyIcon />
+					</Action>
+					<Action onClick={handleDeleteFromHere} tooltip="Delete from here">
+						<Trash className="h-4 w-4" />
 					</Action>
 				</div>
 			</Actions>
@@ -70,6 +102,10 @@ export function PureMessageActions({
 		<Actions className="-ml-0.5">
 			<Action onClick={handleCopy} tooltip="Copy">
 				<CopyIcon />
+			</Action>
+
+			<Action onClick={handleDeleteFromHere} tooltip="Delete from here">
+				<Trash className="h-4 w-4" />
 			</Action>
 
 			<Action

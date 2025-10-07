@@ -22,12 +22,12 @@ const ERPNEXT_API_SECRET = process.env.ERPNEXT_API_SECRET || '';
  */
 export async function POST(req: NextRequest) {
 	// Get environment variables
-	let env: any = process.env;
+	let env: Record<string, string | undefined> = process.env;
 	try {
 		const { getCloudflareContext } = await import('@opennextjs/cloudflare');
 		const cfContext = getCloudflareContext();
 		if (cfContext?.env) {
-			env = cfContext.env;
+			env = cfContext.env as Record<string, string | undefined>;
 		}
 	} catch (_e) {
 		// Running in Node.js

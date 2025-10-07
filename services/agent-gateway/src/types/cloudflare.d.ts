@@ -80,7 +80,7 @@ export interface CloudflareEnv {
     OPENROUTER_BASE_URL?: string;
     ERPNEXT_API_KEY?: string;
     ERPNEXT_API_SECRET?: string;
-    ERPNEXT_BASE_URL?: string;
+    ERPNEXT_API_URL?: string;
     AI_PROVIDER?: 'openrouter' | 'cloudflare' | 'auto';
     CLOUDFLARE_MODEL?: string;
     PREFER_FREE_TIER?: string;

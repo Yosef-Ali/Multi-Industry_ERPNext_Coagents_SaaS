@@ -39,15 +39,15 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
 
 		if (streamPart.type === 'data-textDelta') {
 			setArtifact((draftArtifact) => {
+				const updatedContent = draftArtifact.content + streamPart.data;
+				const shouldOpen =
+					draftArtifact.isVisible ||
+					(updatedContent.replace(/\s+/g, '').length >= 80 && draftArtifact.documentId !== 'init');
+
 				return {
 					...draftArtifact,
-					content: draftArtifact.content + streamPart.data,
-					isVisible:
-						draftArtifact.status === 'streaming' &&
-						draftArtifact.content.length > 400 &&
-						draftArtifact.content.length < 450
-							? true
-							: draftArtifact.isVisible,
+					content: updatedContent,
+					isVisible: shouldOpen,
 					status: 'streaming',
 				};
 			});

@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { SessionProvider } from 'next-auth/react';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/theme-provider';
 
@@ -10,6 +9,12 @@ export const metadata: Metadata = {
 	metadataBase: new URL('https://erpnext-coagent.vercel.app'),
 	title: 'ERPNext CoAgent',
 	description: 'Enterprise-grade ERPNext co-agent experience with v0-style developer tooling.',
+	icons: {
+		icon: [
+			{ url: '/favicon.svg', type: 'image/svg+xml' },
+			{ url: '/favicon.ico' },
+		],
+	},
 };
 
 export const viewport = {
@@ -70,7 +75,7 @@ export default function RootLayout({
 					enableSystem
 				>
 					<Toaster position="top-center" />
-					<SessionProvider>{children}</SessionProvider>
+					{children}
 				</ThemeProvider>
 			</body>
 		</html>

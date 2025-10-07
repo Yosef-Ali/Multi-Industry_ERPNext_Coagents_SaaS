@@ -1,9 +1,37 @@
+# Build outputs
 .vercel
 .next
 .open-next
-node_modules
 dist
 build
-coverage
-.turbo
 out
+.turbo
+
+# Dependencies
+node_modules
+
+# Testing
+coverage
+.nyc_output
+
+# Cache
+.eslintcache
+.prettiercache
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs
+
+# IDE
+.vscode
+.idea

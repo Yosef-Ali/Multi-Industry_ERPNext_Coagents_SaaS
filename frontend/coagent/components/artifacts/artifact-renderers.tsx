@@ -1,9 +1,9 @@
 'use client';
 
-import { SpecViewer } from './spec-viewer';
 import { DiffViewer } from './diff-viewer';
-import { SchemaPlanViewer } from './schema-plan-viewer';
 import { SampleOutputViewer } from './sample-output-viewer';
+import { SchemaPlanViewer } from './schema-plan-viewer';
+import { SpecViewer } from './spec-viewer';
 
 interface ArtifactRendererProps {
 	type: 'spec' | 'diff' | 'schema_plan' | 'sample_output' | 'unknown';
@@ -16,13 +16,29 @@ interface ArtifactRendererProps {
 /**
  * Universal artifact renderer - routes to specific viewer based on type
  */
-export function ArtifactRenderer({ type, data, approved, onApprove, onReject }: ArtifactRendererProps) {
+export function ArtifactRenderer({
+	type,
+	data,
+	approved,
+	onApprove,
+	onReject,
+}: ArtifactRendererProps) {
 	switch (type) {
 		case 'spec':
-			return <SpecViewer spec={data} approved={approved} onApprove={onApprove} onReject={onReject} />;
+			return (
+				<SpecViewer spec={data} approved={approved} onApprove={onApprove} onReject={onReject} />
+			);
 
 		case 'diff':
-			return <DiffViewer files={data.files} lintIssues={data.lintIssues} approved={approved} onApprove={onApprove} onReject={onReject} />;
+			return (
+				<DiffViewer
+					files={data.files}
+					lintIssues={data.lintIssues}
+					approved={approved}
+					onApprove={onApprove}
+					onReject={onReject}
+				/>
+			);
 
 		case 'schema_plan':
 			return (
@@ -51,7 +67,9 @@ export function ArtifactRenderer({ type, data, approved, onApprove, onReject }: 
 			// Fallback for unknown types - show raw JSON
 			return (
 				<div className="bg-gray-50 border rounded p-4">
-					<div className="text-sm font-semibold text-gray-700 mb-2">Unknown Artifact Type: {type}</div>
+					<div className="text-sm font-semibold text-gray-700 mb-2">
+						Unknown Artifact Type: {type}
+					</div>
 					<pre className="text-xs text-gray-600 overflow-auto max-h-60">
 						{JSON.stringify(data, null, 2)}
 					</pre>

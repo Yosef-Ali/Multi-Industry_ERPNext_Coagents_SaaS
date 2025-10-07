@@ -3,20 +3,35 @@
 import { PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import type { AppUser } from '@/lib/session';
 import { Button } from '@/components/ui/button';
 import {
-	Sidebar,
-	SidebarContent,
-	SidebarFooter,
-	SidebarHeader,
-	SidebarMenu,
-	useSidebar,
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useEffect } from 'react';
+import { SidebarHistory } from '@/components/sidebar-history';
 
-export function AppSidebar({ user }: { user: any }) {
-	const router = useRouter();
-	const { setOpenMobile } = useSidebar();
+export function AppSidebar({ user }: { user: AppUser | null }) {
+    const router = useRouter();
+    const { setOpenMobile } = useSidebar();
+    const refresh = () => {
+        // SidebarHistory uses SWR under the hood; trigger a soft refresh by navigating
+        router.refresh();
+    };
+
+    useEffect(() => {
+        const handler = () => {
+            refresh();
+        };
+        window.addEventListener('sidebar:toggle', handler);
+        return () => window.removeEventListener('sidebar:toggle', handler);
+    }, [refresh]);
 
 	return (
 		<Sidebar className="group-data-[side=left]:border-r-0">
@@ -56,14 +71,12 @@ export function AppSidebar({ user }: { user: any }) {
 					</div>
 				</SidebarMenu>
 			</SidebarHeader>
-			<SidebarContent>
-				<div className="flex w-full flex-row items-center justify-center gap-2 px-2 py-4 text-sm text-zinc-500">
-					Your conversations will appear here once you start chatting!
-				</div>
-			</SidebarContent>
+            <SidebarContent>
+                <SidebarHistory />
+            </SidebarContent>
 			<SidebarFooter>
 				<div className="px-2 py-2 text-xs text-muted-foreground">
-					{user ? `Signed in as ${user.email}` : 'Guest user'}
+					{user?.email ? `Signed in as ${user.email}` : 'Guest user'}
 				</div>
 			</SidebarFooter>
 		</Sidebar>

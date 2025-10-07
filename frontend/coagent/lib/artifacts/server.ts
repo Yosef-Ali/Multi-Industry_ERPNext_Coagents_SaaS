@@ -1,11 +1,11 @@
 import type { UIMessageStreamWriter } from 'ai';
-import type { Session } from 'next-auth';
 import { codeDocumentHandler } from '@/artifacts/code/server';
 import { sheetDocumentHandler } from '@/artifacts/sheet/server';
 import { textDocumentHandler } from '@/artifacts/text/server';
 import type { ArtifactKind } from '@/components/artifact';
 import { saveDocument } from '../db/queries';
 import type { Document } from '../db/schema';
+import type { AppSession } from '../session';
 import type { ChatMessage } from '../types';
 
 export type SaveDocumentProps = {
@@ -20,14 +20,14 @@ export type CreateDocumentCallbackProps = {
 	id: string;
 	title: string;
 	dataStream: UIMessageStreamWriter<ChatMessage>;
-	session: Session;
+	session: AppSession;
 };
 
 export type UpdateDocumentCallbackProps = {
 	document: Document;
 	description: string;
 	dataStream: UIMessageStreamWriter<ChatMessage>;
-	session: Session;
+	session: AppSession;
 };
 
 export type DocumentHandler<T = ArtifactKind> = {

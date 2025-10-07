@@ -4,10 +4,10 @@
  */
 
 import { ChatSDKError } from '@/lib/errors';
+import { generateVariants } from '@/lib/generation/variant-generator';
+import type { Artifact } from '@/lib/types/artifact';
 import { generateUUID } from '@/lib/utils';
 import { type PostRequestBody, postRequestBodySchema } from '../../chat/schema';
-import { analyzeRequirements, generateVariants } from '@/lib/generation/variant-generator';
-import type { Artifact } from '@/lib/types/artifact';
 
 export const maxDuration = 60;
 
@@ -48,7 +48,38 @@ async function handleVariantGeneration(userMessage: string) {
 					)
 				);
 
-				const context = await analyzeRequirements(userMessage);
+				// Simple heuristic analysis
+				const lowerMsg = userMessage.toLowerCase();
+				let primaryType: 'doctype' | 'workflow' | 'code' | 'page' | 'report' = 'doctype';
+
+				if (lowerMsg.includes('workflow') || lowerMsg.includes('approval')) {
+					primaryType = 'workflow';
+				} else if (lowerMsg.includes('report')) {
+					primaryType = 'report';
+				} else if (lowerMsg.includes('page')) {
+					primaryType = 'page';
+				} else if (lowerMsg.includes('script') || lowerMsg.includes('code')) {
+					primaryType = 'code';
+				}
+
+				// Extract industry
+				let industry: string | undefined;
+				const industries = ['healthcare', 'manufacturing', 'retail', 'finance', 'education'];
+				for (const ind of industries) {
+					if (lowerMsg.includes(ind)) {
+						industry = ind.charAt(0).toUpperCase() + ind.slice(1);
+						break;
+					}
+				}
+
+				const context = {
+					primaryType,
+					industry,
+					userPrompt: userMessage,
+					components: [],
+					workflows: [],
+					requirements: { functional: [userMessage], technical: [] },
+				};
 
 				controller.enqueue(
 					encoder.encode(
@@ -109,7 +140,8 @@ async function handleVariantGeneration(userMessage: string) {
 						`data: ${JSON.stringify({
 							type: 'text-delta',
 							id: messageId,
-							text: `✨ Generated 3 variants:\n\n` +
+							text:
+								`✨ Generated 3 variants:\n\n` +
 								`**${variants[0].title}**\n${variants[0].description}\n\n` +
 								`**${variants[1].title}**\n${variants[1].description}\n\n` +
 								`**${variants[2].title}**\n${variants[2].description}\n\n` +
@@ -128,9 +160,7 @@ async function handleVariantGeneration(userMessage: string) {
 					)
 				);
 
-				controller.enqueue(
-					encoder.encode(`data: ${JSON.stringify({ type: 'finish-step' })}\n\n`)
-				);
+				controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'finish-step' })}\n\n`));
 			} catch (error) {
 				console.error('[Variant Generation] Error:', error);
 				controller.enqueue(
@@ -190,7 +220,8 @@ export async function POST(request: Request) {
 			.join('\n');
 
 		// Detect if this is a variant generation request
-		const isVariantRequest = /create|generate|make|build|develop/i.test(userMessage) &&
+		const isVariantRequest =
+			/create|generate|make|build|develop/i.test(userMessage) &&
 			/doctype|workflow|report|page|form/i.test(userMessage);
 
 		// If it's a variant request, generate directly
@@ -289,7 +320,7 @@ export async function POST(request: Request) {
 											)
 										);
 									}
-								} catch (e) {
+								} catch (_e) {
 									// Skip invalid JSON
 								}
 							}

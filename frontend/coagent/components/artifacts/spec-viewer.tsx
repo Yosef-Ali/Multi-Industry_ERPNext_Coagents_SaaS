@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle2, FileText, AlertCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -128,7 +128,10 @@ export function SpecViewer({ spec, approved, onApprove, onReject }: SpecViewerPr
 						<h4 className="text-sm font-semibold mb-2 text-gray-700">Filters</h4>
 						<div className="space-y-1">
 							{spec.filters.map((filter, idx) => (
-								<div key={idx} className="flex items-center gap-2 text-sm bg-white p-2 rounded border">
+								<div
+									key={idx}
+									className="flex items-center gap-2 text-sm bg-white p-2 rounded border"
+								>
 									<span className="font-medium">{filter.field}</span>
 									<Badge variant="outline" className="text-xs">
 										{filter.type}

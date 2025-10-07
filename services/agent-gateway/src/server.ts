@@ -22,6 +22,10 @@ validateEnvironment();
 import healthRouter from './routes/health';
 import aguiRouter from './routes/agui';
 import monitoringRouter from './routes/monitoring';
+import modelsRouter from './routes/models';
+import chatRouter from './routes/chat';
+import toolsRouter from './routes/tools';
+import developerChatRouter from './routes/developer-chat';
 
 // Import middleware
 import { errorHandler } from './middleware/errorHandler';
@@ -97,6 +101,10 @@ app.use(correlationMiddleware);
 app.use('/health', healthRouter);
 app.use('/agui', aguiRouter);
 app.use('/monitoring', monitoringRouter);
+app.use('/api/models', modelsRouter);
+app.use('/api/chat', chatRouter);
+app.use('/api/tools', toolsRouter);
+app.use('/developer-chat', developerChatRouter);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -121,21 +129,7 @@ app.get('/', (req, res) => {
 app.use(errorHandler);
 
 // ============================================================================
-// Server Start
+// Export app for index.ts to start
 // ============================================================================
-
-if (require.main === module) {
-  // Log configuration (with secrets masked)
-  logConfiguration();
-
-  const port = parseInt(PORT.toString(), 10);
-  app.listen(port, HOST, () => {
-    console.log(`🚀 Agent Gateway running on http://${HOST}:${port}`);
-    console.log(`📊 Health check: http://${HOST}:${port}/health`);
-    console.log(`🤖 AG-UI endpoint: http://${HOST}:${port}/agui`);
-    console.log(`🔒 CORS allowed origins: ${allowedOrigins.join(', ')}`);
-    console.log(`⏱️  Rate limit: 10 req/sec per IP`);
-  });
-}
 
 export default app;

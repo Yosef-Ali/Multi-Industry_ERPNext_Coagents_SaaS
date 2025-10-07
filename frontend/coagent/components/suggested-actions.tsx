@@ -1,25 +1,23 @@
 'use client';
 
-import type { UseChatHelpers } from '@ai-sdk/react';
 import { motion } from 'framer-motion';
 import { memo } from 'react';
-import type { ChatMessage } from '@/lib/types';
 import { persistChatIdInUrl } from '@/lib/utils';
 import { Suggestion } from './elements/suggestion';
 import type { VisibilityType } from './visibility-selector';
 
 type SuggestedActionsProps = {
 	chatId: string;
-	sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
+	onSelect: (suggestion: string) => void;
 	selectedVisibilityType: VisibilityType;
 };
 
-function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
+function PureSuggestedActions({ chatId, onSelect }: SuggestedActionsProps) {
 	const suggestedActions = [
-		'What are the advantages of using Next.js?',
-		"Write code to demonstrate Dijkstra's algorithm",
-		'Help me write an essay about Silicon Valley',
-		'What is the weather in San Francisco?',
+		'Set up a DocType for Sales Order approvals with custom states and permissions.',
+		'Write a client script to block submission when an Item is out of stock.',
+		'Build a query report showing monthly revenue by customer territory.',
+		'Outline the steps to add a custom module to the ERPNext desk sidebar.',
 	];
 
 	return (
@@ -36,10 +34,7 @@ function PureSuggestedActions({ chatId, sendMessage }: SuggestedActionsProps) {
 						className="h-auto w-full whitespace-normal p-3 text-left"
 						onClick={(suggestion) => {
 							persistChatIdInUrl(chatId);
-							sendMessage({
-								role: 'user',
-								parts: [{ type: 'text', text: suggestion }],
-							});
+							onSelect(suggestion);
 						}}
 						suggestion={suggestedAction}
 					>

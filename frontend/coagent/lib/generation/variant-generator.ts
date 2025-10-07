@@ -530,6 +530,7 @@ function getAdvancedFields(): DocTypeField[] {
 		},
 		{
 			fieldname: 'column_break_1',
+			label: '',
 			fieldtype: 'Column Break',
 		},
 		{

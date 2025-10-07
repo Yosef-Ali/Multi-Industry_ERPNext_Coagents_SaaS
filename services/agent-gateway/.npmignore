@@ -1,0 +1,48 @@
+# Source files (only ship dist)
+src/
+*.ts
+!*.d.ts
+
+# Tests
+**/*.test.ts
+**/*.spec.ts
+__tests__/
+test/
+tests/
+
+# Development
+.env
+.env.*
+tsconfig.json
+tsconfig.*.json
+
+# Build artifacts
+*.tsbuildinfo
+.turbo
+
+# Documentation
+*.md
+!README.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.circleci/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Misc
+.DS_Store
+Thumbs.db
